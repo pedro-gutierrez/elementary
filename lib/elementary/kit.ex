@@ -1,0 +1,310 @@
+defmodule Elementary.Kit do
+  @moduledoc false
+
+  @doc """
+  Returns the home folrder, where all yamls are
+  """
+  def home(), do: System.get_env("ELEMENTARY_HOME", "/elementary")
+
+  @doc """
+  Discovers all yaml filenames in the home folder
+  """
+  def yamls() do
+    Path.wildcard(home() <> "/**/*.yml")
+  end
+
+  @doc """
+  Parse the given filename as yaml
+  """
+  def read_yaml(path) do
+    YamlElixir.read_from_file(path)
+  end
+
+  @doc """
+  Parse all yamls in the home folder
+  """
+  def read_yamls() do
+    yamls()
+    |> Enum.map(fn yaml ->
+      {:ok, content} = read_yaml(yaml)
+      content = Map.put(content, "source", yaml)
+      Map.put_new(content, "version", "1")
+    end)
+  end
+
+  @doc """
+  Start watching the home folder for file changes
+  """
+  def watch() do
+    {:ok, pid} = FileSystem.start_link(dirs: [home()])
+    FileSystem.subscribe(pid)
+    {:ok, pid}
+  end
+
+  @doc """
+  Returns all the modules in the given OTP app that implement
+  the given behaviour. Since we might be running in interactive mode,
+  we need to manually load modules before inspecting them, so
+  this function has necessary side effects
+  """
+  def behaviour_impls(app, behaviour) do
+    app_dir = Application.app_dir(app)
+
+    Path.wildcard(app_dir <> "/ebin/*.beam")
+    |> Enum.map(fn path ->
+      mod_name = Path.rootname(Path.basename(path))
+      mod = mod_name |> String.to_atom()
+      beam_file = String.to_charlist(app_dir <> "/ebin/" <> mod_name)
+      :code.purge(mod)
+      :code.load_abs(beam_file)
+      mod
+    end)
+    |> Enum.filter(fn mod ->
+      behaviour in (mod.module_info(:attributes)[:behaviour] || [])
+    end)
+  end
+
+  # Returns all the OTP apps that contain providers. This can be
+  # configured using the :provider_apps in the :elementary application. By
+  # default, we use the elementary application. The order of appearance
+  # defines the priority in which providers will be used
+  defp provider_apps, do: Application.get_env(:elementary, :provider_apps, [:elementary])
+
+  @doc """
+  Discovers all modules in the given apps, that implement
+  the Elementary.Provider behavior. Providers are used to parse
+  yaml specs and to compile them into Elixir code
+  """
+  def providers() do
+    provider_apps()
+    |> Enum.flat_map(fn app ->
+      behaviour_impls(app, Elementary.Provider)
+    end)
+    |> with_default_providers()
+  end
+
+  defp with_default_providers(providers) do
+    providers ++
+      [
+        Elementary.Lang.Default
+      ]
+  end
+
+  def providers_for_kind(providers, kind) do
+    providers
+    |> Enum.filter(fn p ->
+      Kernel.function_exported?(p, :kind, 0) && kind == p.kind()
+    end)
+  end
+
+  @doc """
+  Parse the given yaml, using the given providers. Only one provider
+  that supports the given kind will be used
+  """
+  def parse_spec(%{"kind" => kind} = yaml, providers) do
+    providers
+    |> providers_for_kind(kind)
+    |> parse_spec_using_providers(yaml, providers)
+  end
+
+  @doc """
+  Parse the given yaml, using the given providers. Since
+  we do not have any information about the kind, this function
+  will iterate all providers until there is one that returns a
+  valid parsed spec
+  """
+  def parse_spec(yaml, providers) do
+    parse_spec_using_providers(providers, yaml, providers)
+  end
+
+  def parse_spec_using_providers([], yaml, _) do
+    error(:no_parser, yaml)
+  end
+
+  def parse_spec_using_providers([p | rest], yaml, providers) do
+    case yaml |> p.parse(providers) do
+      {:error, %{reason: :not_supported}} ->
+        parse_spec_using_providers(rest, yaml, providers)
+
+      {:error, _} = e ->
+        e
+
+      {:ok, _} = r ->
+        r
+    end
+  end
+
+  def error(reason, data) do
+    {:error, %{reason: reason, data: data}}
+  end
+
+  def parse_specs([] = yamls, _) do
+    error(:no_yamls, yamls)
+  end
+
+  def parse_specs(yamls, providers) do
+    case Enum.reduce_while(yamls, [], fn yaml, specs ->
+           case yaml |> parse_spec(providers) do
+             {:ok, spec} ->
+               {:cont, [spec | specs]}
+
+             {:error, _} = e ->
+               {:halt, e}
+           end
+         end) do
+      {:error, _} = e ->
+        e
+
+      specs ->
+        {:ok, specs}
+    end
+  end
+
+  def sorted_specs(specs) do
+    specs
+      |> Enum.sort(fn s1, s2 ->
+        precedes(s1.rank, s2.rank)
+      end)
+  end
+
+  def precedes(:low, _), do: true
+  def precedes(:medium, :high), do: true
+  def precedes(_, _), do: false
+
+  @doc """
+  Compile the given spec using the given providers. All providers
+  supporting the given spec will be given a chance to produce
+  modules
+  """
+  def compile_specs(specs, providers) do
+    Code.compiler_options(ignore_module_conflict: true)
+
+    case specs
+         |> Enum.reduce_while([], fn spec, mods ->
+           case spec |> compile_spec(specs, providers) do
+             {:error, _} = e ->
+               {:halt, e}
+
+             {:ok, more_mods} ->
+               {:cont, more_mods ++ mods}
+           end
+         end) do
+      {:error, _} = e ->
+        e
+
+      mods ->
+        {:ok, mods}
+    end
+  end
+
+  def compile_spec(spec, specs, providers) do
+    providers
+    |> Enum.filter(fn p ->
+      spec.__struct__ == p.module()
+    end)
+    |> compile_spec_with_providers(spec, specs)
+  end
+
+  def compile_spec_with_providers([], spec, _) do
+    error(:no_compilers, spec)
+  end
+
+  def compile_spec_with_providers(providers, spec, specs) do
+    case providers
+         |> Enum.reduce_while([], fn p, mods ->
+           case spec |> p.compile(specs) |> compile_modules() do
+             {:error, _} = e ->
+               {:halt, e}
+
+             {:ok, more_mods} ->
+               {:cont, more_mods ++ mods}
+           end
+         end) do
+      {:error, _} = e ->
+        e
+
+      mods ->
+        Code.purge_compiler_modules()
+
+        {:ok, mods}
+    end
+  end
+
+  def compile_modules(sources) do
+    case sources
+         |> Enum.reduce_while([], fn src, mods ->
+           case src |> Code.compile_string() do
+             [{mod, _}] ->
+               {:cont, [mod | mods]}
+
+             other ->
+               {:halt, error(:compile_error, %{source: src, reason: other})}
+           end
+         end) do
+      {:error, _} = e ->
+        e
+
+      mods ->
+        {:ok, mods}
+    end
+  end
+
+  def asts(specs) do
+    specs
+      |> sorted_specs()
+      |> Enum.reduce_while([], fn spec, asts ->
+        more_asts =
+          spec
+          |> asts(asts)
+
+        {:cont, asts ++ more_asts}
+      end)
+  end
+
+  defp asts(spec, index) do
+    case spec.__struct__.ast(spec, index) do
+      asts when is_list(asts) ->
+        asts
+
+      {:module, _, _} = single ->
+        [single]
+    end
+  end
+
+
+  @doc """
+  Defines whether or not the given module can be added to a supervision
+  tree (Eg. ports)
+  """
+  def defines_child_spec?(mod) do
+    Kernel.function_exported?(mod, :child_spec, 1)
+  end
+
+  def supervised(mods) do
+    mods
+    |> Enum.filter(fn mod ->
+      Kernel.function_exported?(mod, :supervised, 0)
+        && mod.supervised()
+    end)
+  end
+
+  @doc """
+  Simple structured logging. For the moment we are inspecting into the console
+  but we should send to a central repo for consolidated logs
+  """
+  def log(kind, name, data) do
+    IO.inspect(%{
+      kind: kind,
+      name: name,
+      data: data,
+      time: DateTime.utc_now(),
+      node: Node.self()
+    })
+  end
+
+  def camelize(parts) do
+    parts
+    |> Enum.map(&String.capitalize(&1))
+    |> Enum.join("")
+  end
+end

@@ -1,0 +1,7 @@
+kind: port
+name: goodbye
+spec:
+  port: 8829
+  apps:
+    hello:
+      http: / 

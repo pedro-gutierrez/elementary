@@ -1,0 +1,23 @@
+kind: module
+name: goodbye
+spec:
+  init:
+    bar: baz
+  decoders:
+    port:
+      delete:
+        dict:
+          method: DELETE
+    store:
+      deleted:
+        dict:
+          status: ok
+          action: delete
+  update:
+    delete:
+      model:
+        deleted: "yes"
+      cmds:
+        - effect: response
+          encoder: not_allowed
+  encoders: {}

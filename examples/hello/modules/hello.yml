@@ -1,0 +1,29 @@
+kind: module
+name: hello
+spec:
+  init:
+    foo: foo
+  decoders:
+    port:
+      get:
+        dict:
+          method: GET
+    store:
+      not_found:
+        dict:
+          rows:
+            empty: list
+  update:
+    get:
+      model:
+        plap: plop
+      cmds:
+        response: hello
+        terminate: now
+  encoders:
+    hello:
+      status: 201
+      headers:
+        content-type: application/json
+      body:
+        msg: it works yeah
