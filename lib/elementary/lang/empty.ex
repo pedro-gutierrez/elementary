@@ -1,15 +1,16 @@
-defmodule Elementary.Lang.Default do
+defmodule Elementary.Lang.Empty do
   @moduledoc false
 
   use Elementary.Provider,
+    kind: "empty",
     module: __MODULE__
 
   alias Elementary.Kit
 
-  def parse(spec, providers) when is_map(spec) do
+  def parse(%{"empty" => "list"}, providers) do
     Kit.parse_spec(
       %{
-        "dict" => spec
+        "list" => "empty"
       },
       providers
     )

@@ -14,6 +14,7 @@ defmodule Elementary.Ast do
   def filter({:module, _, body}, {:fun, name}) do
     body
     |> Enum.filter(fn
+      {:fun, ^name, _, _, _} -> true
       {:fun, ^name, _, _} -> true
       {:fun, ^name, _} -> true
       _ -> false
@@ -52,6 +53,10 @@ defmodule Elementary.Ast do
   end
 
   def quoted({:fun, name, params, body}) do
+    quoted({:fun, name, params, [], body})
+  end
+
+  def quoted({:fun, name, params, [], body}) do
     {:def, @line,
      [
        {name |> symbol(), @line,
@@ -59,6 +64,28 @@ defmodule Elementary.Ast do
         |> Enum.map(&quoted_param(&1))},
        [do: quoted(body)]
      ]}
+  end
+
+  def quoted({:fun, name, params, guards, body}) do
+    {:def, @line,
+     [
+       {:when, @line,
+        [
+          {name |> symbol(), @line,
+           params
+           |> Enum.map(&quoted_param(&1))},
+          quoted_guards(guards)
+        ]},
+       [do: quoted(body)]
+     ]}
+  end
+
+  def quoted({:call, name, params}) do
+    {name, @line, params |> Enum.map(&quoted_param(&1))}
+  end
+
+  def quoted({:and, items}) do
+    {:and, @line, items |> quoted()}
   end
 
   def quoted({:fun, name, body}) do
@@ -91,12 +118,24 @@ defmodule Elementary.Ast do
   def quoted({:map, map}) do
     {:%{}, [],
      Enum.map(map, fn {k, v} ->
-       {k, quoted(v)}
+       {quoted(k), quoted(v)}
      end)}
+  end
+
+  def quoted({:list, items}) when is_list(items) do
+    items |> Enum.map(&quoted(&1))
+  end
+
+  def quoted({:tuple, items}) when is_list(items) do
+    {:{}, @line, items |> Enum.map(&quoted(&1))}
   end
 
   def quoted({:text, text}) do
     "#{text}"
+  end
+
+  def quoted({:number, num}) do
+    num
   end
 
   def quoted({:boolean, v}) do
@@ -132,15 +171,25 @@ defmodule Elementary.Ast do
     other
   end
 
-  def quoted_param({:text, value}) do
-    "#{value}"
-  end
-
   def quoted_param(var) when is_atom(var) do
     {var, @line, nil}
   end
 
+  def quoted_param(other) do
+    quoted(other)
+  end
+
+  def quoted_guards([single]) do
+    single |> quoted()
+  end
+
+  def quoted_guards(guards) do
+    {:and, @line, guards |> Enum.map(&quoted(&1))}
+  end
+
   def compiled(asts) when is_list(asts) do
+    Code.compiler_options(ignore_module_conflict: true)
+
     asts
     |> Enum.map(fn ast ->
       [{mod, _}] = compiled(ast)
@@ -149,6 +198,11 @@ defmodule Elementary.Ast do
   end
 
   def compiled({:module, _, _} = ast) do
-    ast |> quoted() |> Code.compile_quoted()
+    code =
+      ast
+      |> quoted()
+
+    IO.inspect(code)
+    code |> Code.compile_quoted()
   end
 end

@@ -58,7 +58,6 @@ defmodule Elementary.Lang.App do
        ]}
     ]
 
-    IO.inspect(mod_asts |> update_ast())
     asts
   end
 

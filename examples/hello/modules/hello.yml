@@ -4,10 +4,17 @@ spec:
   init:
     foo: foo
   decoders:
-    port:
+    default:
       get:
         dict:
           method: GET
+      post:
+        dict:
+          method: POST
+          headers:
+            any: dict
+          body:
+            any: text
     store:
       not_found:
         dict:
@@ -17,6 +24,13 @@ spec:
     get:
       model:
         plap: plop
+        items:
+          - item1
+          - item2
+          - 1
+          - true
+        num: 1
+        is_valid: true
       cmds:
         response: hello
         terminate: now

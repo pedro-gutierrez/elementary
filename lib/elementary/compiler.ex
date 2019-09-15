@@ -24,17 +24,12 @@ defmodule Elementary.Compiler do
   def compiled() do
     with providers <- Kit.providers(),
          {:ok, specs} <- Kit.read_yamls() |> Kit.parse_specs(providers),
-          asts <- specs |> Kit.asts(),
-          mods <- asts |> Ast.compiled() do
+         asts <- specs |> Kit.asts(),
+         mods <- asts |> Ast.compiled() do
       {:ok, mods}
     else
       other ->
         other
     end
   end
-
-
-
-
-
 end

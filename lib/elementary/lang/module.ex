@@ -6,7 +6,7 @@ defmodule Elementary.Lang.Module do
     module: __MODULE__
 
   alias Elementary.Kit
-  alias Elementary.Lang.{Init, Update}
+  alias Elementary.Lang.{Init, Decoders, Update}
 
   defstruct rank: :medium,
             name: "",
@@ -29,6 +29,7 @@ defmodule Elementary.Lang.Module do
       ) do
     with spec <- %__MODULE__{name: name, version: version},
          {:ok, spec} <- with_section(spec, raw_spec, providers, :init, Init),
+         {:ok, spec} <- with_section(spec, raw_spec, providers, :decoders, Decoders),
          {:ok, spec} <- with_section(spec, raw_spec, providers, :update, Update) do
       {:ok, spec}
     else
@@ -63,8 +64,9 @@ defmodule Elementary.Lang.Module do
        {:fun, :init, [], Init.ast(mod.spec.init, index)}
      ] ++
        Update.ast(mod.spec.update, index) ++
+       Decoders.ast(mod.spec.decoders, index) ++
        [
-         {:fun, :decode, [:data, :context], [{:symbol, :decode}]},
+         #  {:fun, :decode, [:data, :context], [{:symbol, :decode}]},
          {:fun, :encode, [:data, :encoder], [{:symbol, :encode}]}
        ]}
   end
