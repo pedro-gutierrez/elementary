@@ -6,7 +6,7 @@ defmodule Elementary.Lang.Module do
     module: __MODULE__
 
   alias Elementary.Kit
-  alias Elementary.Lang.{Init, Decoders, Update}
+  alias Elementary.Lang.{Init, Decoders, Update, Encoders}
 
   defstruct rank: :medium,
             name: "",
@@ -30,7 +30,8 @@ defmodule Elementary.Lang.Module do
     with spec <- %__MODULE__{name: name, version: version},
          {:ok, spec} <- with_section(spec, raw_spec, providers, :init, Init),
          {:ok, spec} <- with_section(spec, raw_spec, providers, :decoders, Decoders),
-         {:ok, spec} <- with_section(spec, raw_spec, providers, :update, Update) do
+         {:ok, spec} <- with_section(spec, raw_spec, providers, :update, Update),
+         {:ok, spec} <- with_section(spec, raw_spec, providers, :encoders, Encoders) do
       {:ok, spec}
     else
       {:error, e} ->
@@ -58,6 +59,11 @@ defmodule Elementary.Lang.Module do
   end
 
   def ast(mod, index) do
+    IO.inspect(
+      mod: mod.name,
+      update: Update.ast(mod.spec.update, index)
+    )
+
     {:module, mod.name |> module_name(),
      [
        {:fun, :name, [], {:symbol, mod.name}},
@@ -65,10 +71,7 @@ defmodule Elementary.Lang.Module do
      ] ++
        Update.ast(mod.spec.update, index) ++
        Decoders.ast(mod.spec.decoders, index) ++
-       [
-         #  {:fun, :decode, [:data, :context], [{:symbol, :decode}]},
-         {:fun, :encode, [:data, :encoder], [{:symbol, :encode}]}
-       ]}
+       Encoders.ast(mod.spec.encoders, index)}
   end
 
   def module_name(name) do

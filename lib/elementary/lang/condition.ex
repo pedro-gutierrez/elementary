@@ -6,29 +6,26 @@ defmodule Elementary.Lang.Condition do
 
   alias Elementary.Kit
 
-  defstruct [
-    spec: %{}
-  ]
+  defstruct spec: %{}
 
-  def parse(%{ "when" => spec} = init, providers) do
+  def default() do
+    true
+  end
+
+  def parse(spec, providers) do
     case Kit.parse_spec(spec, providers) do
       {:ok, parsed} ->
         {:ok, %__MODULE__{spec: parsed}}
 
       {:error, e} ->
         Kit.error(:parse_error, %{
-          spec: init,
+          spec: spec,
           reason: e
         })
     end
   end
 
-  def parse(_, _) do
-    {:ok, %__MODULE__{spec: true}}
-  end
-
   def compile(%{spec: true}, _) do
     ["true"]
   end
-
 end

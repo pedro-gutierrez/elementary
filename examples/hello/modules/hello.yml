@@ -21,8 +21,17 @@ spec:
           rows:
             empty: list
   update:
+    post:
+      model:
+        message:
+          key: body
+      cmds:
+        response: hello
+        terminate: now
     get:
       model:
+        method:
+          key: method2
         plap: plop
         items:
           - item1

@@ -9,7 +9,11 @@ defmodule Elementary.Lang.Cmds do
 
   defstruct spec: []
 
-  def parse(%{"cmds" => specs}, providers) when is_map(specs) do
+  def default() do
+    []
+  end
+
+  def parse(specs, providers) when is_map(specs) do
     specs
     |> Enum.reduce([], fn {effect, encoder}, acc ->
       [%{"effect" => effect, "encoder" => encoder} | acc]
@@ -17,21 +21,17 @@ defmodule Elementary.Lang.Cmds do
     |> parse(providers)
   end
 
-  def parse(%{"cmds" => specs} = cmds, providers) when is_list(specs) do
+  def parse(specs, providers) when is_list(specs) do
     case parse_cmds(specs, providers) do
       {:error, e} ->
         Kit.error(:parse_error, %{
           reason: e,
-          spec: cmds
+          spec: specs
         })
 
       cmds ->
         {:ok, %__MODULE__{spec: Enum.reverse(cmds)}}
     end
-  end
-
-  def parse(_, _) do
-    {:ok, %__MODULE__{}}
   end
 
   def parse_cmds(specs, providers) do
@@ -48,9 +48,10 @@ defmodule Elementary.Lang.Cmds do
   end
 
   def ast(%{spec: items}, index) when is_list(items) do
-    items
-    |> Enum.map(fn item ->
-      item.__struct__.ast(item, index)
-    end)
+    {:ok,
+     items
+     |> Enum.map(fn item ->
+       item.__struct__.ast(item, index)
+     end)}
   end
 end

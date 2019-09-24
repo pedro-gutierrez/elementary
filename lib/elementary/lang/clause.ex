@@ -7,21 +7,24 @@ defmodule Elementary.Lang.Clause do
   alias Elementary.Kit
   alias Elementary.Lang.{Condition, Model, Cmds}
 
-  defstruct [
-    spec: %{
-      condition: :none,
-      model: :none,
-      cmds: :none
-    }
-  ]
+  defstruct condition: nil,
+            model: nil,
+            cmds: nil
 
-  def parse(raw, providers) do
-    with clause <- %__MODULE__{},
-      {:ok, clause } <- maybe_with(clause, raw, providers, :condition, Condition),
-      {:ok, clause } <- maybe_with(clause, raw, providers, :model, Model),
-      {:ok, clause } <- maybe_with(clause, raw, providers, :cmds, Cmds) do
-
-      {:ok, clause}
+  def parse(
+        %{"when" => condition, "model" => model, "cmds" => cmds} = raw,
+        providers
+      ) do
+    with {:ok, condition} <- Condition.parse(condition, providers),
+         {:ok, model} <- Model.parse(model, providers),
+         {:ok, cmds} <-
+           Cmds.parse(cmds, providers) do
+      {:ok,
+       %__MODULE__{
+         condition: condition,
+         model: model,
+         cmds: cmds
+       }}
     else
       {:error, e} ->
         Kit.error(:parse_error, %{
@@ -31,28 +34,42 @@ defmodule Elementary.Lang.Clause do
     end
   end
 
-  defp maybe_with(%{spec: spec}=clause, raw, providers, section, parser) do
-    case raw |> parser.parse(providers) do
-      {:ok, parsed} ->
-        {:ok, %{clause | spec: Map.put(spec, section, parsed)}}
-
-      {:error, e} ->
-        Kit.error(:parse_error, %{
-          section: section,
-          reason: e
-        })
-    end
+  def parse(%{"model" => _, "cmds" => _} = raw, providers) do
+    raw
+    |> Map.put("when", Condition.default())
+    |> parse(providers)
   end
 
-  def ast(%{condition: :none}=spec, index) do
+  def parse(%{"cmds" => _} = raw, providers) do
+    raw
+    |> Map.put("model", Model.default())
+    |> parse(providers)
+  end
+
+  def parse(%{"model" => _} = raw, providers) do
+    raw
+    |> Map.put("cmds", Cmds.default())
+    |> parse(providers)
+  end
+
+  def parse(model, providers) when is_map(model) do
+    parse(%{"model" => model}, providers)
+  end
+
+  def parse(spec, _) do
+    Kit.error(:not_supported, spec)
+  end
+
+  def ast(%{condition: :none} = spec, index) do
     ast(%{spec | condition: true}, index)
   end
 
-    def ast(clause, index) do
-    {:clause,
-      {:boolean, true},
-      {:props, [
-          model: clause.spec.model.__struct__.ast(clause.spec.model, index),
-        cmds: []]}}
+  def ast(clause, index) do
+    {:clause, {:boolean, true},
+     {:let,
+      [
+        {:model, clause.model.__struct__.ast(clause.model, index)},
+        {:cmds, clause.cmds.__struct__.ast(clause.cmds, index)}
+      ]}}
   end
 end

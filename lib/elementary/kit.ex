@@ -162,9 +162,9 @@ defmodule Elementary.Kit do
 
   def sorted_specs(specs) do
     specs
-      |> Enum.sort(fn s1, s2 ->
-        precedes(s1.rank, s2.rank)
-      end)
+    |> Enum.sort(fn s1, s2 ->
+      precedes(s1.rank, s2.rank)
+    end)
   end
 
   def precedes(:low, _), do: true
@@ -251,14 +251,14 @@ defmodule Elementary.Kit do
 
   def asts(specs) do
     specs
-      |> sorted_specs()
-      |> Enum.reduce_while([], fn spec, asts ->
-        more_asts =
-          spec
-          |> asts(asts)
+    |> sorted_specs()
+    |> Enum.reduce_while([], fn spec, asts ->
+      more_asts =
+        spec
+        |> asts(asts)
 
-        {:cont, asts ++ more_asts}
-      end)
+      {:cont, asts ++ more_asts}
+    end)
   end
 
   defp asts(spec, index) do
@@ -271,7 +271,6 @@ defmodule Elementary.Kit do
     end
   end
 
-
   @doc """
   Defines whether or not the given module can be added to a supervision
   tree (Eg. ports)
@@ -283,8 +282,8 @@ defmodule Elementary.Kit do
   def supervised(mods) do
     mods
     |> Enum.filter(fn mod ->
-      Kernel.function_exported?(mod, :supervised, 0)
-        && mod.supervised()
+      Kernel.function_exported?(mod, :supervised, 0) &&
+        mod.supervised()
     end)
   end
 
@@ -306,5 +305,15 @@ defmodule Elementary.Kit do
     parts
     |> Enum.map(&String.capitalize(&1))
     |> Enum.join("")
+  end
+
+  @doc """
+  Generates a new variable name, for the given number
+  and returns the next variable number to use. This is especially
+  useful when building decoder asts, so that we can bind patterns
+  to variables
+  """
+  def new_var(lv) do
+    {"v#{lv}" |> String.to_atom(), lv + 1}
   end
 end

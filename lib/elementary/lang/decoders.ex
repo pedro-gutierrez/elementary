@@ -63,16 +63,16 @@ defmodule Elementary.Lang.Decoders do
        end)
      end)) ++
       [
-        not_supported_ast()
+        not_implemented_ast()
       ]
   end
 
-  def not_supported_ast() do
-    {:fun, :decode, [:_, :_, :_], {:error, :not_supported}}
+  def not_implemented_ast() do
+    {:fun, :decode, [:_, :_, :_], {:error, :no_decoder}}
   end
 
-  defp decoder_fun_ast({pattern, guards, data}, i, name) do
-    {:fun, :decode, [{:symbol, i}, pattern, :_context], guards,
-     {:tuple, [:ok, {:symbol, name}, data]}}
+  defp decoder_fun_ast({pattern, guards, data, _}, i, name) do
+    {:fun, :decode, [{:text, i}, pattern, :_context], guards,
+     {:tuple, [:ok, {:text, name}, data]}}
   end
 end

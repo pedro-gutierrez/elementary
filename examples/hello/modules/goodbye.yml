@@ -2,7 +2,8 @@ kind: module
 name: goodbye
 spec:
   init:
-    bar: baz
+    model:
+      bar: baz
   decoders:
     port:
       delete:

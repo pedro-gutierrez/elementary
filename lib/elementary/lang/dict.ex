@@ -6,6 +6,7 @@ defmodule Elementary.Lang.Dict do
     module: __MODULE__
 
   alias Elementary.Kit
+  alias Elementary.Lang.Literal
 
   defstruct spec: %{}
 
@@ -37,20 +38,61 @@ defmodule Elementary.Lang.Dict do
   def parse(spec, _), do: Kit.error(:not_supported, spec)
 
   def ast(dict, index) do
-    {:map,
-     Enum.map(dict.spec, fn {k, v} ->
-       {k, v.__struct__.ast(v, index)}
-     end)}
+    dict |> sort() |> ast_from_specs(index)
   end
 
-  def decoder_ast(%{spec: spec}, level) when is_map(spec) do
-    {pattern, guards, data} =
-      spec
-      |> Enum.reduce({[], [], []}, fn {k, v}, {p, g, d} ->
-        {p0, g0, d0} = v.__struct__.decoder_ast(v, level + 1)
-        {[{{:text, k}, p0} | p], g0 ++ g, [{{:text, k}, d0} | d]}
+  def ast_from_specs([], _) do
+    {:map, []}
+  end
+
+  def ast_from_specs(exprs, index) do
+    {:let, exprs |> generators_ast(index), {:map, exprs |> return_ast()}}
+  end
+
+  def generators_ast(exprs, index, prefix \\ "v") do
+    {_, asts} =
+      exprs
+      |> Enum.reduce({0, []}, fn {_, v}, {idx, gens} ->
+        {idx + 1, [{"#{prefix}#{idx}" |> String.to_atom(), v.__struct__.ast(v, index)} | gens]}
       end)
 
-    {{:map, pattern}, guards, {:map, data}}
+    asts
+  end
+
+  def return_ast(exprs, prefix \\ "v") do
+    {_, asts} =
+      exprs
+      |> Enum.reduce({0, []}, fn {k, _}, {idx, entries} ->
+        {idx + 1, [{k, {:var, "#{prefix}#{idx}"}} | entries]}
+      end)
+
+    asts
+  end
+
+  def decoder_ast(%{spec: spec}, lv) when is_map(spec) do
+    {pattern, guards, data, lv} =
+      spec
+      |> Enum.reduce({[], [], [], lv}, fn {k, v}, {p, g, d, lv} ->
+        {p0, g0, d0, lv} = v.__struct__.decoder_ast(v, lv)
+        {[{{:text, k}, p0} | p], g0 ++ g, [{{:text, k}, d0} | d], lv}
+      end)
+
+    {{:map, pattern}, guards, {:map, data}, lv}
+  end
+
+  defp sort(parsed) do
+    {literals, exprs} =
+      parsed.spec
+      |> Enum.reduce({[], []}, fn {k, v}, {literals, expressions} ->
+        case v.__struct__ == Literal do
+          true ->
+            {[{k, v} | literals], expressions}
+
+          false ->
+            {literals, [{k, v} | expressions]}
+        end
+      end)
+
+    literals ++ exprs
   end
 end

@@ -38,18 +38,20 @@ defmodule Elementary.Lang.List do
   def parse(spec, _), do: Kit.error(:not_supported, spec)
 
   def ast(%{spec: items}, index) when is_list(items) do
-    {:list,
-     items
-     |> Enum.map(fn i ->
-       i.__struct__.ast(i, index)
-     end)}
+    {_, vars, values} =
+      Enum.reduce(items, {0, [], []}, fn item, {i, vars, values} ->
+        var = "v#{i}" |> String.to_atom()
+        {i + 1, [{var, item.__struct__.ast(item, index)} | vars], [{:var, var} | values]}
+      end)
+
+    {:let, Enum.reverse(vars), {:list, Enum.reverse(values)}}
   end
 
   def ast(%{spec: :empty}, _) do
-    {:list, :empty}
+    {:ok, {:list, :empty}}
   end
 
-  def decoder_ast(%{spec: :empty}, _) do
-    {{:list, []}, [], []}
+  def decoder_ast(%{spec: :empty}, lv) do
+    {{:list, []}, [], [], lv}
   end
 end

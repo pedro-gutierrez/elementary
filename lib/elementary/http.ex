@@ -13,19 +13,16 @@ defmodule Elementary.Http do
         data = %{"method" => method, "headers" => headers, "body" => body}
         {:ok, pid} = Elementary.Apps.launch(app_module)
         app_module.update(pid, data)
-        {:cowboy_loop, req, [start: t0]}
-      end
-
-      def info(:timeout, req, state) do
-        error("timeout", req, state)
-      end
-
-      def info(:terminate, req, state) do
-        error("terminated", req, state)
+        {:cowboy_loop, req, [start: t0, pid: pid, mod: app_module]}
       end
 
       def info([status: status, headers: headers, body: body], req, state) do
         respond(status, headers, body, req, state)
+      end
+
+      def info(error, req, state) do
+        state[:mod].terminate(state[:pid])
+        error("#{error}", req, state)
       end
 
       defp error(reason, req, state) do
@@ -38,9 +35,9 @@ defmodule Elementary.Http do
         )
       end
 
-      defp respond(status, headers, body, req, [start: t0] = state) do
+      defp respond(status, headers, body, req, state) do
         body = encoded_body!(body, headers)
-        elapsed = System.system_time(:microsecond) - t0
+        elapsed = System.system_time(:microsecond) - state[:start]
 
         req =
           :cowboy_req.reply(

@@ -17,15 +17,18 @@ defmodule Elementary.Lang.Any do
     Kit.error(:not_supported, spec)
   end
 
-  def decoder_ast(%{kind: "dict"}, _) do
-    {{:var, :map}, [{:call, :is_map, [{:var, :map}]}], {:var, :map}}
+  def decoder_ast(%{kind: "dict"}, lv) do
+    {var, lv} = lv |> Kit.new_var()
+    {{:var, var}, [{:call, :is_map, [{:var, var}]}], {:var, var}, lv}
   end
 
-  def decoder_ast(%{kind: "list"}, _) do
-    {{:var, :list}, [{:call, :is_list, [{:var, :list}]}], {:var, :list}}
+  def decoder_ast(%{kind: "list"}, lv) do
+    {var, lv} = lv |> Kit.new_var()
+    {{:var, var}, [{:call, :is_list, [{:var, var}]}], {:var, var}, lv}
   end
 
-  def decoder_ast(%{kind: "text"}, _) do
-    {{:var, :text}, [{:call, :is_binary, [{:var, :text}]}], {:var, :text}}
+  def decoder_ast(%{kind: "text"}, lv) do
+    {var, lv} = lv |> Kit.new_var()
+    {{:var, var}, [{:call, :is_binary, [{:var, var}]}], {:var, var}, lv}
   end
 end

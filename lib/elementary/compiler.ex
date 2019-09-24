@@ -25,7 +25,7 @@ defmodule Elementary.Compiler do
     with providers <- Kit.providers(),
          {:ok, specs} <- Kit.read_yamls() |> Kit.parse_specs(providers),
          asts <- specs |> Kit.asts(),
-         mods <- asts |> Ast.compiled() do
+         {:ok, mods} <- asts |> Ast.compiled() do
       {:ok, mods}
     else
       other ->
