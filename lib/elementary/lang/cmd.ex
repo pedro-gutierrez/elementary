@@ -18,10 +18,10 @@ defmodule Elementary.Lang.Cmd do
   end
 
   def ast(%{effect: effect, encoder: encoder}, _) when is_binary(effect) and is_binary(encoder) do
-    {:map, [effect: effect, encoder: encoder]}
+    {:tuple, [{:symbol, effect}, {:symbol, encoder}]}
   end
 
   def ast(%{effect: effect}, _) when is_binary(effect) do
-    {:map, [effect: effect]}
+    {:symbol, effect}
   end
 end

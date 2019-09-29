@@ -30,7 +30,6 @@ defmodule Elementary.Lang.Init do
 
   def ast(parsed, index) do
     {:clause, _, expr_ast} = parsed.spec.__struct__.ast(parsed.spec, index)
-    IO.inspect(init: expr_ast)
     expr_ast
   end
 end

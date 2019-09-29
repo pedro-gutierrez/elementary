@@ -59,11 +59,6 @@ defmodule Elementary.Lang.Module do
   end
 
   def ast(mod, index) do
-    IO.inspect(
-      mod: mod.name,
-      update: Update.ast(mod.spec.update, index)
-    )
-
     {:module, mod.name |> module_name(),
      [
        {:fun, :name, [], {:symbol, mod.name}},

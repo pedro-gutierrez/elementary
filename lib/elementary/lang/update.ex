@@ -59,7 +59,11 @@ defmodule Elementary.Lang.Update do
   def ast(update, index) do
     (update.spec
      |> Enum.map(fn {event, clauses} ->
-       {:fun, :update, [{:text, event}, :data, :_context], maybe_optimized(clauses, index)}
+       ast = maybe_optimized(clauses, index)
+
+       data_var = Elementary.Ast.fn_clause_var_name(ast, :data)
+
+       {:fun, :update, [{:text, event}, data_var, :_context], ast}
      end)) ++
       [
         not_implemented_ast()

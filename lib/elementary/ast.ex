@@ -3,6 +3,8 @@ defmodule Elementary.Ast do
 
   @line [line: 1]
 
+  @type ast() :: tuple()
+
   defp symbol(name) when is_binary(name) do
     name |> String.to_atom()
   end
@@ -309,8 +311,8 @@ defmodule Elementary.Ast do
     |> compiled(mod)
   end
 
-  def compiled(code, _mod) do
-    # IO.inspect(mod: mod, code: code)
+  def compiled(code, mod) do
+    IO.inspect(mod: mod)
     [{mod, _}] = Code.compile_quoted(code)
     {:ok, mod}
   end
@@ -355,5 +357,31 @@ defmodule Elementary.Ast do
 
   defp aggregated(l1, l2) when is_list(l1) and is_list(l2) do
     l1 ++ l2
+  end
+
+  @doc """
+  Analyzes the given ast, and determines whether or not
+  the given variable is being used. This is to eliminate compiler
+  warnings on unused variables
+  """
+  @spec uses_var?(ast :: ast(), var :: atom()) :: boolean()
+  def uses_var?(ast, var) do
+    ast |> inspect() |> String.contains?(":#{var}")
+  end
+
+  @doc """
+  Helper function that returns a proper function clause variable
+  name, depending on whether or not, the variable is actually
+  being used in the given ast.
+  """
+  @spec fn_clause_var_name(ast :: ast(), var :: atom()) :: atom()
+  def fn_clause_var_name(ast, var) do
+    case uses_var?(ast, var) do
+      true ->
+        var
+
+      false ->
+        String.to_atom("_#{var}")
+    end
   end
 end

@@ -54,10 +54,11 @@ defmodule Elementary.Lang.Encoders do
   end
 
   def not_implemented_ast() do
-    {:fun, :encode, [:_, :_], {:error, :not_implemented}}
+    {:fun, :encode, [:encoder, :_, :_], {:error, :no_such_encoder, {:var, :encoder}}}
   end
 
   defp encoder_fun_ast(ast, name) do
-    {:fun, :encode, [{:text, name}, :_context], {:tuple, [:ok, ast]}}
+    data_var = Elementary.Ast.fn_clause_var_name(ast, :data)
+    {:fun, :encode, [{:symbol, name}, data_var, :_context], ast}
   end
 end
