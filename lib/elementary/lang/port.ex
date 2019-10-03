@@ -8,13 +8,11 @@ defmodule Elementary.Lang.Port do
   alias Elementary.Kit
   alias Elementary.Lang.Mount
 
-  defstruct [
-    rank: :high,
-    name: "",
-    version: "1",
-    port: 8080,
-    apps: []
-  ]
+  defstruct rank: :high,
+            name: "",
+            version: "1",
+            port: 8080,
+            apps: []
 
   def parse(
         %{
@@ -46,30 +44,35 @@ defmodule Elementary.Lang.Port do
 
   def ast(port, _) do
     [
-      {:module, [port.name, "port"] |> Kit.camelize(),[
-       {:usage, Elementary.Lang.Port,
-        [
-          name: port.name |> String.to_atom(),
-          port: port.port,
-          apps: port.apps
-          |> Enum.map(fn mount ->
-            [
-              path: mount.path,
-              handler: mount |> app_handler_module(),
-              app: mount |> app_state_machine_module()
-            ]
-          end)
-        ]},
-        {:fun, :name, [], {:symbol, port.name}},
-        {:fun, :supervised, [], {:boolean, true}}]}
+      {:module, [port.name, "port"] |> Kit.camelize(),
+       [
+         {:usage, Elementary.Lang.Port,
+          [
+            name: port.name |> String.to_atom(),
+            port: port.port,
+            apps:
+              port.apps
+              |> Enum.map(fn mount ->
+                [
+                  path: mount.path,
+                  handler: mount |> app_handler_module(),
+                  app: mount |> app_state_machine_module()
+                ]
+              end)
+          ]},
+         {:fun, :name, [], {:symbol, port.name}},
+         {:fun, :supervised, [], {:boolean, true}}
+       ]}
     ] ++
       (port.apps
        |> Enum.map(fn mount ->
-         {:module, mount |> app_handler_module(), [
-          {:usage, Elementary.Http,
-           [
-             app: mount.app |> String.to_atom()
-           ]}]}
+         {:module, mount |> app_handler_module(),
+          [
+            {:usage, Elementary.Http,
+             [
+               app: mount.app |> String.to_atom()
+             ]}
+          ]}
        end))
   end
 
@@ -120,7 +123,7 @@ defmodule Elementary.Lang.Port do
             %{:env => %{:dispatch => dispatch}}
           )
 
-        Kit.log(:port, name, %{status: :started, port: port})
+        IO.inspect(kind: :port, name: name, port: port)
         {:ok, pid}
       end
 

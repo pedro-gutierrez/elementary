@@ -6,7 +6,6 @@ defmodule Elementary.Lang.Dict do
     module: __MODULE__
 
   alias Elementary.Kit
-  alias Elementary.Lang.Literal
 
   defstruct spec: %{}
 
@@ -38,15 +37,7 @@ defmodule Elementary.Lang.Dict do
   def parse(spec, _), do: Kit.error(:not_supported, spec)
 
   def ast(dict, index) do
-    dict |> sort() |> ast_from_specs(index)
-  end
-
-  def ast_from_specs([], _) do
-    {:map, []}
-  end
-
-  def ast_from_specs(exprs, index) do
-    {:let, exprs |> generators_ast(index), {:map, exprs |> return_ast()}}
+    dict |> split() |> ast_from_split_specs(index)
   end
 
   def generators_ast(exprs, index, prefix \\ "v") do
@@ -69,6 +60,26 @@ defmodule Elementary.Lang.Dict do
     asts
   end
 
+  defp ast_from_split_specs({[], []}, _) do
+    :empty_map
+  end
+
+  defp ast_from_split_specs({literals, []}, index) do
+    {:ok, {:map, literal_ast_entries(literals, index)}}
+  end
+
+  defp ast_from_split_specs({literals, exprs}, index) do
+    {:let, generators_ast(exprs, index),
+     {:map, return_ast(exprs) ++ literal_ast_entries(literals, index)}}
+  end
+
+  defp literal_ast_entries(literals, index) do
+    Enum.map(literals, fn {k, v} ->
+      {:ok, v} = v.__struct__.ast(v, index)
+      {k, v}
+    end)
+  end
+
   def decoder_ast(%{spec: spec}, lv) when is_map(spec) do
     {pattern, guards, data, lv} =
       spec
@@ -80,19 +91,28 @@ defmodule Elementary.Lang.Dict do
     {{:map, pattern}, guards, {:map, data}, lv}
   end
 
-  defp sort(parsed) do
-    {literals, exprs} =
-      parsed.spec
-      |> Enum.reduce({[], []}, fn {k, v}, {literals, expressions} ->
-        case v.__struct__ == Literal do
-          true ->
-            {[{k, v} | literals], expressions}
+  defp split(parsed) do
+    parsed.spec
+    |> Enum.reduce({[], []}, fn {k, v}, {literals, expressions} ->
+      case v.__struct__.literal?(v) do
+        true ->
+          {[{k, v} | literals], expressions}
 
-          false ->
-            {literals, [{k, v} | expressions]}
-        end
-      end)
+        false ->
+          {literals, [{k, v} | expressions]}
+      end
+    end)
+  end
 
-    literals ++ exprs
+  def literal?(parsed) do
+    Enum.reduce_while(parsed.spec, true, fn {_, v}, _ ->
+      case v.__struct__.literal?(v) do
+        false ->
+          {:halt, false}
+
+        true ->
+          {:cont, true}
+      end
+    end)
   end
 end

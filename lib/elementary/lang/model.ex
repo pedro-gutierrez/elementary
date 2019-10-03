@@ -30,4 +30,8 @@ defmodule Elementary.Lang.Model do
     model.spec
     |> model.spec.__struct__.ast(index)
   end
+
+  def literal?(model) do
+    model.spec.__struct__.literal?(model.spec)
+  end
 end

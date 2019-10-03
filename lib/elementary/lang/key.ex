@@ -30,4 +30,6 @@ defmodule Elementary.Lang.Key do
        {:clause, {:var, :value}, {:ok, {:var, :value}}}
      ]}
   end
+
+  def literal?(_), do: false
 end

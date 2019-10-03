@@ -65,11 +65,48 @@ defmodule Elementary.Lang.Clause do
   end
 
   def ast(clause, index) do
-    {:clause, {:boolean, true},
-     {:let,
-      [
-        {:model, clause.model.__struct__.ast(clause.model, index)},
-        {:cmds, clause.cmds.__struct__.ast(clause.cmds, index)}
-      ]}}
+    model_ast = clause.model.__struct__.ast(clause.model, index)
+    cmds_ast = clause.cmds.__struct__.ast(clause.cmds, index)
+
+    case {literal_model?(clause), literal_cmds?(clause)} do
+      {true, true} ->
+        {:ok, model} = model_ast
+        {:ok, cmds} = cmds_ast
+        {:clause, {:boolean, true}, {:ok, model, cmds}}
+
+      {true, false} ->
+        {:ok, model} = model_ast
+
+        {:clause, {:boolean, true},
+         {:let,
+          [
+            {:cmds, cmds_ast}
+          ], {model, {:var, :cmds}}}}
+
+      {false, true} ->
+        {:ok, cmds} = cmds_ast
+
+        {:clause, {:boolean, true},
+         {:let,
+          [
+            {:model, model_ast}
+          ], {:var, :model}, cmds}}
+
+      {false, false} ->
+        {:clause, {:boolean, true},
+         {:let,
+          [
+            {:model, model_ast},
+            {:cmds, cmds_ast}
+          ]}}
+    end
+  end
+
+  defp literal_model?(clause) do
+    clause.model.__struct__.literal?(clause.model)
+  end
+
+  defp literal_cmds?(clause) do
+    clause.cmds.__struct__.literal?(clause.cmds)
   end
 end

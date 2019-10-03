@@ -160,6 +160,10 @@ defmodule Elementary.Ast do
     {:ok, quoted(value)}
   end
 
+  def quoted({:ok, value1, value2}) do
+    quoted({:tuple, [:ok, value1, value2]})
+  end
+
   def quoted({:error, reason}) do
     {:error, quoted(reason)}
   end
@@ -227,6 +231,15 @@ defmodule Elementary.Ast do
           Enum.map(vars, fn {v, _} ->
             {:var, v}
           end)}, :error_clause}
+    )
+  end
+
+  def quoted({:let, vars, expr1, expr2}) do
+    quoted(
+      {:with,
+       Enum.map(vars, fn {v, vexpr} ->
+         {:generator, {:ok, {:var, v}}, vexpr}
+       end), {:ok, expr1, expr2}, :error_clause}
     )
   end
 
@@ -311,8 +324,7 @@ defmodule Elementary.Ast do
     |> compiled(mod)
   end
 
-  def compiled(code, mod) do
-    IO.inspect(mod: mod)
+  def compiled(code, _mod) do
     [{mod, _}] = Code.compile_quoted(code)
     {:ok, mod}
   end
@@ -345,6 +357,10 @@ defmodule Elementary.Ast do
            end) do
       {:let, Enum.reverse(vars), {:map, Enum.reverse(keys)}}
     end
+  end
+
+  defp aggregated({:ok, {:map, _} = map1, cmds1}, {:ok, {:map, _} = map2, cmds2}) do
+    {:ok, aggregated(map1, map2), aggregated(cmds1, cmds2)}
   end
 
   defp aggregated({:map, m0}, {:map, m1}) do

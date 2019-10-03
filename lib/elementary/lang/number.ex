@@ -6,7 +6,6 @@ defmodule Elementary.Lang.Number do
     module: __MODULE__
 
   alias Elementary.Kit
-  alias Elementary.Lang.Literal
 
   defstruct spec: %{}
 
@@ -31,10 +30,14 @@ defmodule Elementary.Lang.Number do
   def parse(spec, _), do: Kit.error(:not_supported, spec)
 
   defp ok(number) do
-    {:ok, %Literal{spec: %__MODULE__{spec: number}}}
+    {:ok, %__MODULE__{spec: number}}
   end
 
   def ast(number, _) do
     {:ok, {:number, number.spec}}
+  end
+
+  def literal?(_) do
+    true
   end
 end

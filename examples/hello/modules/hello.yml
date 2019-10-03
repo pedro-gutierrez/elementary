@@ -15,6 +15,13 @@ spec:
             any: dict
           body:
             any: text
+      post2:
+        dict:
+          method: POST
+          headers:
+            any: dict
+          body:
+            any: dict
     store:
       not_found:
         dict:
@@ -23,10 +30,16 @@ spec:
   update:
     post:
       model:
-        message:
-          key: body
+        items:
+          - key: body
       cmds:
         response: hello
+    post2:
+      model:
+        items:
+          - key: body
+      cmds:
+        response: hello2
     get:
       model:
         plap: plop
@@ -46,4 +59,13 @@ spec:
         content-type: application/json
       body:
         msg: it works yeah
-        items: []
+        items:
+          key: items
+    hello2:
+      status: 201
+      headers:
+        content-type: application/json
+      body:
+        msg: it works yeah
+        items:
+          key: items

@@ -6,13 +6,12 @@ defmodule Elementary.Lang.Text do
     module: __MODULE__
 
   alias Elementary.Kit
-  alias Elementary.Lang.Literal
 
   defstruct spec: %{}
 
   def parse(%{"text" => spec}, _providers)
       when is_binary(spec) or is_number(spec) or is_atom(spec) do
-    {:ok, %Literal{spec: %__MODULE__{spec: "#{spec}"}}}
+    {:ok, %__MODULE__{spec: "#{spec}"}}
   end
 
   def parse(spec, providers) when is_binary(spec) do
@@ -27,5 +26,9 @@ defmodule Elementary.Lang.Text do
 
   def decoder_ast(%{spec: literal}, lv) when is_binary(literal) do
     {{:text, literal}, [], {:text, literal}, lv}
+  end
+
+  def literal?(_) do
+    true
   end
 end

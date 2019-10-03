@@ -54,4 +54,8 @@ defmodule Elementary.Lang.Cmds do
        item.__struct__.ast(item, index)
      end)}
   end
+
+  def literal?(_cmds) do
+    true
+  end
 end
