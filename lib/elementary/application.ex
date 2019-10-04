@@ -2,6 +2,7 @@ defmodule Elementary.Application do
   @moduledoc false
 
   use Application
+  require Logger
   alias Elementary.Compiler
   alias Elementary.Kit
 
@@ -11,7 +12,7 @@ defmodule Elementary.Application do
         {:ok, mods} ->
           Kit.supervised(mods)
 
-        {:error, e} ->
+        {:error, _} ->
           []
       end
 

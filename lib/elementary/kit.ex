@@ -80,16 +80,30 @@ defmodule Elementary.Kit do
     |> Enum.flat_map(fn app ->
       behaviour_impls(app, Elementary.Provider)
     end)
-    |> with_default_providers()
+    |> sorted_providers()
+    |> Enum.reverse()
+    |> inspect_and_return()
   end
 
-  defp with_default_providers(providers) do
-    providers ++
-      [
-        Elementary.Lang.Dict,
-        Elementary.Lang.Default
-      ]
+  defp inspect_and_return(term) do
+    IO.inspect(term)
+    term
   end
+
+  defp sorted_providers(providers) do
+    Enum.sort(providers, fn p1, p2 ->
+      precedes(p1.rank(), p2.rank())
+    end)
+  end
+
+  ## defp with_default_providers(providers) do
+  ##  providers ++
+  ##    [
+  ##      Elementary.Lang.Dict,
+  ##      Elementary.Lang.Text,
+  ##      Elementary.Lang.Default
+  ##    ]
+  ## end
 
   @doc """
   Parse the given yaml, using the given providers. Since
@@ -161,6 +175,8 @@ defmodule Elementary.Kit do
     precedes(r1, r2)
   end
 
+  def precedes(:lowest, _), do: true
+  def precedes(_, :lowest), do: false
   def precedes(:low, _), do: true
   def precedes(:medium, :high), do: true
   def precedes(_, _), do: false

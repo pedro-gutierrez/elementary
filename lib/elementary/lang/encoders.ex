@@ -1,12 +1,13 @@
 defmodule Elementary.Lang.Encoders do
   @moduledoc false
 
-  use Elementary.Provider,
-    module: __MODULE__
+  use Elementary.Provider
 
   alias Elementary.Kit
 
   defstruct spec: %{}
+
+  def default(), do: %__MODULE__{}
 
   def parse(%{"encoders" => spec}, providers) when is_map(spec) do
     case parse_encoders(spec, providers) do
@@ -18,9 +19,7 @@ defmodule Elementary.Lang.Encoders do
     end
   end
 
-  def parse(_, _) do
-    {:ok, %__MODULE__{}}
-  end
+  def parse(spec, _), do: Kit.error(:not_supported, spec)
 
   defp parse_encoders(encoders, providers) do
     encoders

@@ -1,8 +1,7 @@
 defmodule Elementary.Lang.Cmd do
   @moduledoc false
 
-  use Elementary.Provider,
-    module: __MODULE__
+  use Elementary.Provider
 
   alias Elementary.Kit
 

@@ -1,9 +1,7 @@
 defmodule Elementary.Lang.Module do
   @moduledoc false
 
-  use Elementary.Provider,
-    kind: "module",
-    module: __MODULE__
+  use Elementary.Provider
 
   alias Elementary.Kit
   alias Elementary.Lang.{Init, Decoders, Update, Encoders}
@@ -49,6 +47,9 @@ defmodule Elementary.Lang.Module do
     case raw |> parser.parse(providers) do
       {:ok, parsed} ->
         {:ok, %{mod | spec: Map.put(spec, section, parsed)}}
+
+      {:error, %{reason: :not_supported}} ->
+        {:ok, %{mod | spec: Map.put(spec, section, parser.default())}}
 
       {:error, e} ->
         Kit.error(:parse_error, %{

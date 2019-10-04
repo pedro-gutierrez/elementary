@@ -2,7 +2,9 @@ defmodule Elementary.Lang.Default do
   @moduledoc false
 
   use Elementary.Provider,
-    module: __MODULE__
+    kind: :default,
+    module: __MODULE__,
+    rank: :lowest
 
   alias Elementary.Kit
 

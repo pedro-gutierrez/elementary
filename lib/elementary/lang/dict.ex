@@ -2,11 +2,13 @@ defmodule Elementary.Lang.Dict do
   @moduledoc false
 
   use Elementary.Provider,
-    module: __MODULE__
+    rank: :low
 
   alias Elementary.Kit
 
   defstruct spec: %{}
+
+  def default(), do: %__MODULE__{}
 
   def parse(%{"dict" => "any"}, _) do
     {:ok, %__MODULE__{spec: :any}}
@@ -64,7 +66,7 @@ defmodule Elementary.Lang.Dict do
   end
 
   defp ast_from_split_specs({[], []}, _) do
-    :empty_map
+    {:ok, {:map, []}}
   end
 
   defp ast_from_split_specs({literals, []}, index) do

@@ -1,8 +1,7 @@
 defmodule Elementary.Lang.Update do
   @moduledoc false
 
-  use Elementary.Provider,
-    module: __MODULE__
+  use Elementary.Provider
 
   alias Elementary.Kit
   alias Elementary.Lang.Clause
@@ -22,9 +21,7 @@ defmodule Elementary.Lang.Update do
     end
   end
 
-  def parse(_, _) do
-    {:ok, %__MODULE__{spec: %{}}}
-  end
+  def parse(spec, _), do: Kit.error(:not_supported, spec)
 
   defp parse_updates(updates, providers) do
     updates

@@ -1,9 +1,7 @@
 defmodule Elementary.Lang.Any do
   @moduledoc false
 
-  use Elementary.Provider,
-    kind: "any",
-    module: __MODULE__
+  use Elementary.Provider
 
   alias Elementary.Kit
 

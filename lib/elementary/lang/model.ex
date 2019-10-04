@@ -10,10 +10,10 @@ defmodule Elementary.Lang.Model do
   defstruct spec: %Dict{}
 
   def default() do
-    %{}
+    %__MODULE__{spec: Dict.default()}
   end
 
-  def parse(%{"dict" => spec}, providers) do
+  def parse(%{"model" => spec}, providers) do
     case Dict.parse(spec, providers) do
       {:ok, parsed} ->
         {:ok, %__MODULE__{spec: parsed}}
@@ -24,10 +24,6 @@ defmodule Elementary.Lang.Model do
           reason: e
         })
     end
-  end
-
-  def parse(spec, providers) when is_map(spec) do
-    parse(%{"dict" => spec}, providers)
   end
 
   def parse(spec, _), do: Kit.error(:not_supported, spec)

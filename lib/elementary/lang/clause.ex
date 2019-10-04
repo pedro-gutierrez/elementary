@@ -1,9 +1,7 @@
 defmodule Elementary.Lang.Clause do
   @moduledoc false
 
-  use Elementary.Provider,
-    module: __MODULE__
-
+  use Elementary.Provider
   alias Elementary.Kit
   alias Elementary.Lang.{Condition, Model, Cmds}
 
@@ -11,14 +9,22 @@ defmodule Elementary.Lang.Clause do
             model: nil,
             cmds: nil
 
+  def default() do
+    %__MODULE__{
+      condition: true,
+      model: Model.default(),
+      cmds: Cmds.default()
+    }
+  end
+
   def parse(
-        %{"when" => condition, "model" => model, "cmds" => cmds} = raw,
+        %{"when" => _, "model" => _, "cmds" => _} = raw,
         providers
       ) do
-    with {:ok, condition} <- Condition.parse(condition, providers),
-         {:ok, model} <- Model.parse(model, providers),
+    with {:ok, condition} <- Condition.parse(raw, providers),
+         {:ok, model} <- Model.parse(raw, providers),
          {:ok, cmds} <-
-           Cmds.parse(cmds, providers) do
+           Cmds.parse(raw, providers) do
       {:ok,
        %__MODULE__{
          condition: condition,
@@ -36,24 +42,20 @@ defmodule Elementary.Lang.Clause do
 
   def parse(%{"model" => _, "cmds" => _} = raw, providers) do
     raw
-    |> Map.put("when", Condition.default())
+    |> Map.put("when", true)
     |> parse(providers)
   end
 
   def parse(%{"cmds" => _} = raw, providers) do
     raw
-    |> Map.put("model", Model.default())
+    |> Map.put("model", %{})
     |> parse(providers)
   end
 
   def parse(%{"model" => _} = raw, providers) do
     raw
-    |> Map.put("cmds", Cmds.default())
+    |> Map.put("cmds", [])
     |> parse(providers)
-  end
-
-  def parse(model, providers) when is_map(model) do
-    parse(%{"model" => model}, providers)
   end
 
   def parse(spec, _) do

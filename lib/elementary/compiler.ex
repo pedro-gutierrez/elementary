@@ -29,8 +29,7 @@ defmodule Elementary.Compiler do
          {:ok, mods} <- asts |> Ast.compiled() do
       {:ok, mods}
     else
-      {:error, reason} = e ->
-        Logger.error(inspect(reason))
+      {:error, _} = e ->
         e
     end
   end
