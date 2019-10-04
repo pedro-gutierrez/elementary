@@ -2,7 +2,6 @@ defmodule Elementary.Lang.Dict do
   @moduledoc false
 
   use Elementary.Provider,
-    kind: "dict",
     module: __MODULE__
 
   alias Elementary.Kit
@@ -32,6 +31,10 @@ defmodule Elementary.Lang.Dict do
       dict ->
         {:ok, %__MODULE__{spec: dict}}
     end
+  end
+
+  def parse(spec, providers) when is_map(spec) do
+    parse(%{"dict" => spec}, providers)
   end
 
   def parse(spec, _), do: Kit.error(:not_supported, spec)
@@ -75,8 +78,13 @@ defmodule Elementary.Lang.Dict do
 
   defp literal_ast_entries(literals, index) do
     Enum.map(literals, fn {k, v} ->
-      {:ok, v} = v.__struct__.ast(v, index)
-      {k, v}
+      case v.__struct__.ast(v, index) do
+        {:ok, v} ->
+          {k, v}
+
+        v ->
+          {k, v}
+      end
     end)
   end
 

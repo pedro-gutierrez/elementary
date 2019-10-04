@@ -13,8 +13,8 @@ defmodule Elementary.Lang.Model do
     %{}
   end
 
-  def parse(spec, providers) do
-    case Kit.parse_spec(spec, providers) do
+  def parse(%{"dict" => spec}, providers) do
+    case Dict.parse(spec, providers) do
       {:ok, parsed} ->
         {:ok, %__MODULE__{spec: parsed}}
 
@@ -25,6 +25,12 @@ defmodule Elementary.Lang.Model do
         })
     end
   end
+
+  def parse(spec, providers) when is_map(spec) do
+    parse(%{"dict" => spec}, providers)
+  end
+
+  def parse(spec, _), do: Kit.error(:not_supported, spec)
 
   def ast(model, index) do
     model.spec

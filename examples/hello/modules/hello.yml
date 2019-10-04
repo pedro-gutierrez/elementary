@@ -42,6 +42,7 @@ spec:
         response: hello2
     get:
       model:
+        kind: @headers.content-type
         plap: plop
         items:
           - item1
@@ -61,6 +62,8 @@ spec:
         msg: it works yeah
         items:
           key: items
+        kind:
+          key: kind
     hello2:
       status: 201
       headers:

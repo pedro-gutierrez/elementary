@@ -2,6 +2,7 @@ defmodule Elementary.Compiler do
   @moduledoc false
   use GenServer
   alias Elementary.{Kit, Ast}
+  require Logger
 
   def start_link(_) do
     GenServer.start_link(__MODULE__, [])
@@ -28,8 +29,9 @@ defmodule Elementary.Compiler do
          {:ok, mods} <- asts |> Ast.compiled() do
       {:ok, mods}
     else
-      other ->
-        other
+      {:error, reason} = e ->
+        Logger.error(inspect(reason))
+        e
     end
   end
 end

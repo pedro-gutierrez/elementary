@@ -86,25 +86,9 @@ defmodule Elementary.Kit do
   defp with_default_providers(providers) do
     providers ++
       [
+        Elementary.Lang.Dict,
         Elementary.Lang.Default
       ]
-  end
-
-  def providers_for_kind(providers, kind) do
-    providers
-    |> Enum.filter(fn p ->
-      Kernel.function_exported?(p, :kind, 0) && kind == p.kind()
-    end)
-  end
-
-  @doc """
-  Parse the given yaml, using the given providers. Only one provider
-  that supports the given kind will be used
-  """
-  def parse_spec(%{"kind" => kind} = yaml, providers) do
-    providers
-    |> providers_for_kind(kind)
-    |> parse_spec_using_providers(yaml, providers)
   end
 
   @doc """
@@ -117,7 +101,13 @@ defmodule Elementary.Kit do
     parse_spec_using_providers(providers, yaml, providers)
   end
 
-  def parse_spec_using_providers([], yaml, _) do
+  @doc """
+  Parse the given spec, using the given list of providers.
+  We try all providers, one by one, until one of them succesfully
+  parses the yaml syntax. If no provider is able to
+  parse, not event the default ones, then we return an error
+  """
+  def parse_spec_using_providers([], yaml) do
     error(:no_parser, yaml)
   end
 
@@ -163,8 +153,12 @@ defmodule Elementary.Kit do
   def sorted_specs(specs) do
     specs
     |> Enum.sort(fn s1, s2 ->
-      precedes(s1.rank, s2.rank)
+      precedes(s1, s2)
     end)
+  end
+
+  def precedes(%{rank: r1}, %{rank: r2}) do
+    precedes(r1, r2)
   end
 
   def precedes(:low, _), do: true
