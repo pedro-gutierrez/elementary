@@ -198,7 +198,10 @@ defmodule Elementary.Ast do
      [
        quoted(expr),
        [
-         do: clauses |> Enum.map(&quoted(&1))
+         do:
+           Enum.map(clauses, fn {condition, expr} ->
+             quoted({:clause, condition, expr})
+           end)
        ]
      ]}
   end
@@ -234,21 +237,16 @@ defmodule Elementary.Ast do
     )
   end
 
-  def quoted({:let, vars, expr1, expr2}) do
-    quoted(
-      {:with,
-       Enum.map(vars, fn {v, vexpr} ->
-         {:generator, {:ok, {:var, v}}, vexpr}
-       end), {:ok, expr1, expr2}, :error_clause}
-    )
+  def quoted({:let, vars, expr}) do
+    quoted({:let, vars, expr, :error_clause})
   end
 
-  def quoted({:let, vars, expr}) do
+  def quoted({:let, vars, expr, error}) do
     quoted(
       {:with,
        Enum.map(vars, fn {v, vexpr} ->
          {:generator, {:ok, {:var, v}}, vexpr}
-       end), {:ok, expr}, :error_clause}
+       end), expr, error}
     )
   end
 

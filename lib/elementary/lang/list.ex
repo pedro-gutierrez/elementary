@@ -51,7 +51,7 @@ defmodule Elementary.Lang.List do
 
   defp ast_from_split_specs({literals, exprs}, index) do
     {:let, generators_ast(exprs, index),
-     {:list, return_ast(exprs) ++ literal_ast_entries(literals, index)}}
+     {:ok, {:list, return_ast(exprs) ++ literal_ast_entries(literals, index)}}}
   end
 
   def generators_ast(exprs, index, prefix \\ "v") do

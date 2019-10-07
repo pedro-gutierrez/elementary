@@ -82,10 +82,9 @@ defmodule Elementary.Kit do
     end)
     |> sorted_providers()
     |> Enum.reverse()
-    |> inspect_and_return()
   end
 
-  defp inspect_and_return(term) do
+  def inspect_and_return(term) do
     IO.inspect(term)
     term
   end
@@ -95,15 +94,6 @@ defmodule Elementary.Kit do
       precedes(p1.rank(), p2.rank())
     end)
   end
-
-  ## defp with_default_providers(providers) do
-  ##  providers ++
-  ##    [
-  ##      Elementary.Lang.Dict,
-  ##      Elementary.Lang.Text,
-  ##      Elementary.Lang.Default
-  ##    ]
-  ## end
 
   @doc """
   Parse the given yaml, using the given providers. Since

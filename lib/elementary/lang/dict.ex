@@ -75,7 +75,7 @@ defmodule Elementary.Lang.Dict do
 
   defp ast_from_split_specs({literals, exprs}, index) do
     {:let, generators_ast(exprs, index),
-     {:map, return_ast(exprs) ++ literal_ast_entries(literals, index)}}
+     {:ok, {:map, return_ast(exprs) ++ literal_ast_entries(literals, index)}}}
   end
 
   defp literal_ast_entries(literals, index) do

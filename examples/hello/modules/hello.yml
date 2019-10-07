@@ -6,8 +6,10 @@ spec:
   decoders:
     default:
       get:
-        dict:
-          method: GET
+        method: GET
+        headers:
+          content-type:
+            any: text
       post:
         dict:
           method: POST
@@ -42,7 +44,10 @@ spec:
         response: hello2
     get:
       model:
-        kind: @headers.content-type
+        kind:
+          a:
+            b:
+              c: @headers.content-type
         plap: plop
         items:
           - item1
@@ -60,10 +65,8 @@ spec:
         content-type: application/json
       body:
         msg: it works yeah
-        items:
-          key: items
-        kind:
-          key: kind
+        items: @items
+        kind: @kind.a.b.c
     hello2:
       status: 201
       headers:

@@ -83,7 +83,7 @@ defmodule Elementary.Lang.Clause do
          {:let,
           [
             {:cmds, cmds_ast}
-          ], {model, {:var, :cmds}}}}
+          ], {:tuple, [:ok, model, {:var, :cmds}]}}}
 
       {false, true} ->
         {:ok, cmds} = cmds_ast
@@ -92,7 +92,7 @@ defmodule Elementary.Lang.Clause do
          {:let,
           [
             {:model, model_ast}
-          ], {:var, :model}, cmds}}
+          ], {:tuple, [:ok, {:var, :model}, cmds]}}}
 
       {false, false} ->
         {:clause, {:boolean, true},
