@@ -1,0 +1,7 @@
+kind: port
+name: tests
+spec:
+  port: 2001
+  apps:
+    test:
+      http: /tests/:test/:settings

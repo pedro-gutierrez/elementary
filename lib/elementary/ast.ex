@@ -89,7 +89,7 @@ defmodule Elementary.Ast do
   def quoted(model: model, cmds: cmds) do
     case {literal?(model), literal?(cmds)} do
       {true, true} ->
-        quoted({:ok, extract_literal(model), extract_literal(cmds)})
+        {:{}, @line, [:ok, extract_literal(quoted(model)), extract_literal(quoted(cmds))]}
 
       {_, _} ->
         quoted({:let, [model: model, cmds: cmds], {:ok, {:var, :model}, {:var, :cmds}}})

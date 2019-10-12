@@ -14,7 +14,8 @@ defmodule Elementary.Lang.Model do
   end
 
   def parse(%{"model" => spec}, providers) do
-    case Dict.parse(spec, providers) do
+    case Kit.parse_spec(spec, providers) do
+      # case Dict.parse(spec, providers) do
       {:ok, parsed} ->
         {:ok, %__MODULE__{spec: parsed}}
 

@@ -12,7 +12,8 @@ defmodule Elementary.Application do
         {:ok, mods} ->
           Kit.supervised(mods)
 
-        {:error, _} ->
+        {:error, e} ->
+          IO.inspect(e)
           []
       end
 

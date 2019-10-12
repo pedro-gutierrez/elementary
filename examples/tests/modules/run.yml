@@ -1,0 +1,27 @@
+kind: module
+name: run
+spec:
+  decoders:
+    default:
+      run:
+        method: POST
+        params:
+          test:
+            any: text
+          settings:
+            any: text
+  update:
+    run:
+      model: @params
+      cmds:
+        response: running
+        test: test
+  encoders:
+    test:
+      run: @
+    running:
+      status: 201
+      headers:
+        content-type: application/json
+      body:
+        status: running

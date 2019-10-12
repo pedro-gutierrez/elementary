@@ -31,10 +31,6 @@ defmodule Elementary.StateMachine do
         GenStateMachine.cast(pid, :terminate)
       end
 
-      def respond(pid, data) do
-        GenStateMachine.cast(pid, {:respond, data})
-      end
-
       use GenStateMachine, callback_mode: :state_functions
       defstruct owner: :undef, model: %{}
 
@@ -60,11 +56,6 @@ defmodule Elementary.StateMachine do
             state.owner |> send(e)
             {:keep_state, state}
         end
-      end
-
-      def ready(:cast, {:respond, data}, state) do
-        send(state.owner, data)
-        {:keep_state, state}
       end
 
       def ready(:cast, :terminate, state) do
@@ -103,7 +94,7 @@ defmodule Elementary.StateMachine do
       end
 
       defp effect_apply(:response, params, owner) do
-        __MODULE__.respond(owner, params)
+        send(owner, params)
       end
 
       defp effect_apply(:terminate, _, owner) do

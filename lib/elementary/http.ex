@@ -18,7 +18,15 @@ defmodule Elementary.Http do
       def init(%{:headers => headers, :method => method} = req, [app_module]) do
         t0 = System.system_time(:microsecond)
         {req, body} = request_body!(req)
-        data = %{"method" => method, "headers" => headers, "body" => body}
+        params = request_params!(req)
+
+        data = %{
+          "method" => method,
+          "params" => params,
+          "headers" => headers,
+          "body" => body
+        }
+
         {:ok, pid} = Elementary.Apps.launch(app_module)
         ref = Process.monitor(pid)
         app_module.update(pid, @effect, data)
@@ -37,18 +45,23 @@ defmodule Elementary.Http do
       end
 
       def info({:DOWN, ref, :process, pid, reason}, req, %{ref: ref, pid: pid} = state) do
-        error(:crashed, req, state)
+        info(:crashed, req, state)
       end
 
-      def info(error, req, state) do
-        error(error, req, state)
+      def info(e, req, state) do
+        e
+        |> error_code()
+        |> json(e, req, state)
       end
 
-      defp error(e, req, state) do
+      defp error_code(:no_decoder), do: 400
+      defp error_code(_), do: 500
+
+      defp json(code, body, req, state) do
         respond(
-          500,
+          code,
           %{"content-type" => "application/json"},
-          %{"error" => e},
+          body,
           req,
           state
         )
@@ -91,6 +104,13 @@ defmodule Elementary.Http do
             {:ok, data, req} = :cowboy_req.read_body(req)
             {req, decoded_body!(data, headers)}
         end
+      end
+
+      defp request_params!(req) do
+        :cowboy_req.bindings(req)
+        |> Map.new(fn {k, v} ->
+          {"#{k}", v}
+        end)
       end
 
       defp decoded_body!(body, %{"content-type" => "application/json"}) do

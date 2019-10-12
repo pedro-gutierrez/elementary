@@ -104,6 +104,13 @@ defmodule Elementary.Lang.App do
         expr
       end)
       |> Ast.aggregated()
+      |> case do
+        nil ->
+          {:dict, []}
+
+        asts ->
+          asts
+      end
 
     {:fun, :settings, [], asts}
   end
@@ -121,7 +128,6 @@ defmodule Elementary.Lang.App do
       |> Ast.aggregated()
 
     data_var = Elementary.Ast.fn_clause_var_name(ast, :data)
-
     {:fun, :init, [data_var], ast}
   end
 
