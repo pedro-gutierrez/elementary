@@ -86,6 +86,16 @@ defmodule Elementary.Ast do
      ]}
   end
 
+  def quoted(model: model, cmds: cmds) do
+    case {literal?(model), literal?(cmds)} do
+      {true, true} ->
+        quoted({:ok, extract_literal(model), extract_literal(cmds)})
+
+      {_, _} ->
+        quoted({:let, [model: model, cmds: cmds], {:ok, {:var, :model}, {:var, :cmds}}})
+    end
+  end
+
   def quoted({:call, name, params}) do
     {name, @line, quoted(params)}
   end
@@ -132,8 +142,45 @@ defmodule Elementary.Ast do
   def quoted({:map, map}) do
     {:%{}, [],
      Enum.map(map, fn {k, v} ->
-       {quoted(k), quoted(v)}
+       {quoted(k), extract_literal(quoted(v))}
      end)}
+  end
+
+  def quoted({:dict, entries}) do
+    case split_dict(entries) do
+      {literals, []} ->
+        quoted(
+          {:ok,
+           {:map,
+            Enum.map(literals, fn {_, k, v} ->
+              {k, v}
+            end)}}
+        )
+
+      {literals, exprs} ->
+        {_, generators} =
+          Enum.reduce(exprs, {0, []}, fn {_, _, e}, {i, gens} ->
+            {i + 1, [{var(i), e} | gens]}
+          end)
+
+        {_, values} =
+          Enum.reduce(exprs, {0, []}, fn {_, k, _}, {i, values} ->
+            {i + 1, [{k, {:var, var(i)}} | values]}
+          end)
+
+        ast =
+          quoted(
+            {:let, generators,
+             {:ok,
+              {:map,
+               values ++
+                 Enum.map(literals, fn {_, k, v} ->
+                   {k, v}
+                 end)}}}
+          )
+
+        ast
+    end
   end
 
   def quoted({:list, items}) when is_list(items) do
@@ -338,6 +385,14 @@ defmodule Elementary.Ast do
     other
   end
 
+  defp aggregated([model: m0, cmds: c0], model: m1, cmds: c1) do
+    [model: aggregated(m0, m1), cmds: aggregated(c0, c1)]
+  end
+
+  defp aggregated({:dict, entries1}, {:dict, entries2}) do
+    {:dict, entries1 ++ entries2}
+  end
+
   defp aggregated({:let, [model: m0, cmds: cmds0]}, {:let, [model: m1, cmds: cmds1]}) do
     {:let, [model: aggregated(m0, m1), cmds: aggregated(cmds0, cmds1)]}
   end
@@ -373,6 +428,16 @@ defmodule Elementary.Ast do
     l1 ++ l2
   end
 
+  defp split_dict(entries) do
+    Enum.reduce(entries, {[], []}, fn
+      {:literal, _, _} = l, {literals, exprs} ->
+        {[l | literals], exprs}
+
+      {:expression, _, _} = e, {literals, exprs} ->
+        {literals, [e | exprs]}
+    end)
+  end
+
   @doc """
   Analyzes the given ast, and determines whether or not
   the given variable is being used. This is to eliminate compiler
@@ -398,4 +463,30 @@ defmodule Elementary.Ast do
         String.to_atom("_#{var}")
     end
   end
+
+  defp literal?({:dict, dict}) do
+    case split_dict(dict) do
+      {_, []} -> true
+      _ -> false
+    end
+  end
+
+  defp literal?({:ok, ast}) do
+    literal?(ast)
+  end
+
+  defp literal?(items) when is_list(items) do
+    Enum.all?(items, &literal?(&1))
+  end
+
+  defp literal?(other)
+       when is_number(other) or is_binary(other) or is_atom(other) or is_boolean(other),
+       do: true
+
+  defp literal?(_), do: false
+
+  defp extract_literal({:ok, ast}), do: ast
+  defp extract_literal(ast), do: ast
+
+  defp var(i), do: String.to_atom("v#{i}")
 end

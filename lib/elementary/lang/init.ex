@@ -29,7 +29,8 @@ defmodule Elementary.Lang.Init do
   end
 
   def ast(parsed, index) do
-    {:clause, _, expr_ast} = parsed.spec.__struct__.ast(parsed.spec, index)
-    expr_ast
+    {:clause, _, ast} = parsed.spec.__struct__.ast(parsed.spec, index)
+    data_var = Elementary.Ast.fn_clause_var_name(ast, :data)
+    [{:fun, :init, [data_var], ast}]
   end
 end

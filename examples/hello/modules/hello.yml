@@ -2,7 +2,13 @@ kind: module
 name: hello
 spec:
   init:
-    foo: foo
+    model:
+      foo: foo
+      message: @apiServer
+      sabor: @flavour
+      headers:
+        dict:
+          content-type: application/json
   decoders:
     default:
       get:
@@ -10,40 +16,39 @@ spec:
         headers:
           content-type:
             any: text
+      simple:
+        method: GET
       post:
         dict:
           method: POST
           headers:
             any: dict
           body:
-            any: text
-      post2:
-        dict:
-          method: POST
-          headers:
-            any: dict
-          body:
-            any: dict
+            message:
+              any: text
     store:
       not_found:
         dict:
           rows:
             empty: list
   update:
+    simple:
+      cmds:
+        response: simple
     post:
       model:
+        message: @body.message
+        kind:
+          a:
+            b:
+              c: @headers.content-type
         items:
           - key: body
       cmds:
         response: hello
-    post2:
-      model:
-        items:
-          - key: body
-      cmds:
-        response: hello2
     get:
       model:
+        message: dummy
         kind:
           a:
             b:
@@ -59,19 +64,17 @@ spec:
       cmds:
         response: hello
   encoders:
+    simple:
+      status: 200
+      headers:
+        content-type: application/json
+      body: @
     hello:
       status: 201
       headers:
         content-type: application/json
       body:
-        msg: it works yeah
+        all: @
+        message: @message
         items: @items
         kind: @kind.a.b.c
-    hello2:
-      status: 201
-      headers:
-        content-type: application/json
-      body:
-        msg: it works yeah
-        items:
-          key: items

@@ -2,11 +2,20 @@ defmodule Elementary.StateMachine do
   @moduledoc false
 
   defmacro __using__(name: name, callback: cb) do
+    {:ok, settings} = cb.settings()
+    {:ok, model, cmds} = cb.init(settings)
+
+    opts = [cb: cb, model: model, cmds: cmds, settings: settings]
+
     quote do
       @name unquote(name)
       def name(), do: @name
 
-      @cb unquote(cb)
+      @cb unquote(opts[:cb])
+
+      @model unquote(Macro.escape(model))
+      @cmds unquote(Macro.escape(cmds))
+
       def cb(), do: @cb
       def permanent(), do: false
 
@@ -31,15 +40,20 @@ defmodule Elementary.StateMachine do
 
       @impl true
       def init(owner) when is_pid(owner) do
-        {:ok, model, _cmds} = @cb.init()
-        {:ok, :ready, %__MODULE__{owner: owner, model: model}}
+        case apply_cmds(@cmds, @model) do
+          :ok ->
+            {:ok, :ready, %__MODULE__{owner: owner, model: @model}}
+
+          {:error, e} ->
+            {:stop, {:shutdown, e}}
+        end
       end
 
       def ready(:cast, {:update, effect, data}, state) do
         with {:ok, event, decoded} <- @cb.decode(effect, data, state.model),
              {:ok, model, cmds} <- @cb.update(event, decoded, state.model),
-             {:ok, cmds} <- encoded_cmds(cmds, model),
-             :ok <- apply_cmds(cmds) do
+             model <- Map.merge(state.model, model),
+             :ok <- apply_cmds(cmds, model) do
           {:keep_state, %{state | model: model}}
         else
           {:error, e} ->
@@ -57,7 +71,9 @@ defmodule Elementary.StateMachine do
         {:stop, :normal, state}
       end
 
-      defp encoded_cmds(cmds, model) do
+      defp apply_cmds([], _), do: :ok
+
+      defp apply_cmds(cmds, model) do
         Enum.reduce_while(cmds, [], fn
           {eff, enc} = cmd, acc ->
             case @cb.encode(enc, model, model) do
@@ -76,14 +92,14 @@ defmodule Elementary.StateMachine do
             e
 
           cmds ->
-            {:ok, Enum.reverse(cmds)}
-        end
-      end
+            cmds
+            |> Enum.reverse()
+            |> Enum.each(fn {effect, params} ->
+              effect_apply(effect, params, self())
+            end)
 
-      defp apply_cmds(cmds) do
-        Enum.each(cmds, fn {effect, params} ->
-          effect_apply(effect, params, self())
-        end)
+            :ok
+        end
       end
 
       defp effect_apply(:response, params, owner) do

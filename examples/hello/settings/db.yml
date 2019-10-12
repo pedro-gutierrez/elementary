@@ -1,0 +1,5 @@
+kind: settings
+name: db
+spec:
+  database: test
+  host: localhost

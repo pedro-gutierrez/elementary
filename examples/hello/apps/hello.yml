@@ -1,6 +1,9 @@
 kind: app
 name: hello
 spec:
+  settings:
+    - db
+    - k8s
   modules:
     - hello
     - goodbye

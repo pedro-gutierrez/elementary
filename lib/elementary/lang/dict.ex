@@ -42,52 +42,25 @@ defmodule Elementary.Lang.Dict do
   def parse(spec, _), do: Kit.error(:not_supported, spec)
 
   def ast(dict, index) do
-    dict |> split() |> ast_from_split_specs(index)
-  end
+    {:dict,
+     Enum.map(dict.spec, fn {k, v} ->
+       ast = v.__struct__.ast(v, index)
 
-  def generators_ast(exprs, index, prefix \\ "v") do
-    {_, asts} =
-      exprs
-      |> Enum.reduce({0, []}, fn {_, v}, {idx, gens} ->
-        {idx + 1, [{"#{prefix}#{idx}" |> String.to_atom(), v.__struct__.ast(v, index)} | gens]}
-      end)
+       case v.__struct__.literal?(v) do
+         true ->
+           {:literal, k,
+            case ast do
+              {:ok, v} ->
+                v
 
-    asts
-  end
+              v ->
+                v
+            end}
 
-  def return_ast(exprs, prefix \\ "v") do
-    {_, asts} =
-      exprs
-      |> Enum.reduce({0, []}, fn {k, _}, {idx, entries} ->
-        {idx + 1, [{k, {:var, "#{prefix}#{idx}"}} | entries]}
-      end)
-
-    asts
-  end
-
-  defp ast_from_split_specs({[], []}, _) do
-    {:ok, {:map, []}}
-  end
-
-  defp ast_from_split_specs({literals, []}, index) do
-    {:ok, {:map, literal_ast_entries(literals, index)}}
-  end
-
-  defp ast_from_split_specs({literals, exprs}, index) do
-    {:let, generators_ast(exprs, index),
-     {:ok, {:map, return_ast(exprs) ++ literal_ast_entries(literals, index)}}}
-  end
-
-  defp literal_ast_entries(literals, index) do
-    Enum.map(literals, fn {k, v} ->
-      case v.__struct__.ast(v, index) do
-        {:ok, v} ->
-          {k, v}
-
-        v ->
-          {k, v}
-      end
-    end)
+         false ->
+           {:expression, k, ast}
+       end
+     end)}
   end
 
   def decoder_ast(%{spec: spec}, lv) when is_map(spec) do
@@ -99,19 +72,6 @@ defmodule Elementary.Lang.Dict do
       end)
 
     {{:map, pattern}, guards, {:map, data}, lv}
-  end
-
-  defp split(parsed) do
-    parsed.spec
-    |> Enum.reduce({[], []}, fn {k, v}, {literals, expressions} ->
-      case v.__struct__.literal?(v) do
-        true ->
-          {[{k, v} | literals], expressions}
-
-        false ->
-          {literals, [{k, v} | expressions]}
-      end
-    end)
   end
 
   def literal?(parsed) do

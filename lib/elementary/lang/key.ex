@@ -14,6 +14,10 @@ defmodule Elementary.Lang.Key do
     {:ok, %__MODULE__{key: k}}
   end
 
+  def parse("@", _) do
+    {:ok, %__MODULE__{}}
+  end
+
   def parse("@" <> path, _) do
     {:ok,
      String.split(path, ".")
@@ -38,6 +42,10 @@ defmodule Elementary.Lang.Key do
 
   defp put_key_in(k, %__MODULE__{in: i} = acc) when is_map(i) do
     %{acc | in: put_key_in(k, i)}
+  end
+
+  def ast(%__MODULE__{key: nil, in: nil}, _) do
+    {:ok, {:var, :data}}
   end
 
   def ast(%__MODULE__{key: key, in: nil}, _) do

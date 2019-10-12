@@ -1,0 +1,6 @@
+kind: settings
+name: k8s
+spec:
+  apiServer:
+    host: localhost
+    port: 6443

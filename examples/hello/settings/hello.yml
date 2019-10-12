@@ -1,0 +1,4 @@
+kind: settings
+name: hello
+spec:
+  flavour: chocolate

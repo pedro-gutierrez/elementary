@@ -62,9 +62,9 @@ defmodule Elementary.Lang.Module do
   def ast(mod, index) do
     {:module, mod.name |> module_name(),
      [
-       {:fun, :name, [], {:symbol, mod.name}},
-       {:fun, :init, [], Init.ast(mod.spec.init, index)}
+       {:fun, :name, [], {:symbol, mod.name}}
      ] ++
+       Init.ast(mod.spec.init, index) ++
        Update.ast(mod.spec.update, index) ++
        Decoders.ast(mod.spec.decoders, index) ++
        Encoders.ast(mod.spec.encoders, index)}
