@@ -41,13 +41,12 @@ defmodule Elementary.Kit do
     {:ok, pid}
   end
 
-  @doc """
-  Returns all the modules in the given OTP app that implement
-  the given behaviour. Since we might be running in interactive mode,
-  we need to manually load modules before inspecting them, so
-  this function has necessary side effects
-  """
-  def behaviour_impls(app, behaviour) do
+  def plugins() do
+    Application.get_env(:elementary, :provider_apps, [:elementary])
+    |> Enum.flat_map(&mods(&1))
+  end
+
+  def mods(app) do
     app_dir = Application.app_dir(app)
 
     Path.wildcard(app_dir <> "/ebin/*.beam")
@@ -59,29 +58,29 @@ defmodule Elementary.Kit do
       :code.load_abs(beam_file)
       mod
     end)
-    |> Enum.filter(fn mod ->
-      behaviour in (mod.module_info(:attributes)[:behaviour] || [])
-    end)
   end
 
-  # Returns all the OTP apps that contain providers. This can be
-  # configured using the :provider_apps in the :elementary application. By
-  # default, we use the elementary application. The order of appearance
-  # defines the priority in which providers will be used
-  defp provider_apps, do: Application.get_env(:elementary, :provider_apps, [:elementary])
+  defp of_kind(mods, kind) do
+    Enum.filter(mods, fn mod ->
+      kind in (mod.module_info(:attributes)[:behaviour] || [])
+    end)
+  end
 
   @doc """
   Discovers all modules in the given apps, that implement
   the Elementary.Provider behavior. Providers are used to parse
   yaml specs and to compile them into Elixir code
   """
-  def providers() do
-    provider_apps()
-    |> Enum.flat_map(fn app ->
-      behaviour_impls(app, Elementary.Provider)
-    end)
+  def providers(plugins) do
+    plugins
+    |> of_kind(Elementary.Provider)
     |> sorted_providers()
     |> Enum.reverse()
+  end
+
+  def effects(plugins) do
+    plugins
+    |> of_kind(Elementary.Effect)
   end
 
   def inspect_and_return(term) do

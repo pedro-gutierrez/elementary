@@ -37,4 +37,12 @@ defmodule Elementary.Apps do
       shutdown: 1000
     })
   end
+
+  @doc """
+  Return the number of running apps
+  """
+  def count() do
+    %{active: active} = Supervisor.count_children(__MODULE__)
+    active
+  end
 end

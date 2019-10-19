@@ -1,4 +1,4 @@
-defmodule Elementary.Lang.Decoders do
+defmodule Elementary.Decoders do
   @moduledoc false
 
   use Elementary.Provider
@@ -66,11 +66,18 @@ defmodule Elementary.Lang.Decoders do
   end
 
   def not_implemented_ast() do
-    {:fun, :decode, [:_, :_, :_], {:error, :no_decoder}}
+    {:fun, :decode, [:effect, :data, :_],
+     {:error,
+      {:map,
+       [
+         {:error, :no_decoder},
+         {:effect, {:var, :effect}},
+         {:data, {:var, :data}}
+       ]}}}
   end
 
   defp decoder_fun_ast({pattern, guards, data, _}, i, name) do
-    {:fun, :decode, [{:text, i}, pattern, :_context], guards,
+    {:fun, :decode, [{:symbol, i}, pattern, :_context], guards,
      {:tuple, [:ok, {:text, name}, data]}}
   end
 end

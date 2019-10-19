@@ -1,0 +1,7 @@
+kind: settings
+name: dev
+spec:
+  scheme: http
+  host: localhost
+  port: 8080
+  path: /

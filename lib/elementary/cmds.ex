@@ -1,11 +1,11 @@
-defmodule Elementary.Lang.Cmds do
+defmodule Elementary.Cmds do
   @moduledoc false
 
   use Elementary.Provider,
     module: __MODULE__
 
   alias Elementary.Kit
-  alias Elementary.Lang.Cmd
+  alias Elementary.Cmd
 
   defstruct spec: []
 

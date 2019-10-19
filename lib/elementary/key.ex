@@ -1,4 +1,4 @@
-defmodule Elementary.Lang.Key do
+defmodule Elementary.Key do
   @moduledoc false
 
   use Elementary.Provider

@@ -1,9 +1,7 @@
-defmodule Elementary.Lang.Text do
+defmodule Elementary.Text do
   @moduledoc false
 
   use Elementary.Provider,
-    kind: :text,
-    module: __MODULE__,
     rank: :lowest
 
   alias Elementary.Kit

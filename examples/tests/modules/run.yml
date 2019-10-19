@@ -2,7 +2,7 @@ kind: module
 name: run
 spec:
   decoders:
-    default:
+    http:
       run:
         method: POST
         params:
@@ -10,12 +10,29 @@ spec:
             any: text
           settings:
             any: text
+    test:
+      running:
+        status: running
+      error:
+        status:
+          other_than: running
+        reason:
+          any: text
   update:
     run:
       model: @params
       cmds:
-        response: running
         test: test
+    running:
+      cmds:
+        response: running
+    error:
+      model:
+        error:
+          status: @status
+          reason: @reason
+      cmds:
+        response: error
   encoders:
     test:
       run: @
@@ -25,3 +42,14 @@ spec:
         content-type: application/json
       body:
         status: running
+    error:
+      status:
+        encoder: status
+      headers:
+        content-type: application/json
+      body: @error
+    status:
+      choose: @error.status
+      when:
+        not_found: 404
+      otherwise: 500

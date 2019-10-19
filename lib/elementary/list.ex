@@ -1,4 +1,4 @@
-defmodule Elementary.Lang.List do
+defmodule Elementary.List do
   @moduledoc false
 
   use Elementary.Provider,

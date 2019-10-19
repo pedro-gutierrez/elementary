@@ -108,6 +108,10 @@ defmodule Elementary.Ast do
     {:and, @line, items |> quoted()}
   end
 
+  def quoted({:other_than, var, value}) do
+    {:!=, @line, [var, value]}
+  end
+
   def quoted({:fun, name, body}) do
     quoted({:fun, name, [], body})
   end

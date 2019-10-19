@@ -1,11 +1,11 @@
-defmodule Elementary.Lang.Model do
+defmodule Elementary.Model do
   @moduledoc false
 
   use Elementary.Provider,
     module: __MODULE__
 
   alias Elementary.Kit
-  alias Elementary.Lang.Dict
+  alias Elementary.Dict
 
   defstruct spec: %Dict{}
 

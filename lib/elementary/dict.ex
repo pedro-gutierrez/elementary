@@ -1,4 +1,4 @@
-defmodule Elementary.Lang.Dict do
+defmodule Elementary.Dict do
   @moduledoc false
 
   use Elementary.Provider,

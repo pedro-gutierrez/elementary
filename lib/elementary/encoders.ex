@@ -1,4 +1,4 @@
-defmodule Elementary.Lang.Encoders do
+defmodule Elementary.Encoders do
   @moduledoc false
 
   use Elementary.Provider
@@ -53,11 +53,17 @@ defmodule Elementary.Lang.Encoders do
   end
 
   def not_implemented_ast() do
-    {:fun, :encode, [:encoder, :_, :_], {:error, :no_such_encoder, {:var, :encoder}}}
+    {:fun, :encode, [:encoder, :_data],
+     {:error,
+      {:map,
+       [
+         {:error, :no_encoder},
+         {:data, {:var, :encoder}}
+       ]}}}
   end
 
   defp encoder_fun_ast(ast, name) do
     data_var = Elementary.Ast.fn_clause_var_name(ast, :data)
-    {:fun, :encode, [{:symbol, name}, data_var, :_context], ast}
+    {:fun, :encode, [{:symbol, name}, data_var], ast}
   end
 end

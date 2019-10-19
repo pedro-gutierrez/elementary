@@ -1,9 +1,8 @@
-defmodule Elementary.Lang.Clause do
+defmodule Elementary.Clause do
   @moduledoc false
 
   use Elementary.Provider
-  alias Elementary.Kit
-  alias Elementary.Lang.{Condition, Model, Cmds}
+  alias Elementary.{Kit, Condition, Model, Cmds}
 
   defstruct condition: nil,
             model: nil,

@@ -1,12 +1,10 @@
-defmodule Elementary.Lang.Port do
+defmodule Elementary.Port do
   @moduledoc false
 
-  use Elementary.Provider,
-    kind: "port",
-    module: __MODULE__
+  use Elementary.Provider
 
   alias Elementary.Kit
-  alias Elementary.Lang.Mount
+  alias Elementary.Mount
 
   defstruct rank: :high,
             name: "",
@@ -17,6 +15,7 @@ defmodule Elementary.Lang.Port do
   def parse(
         %{
           "version" => version,
+          "kind" => "port",
           "name" => name,
           "spec" => %{
             "port" => port,
@@ -46,7 +45,7 @@ defmodule Elementary.Lang.Port do
     [
       {:module, [port.name, "port"] |> Kit.camelize(),
        [
-         {:usage, Elementary.Lang.Port,
+         {:usage, Elementary.Port,
           [
             name: port.name |> String.to_atom(),
             port: port.port,
@@ -60,6 +59,7 @@ defmodule Elementary.Lang.Port do
                 ]
               end)
           ]},
+         {:fun, :kind, [], :port},
          {:fun, :name, [], {:symbol, port.name}},
          {:fun, :supervised, [], {:boolean, true}}
        ]}
@@ -71,7 +71,9 @@ defmodule Elementary.Lang.Port do
             {:usage, Elementary.Http,
              [
                app: mount.app |> String.to_atom()
-             ]}
+             ]},
+            {:fun, :kind, [], :http},
+            {:fun, :name, [], {:tuple, [{:symbol, port.name}, {:symbol, mount.app}]}}
           ]}
        end))
   end

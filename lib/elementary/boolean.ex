@@ -1,10 +1,7 @@
-defmodule Elementary.Lang.Boolean do
+defmodule Elementary.Boolean do
   @moduledoc false
 
-  use Elementary.Provider,
-    kind: "number",
-    module: __MODULE__
-
+  use Elementary.Provider
   alias Elementary.Kit
 
   defstruct spec: %{}

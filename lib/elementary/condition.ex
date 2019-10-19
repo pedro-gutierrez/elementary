@@ -1,4 +1,4 @@
-defmodule Elementary.Lang.Condition do
+defmodule Elementary.Condition do
   @moduledoc false
 
   use Elementary.Provider

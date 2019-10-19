@@ -1,10 +1,10 @@
-defmodule Elementary.Lang.Module do
+defmodule Elementary.Module do
   @moduledoc false
 
   use Elementary.Provider
 
   alias Elementary.Kit
-  alias Elementary.Lang.{Init, Decoders, Update, Encoders}
+  alias Elementary.{Init, Decoders, Update, Encoders}
 
   defstruct rank: :medium,
             name: "",
@@ -62,6 +62,7 @@ defmodule Elementary.Lang.Module do
   def ast(mod, index) do
     {:module, mod.name |> module_name(),
      [
+       {:fun, :kind, [], :module},
        {:fun, :name, [], {:symbol, mod.name}}
      ] ++
        Init.ast(mod.spec.init, index) ++

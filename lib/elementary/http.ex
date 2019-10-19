@@ -3,7 +3,7 @@ defmodule Elementary.Http do
 
   defmacro __using__(app: app) do
     quote do
-      @effect "default"
+      @effect :http
       @app unquote(app)
 
       def app(), do: @app

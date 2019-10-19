@@ -1,18 +1,14 @@
 defmodule Elementary.StateMachine do
   @moduledoc false
 
-  defmacro __using__(name: name, callback: cb) do
+  defmacro __using__(cb) do
     {:ok, settings} = cb.settings()
     {:ok, model, cmds} = cb.init(settings)
 
     opts = [cb: cb, model: model, cmds: cmds, settings: settings]
 
     quote do
-      @name unquote(name)
-      def name(), do: @name
-
       @cb unquote(opts[:cb])
-
       @model unquote(Macro.escape(model))
       @cmds unquote(Macro.escape(cmds))
 
@@ -27,12 +23,16 @@ defmodule Elementary.StateMachine do
         GenStateMachine.cast(pid, {:update, effect, data})
       end
 
+      def reply(pid, data) do
+        GenStateMachine.cast(pid, {:reply, data})
+      end
+
       def terminate(pid) do
         GenStateMachine.cast(pid, :terminate)
       end
 
       use GenStateMachine, callback_mode: :state_functions
-      defstruct owner: :undef, model: %{}
+      defstruct owner: nil, model: %{}
 
       @impl true
       def init(owner) when is_pid(owner) do
@@ -41,6 +41,7 @@ defmodule Elementary.StateMachine do
             {:ok, :ready, %__MODULE__{owner: owner, model: @model}}
 
           {:error, e} ->
+            send(owner, e)
             {:stop, {:shutdown, e}}
         end
       end
@@ -53,8 +54,8 @@ defmodule Elementary.StateMachine do
           {:keep_state, %{state | model: model}}
         else
           {:error, e} ->
-            state.owner |> send(e)
-            {:keep_state, state}
+            send(state.owner, e)
+            {:stop, {:shutdown, e}}
         end
       end
 
@@ -62,43 +63,31 @@ defmodule Elementary.StateMachine do
         {:stop, :normal, state}
       end
 
+      def ready(:cast, {:reply, data}, state) do
+        send(state.owner, data)
+        {:keep_state, state}
+      end
+
       defp apply_cmds([], _), do: :ok
 
-      defp apply_cmds(cmds, model) do
-        Enum.reduce_while(cmds, [], fn
-          {eff, enc} = cmd, acc ->
-            case @cb.encode(enc, model, model) do
-              {:ok, encoded} ->
-                {:cont, [{eff, encoded} | acc]}
-
-              {:error, _} = e ->
-                {:halt, e}
-            end
-
-          eff, acc ->
-            {:cont, [{eff, %{}} | acc]}
-        end)
-        |> case do
+      defp apply_cmds([{eff, enc} | rem], model) do
+        with {:ok, encoded} <- @cb.encode(enc, model),
+             :ok <- Elementary.Effects.apply(eff, self(), encoded) do
+          apply_cmds(rem, model)
+        else
           {:error, _} = e ->
             e
-
-          cmds ->
-            cmds
-            |> Enum.reverse()
-            |> Enum.each(fn {effect, params} ->
-              effect_apply(effect, params, self())
-            end)
-
-            :ok
         end
       end
 
-      defp effect_apply(:response, params, owner) do
-        send(owner, params)
-      end
+      defp apply_cmds([eff | rem], model) do
+        case Elementary.Effects.apply(eff, self(), nil) do
+          :ok ->
+            apply_cmds(rem, model)
 
-      defp effect_apply(:terminate, _, owner) do
-        __MODULE__.terminate(owner)
+          {:error, _} = e ->
+            e
+        end
       end
     end
   end

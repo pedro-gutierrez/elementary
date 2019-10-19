@@ -1,10 +1,10 @@
-defmodule Elementary.Lang.Update do
+defmodule Elementary.Update do
   @moduledoc false
 
   use Elementary.Provider
 
   alias Elementary.Kit
-  alias Elementary.Lang.Clause
+  alias Elementary.Clause
 
   defstruct spec: %{}
 

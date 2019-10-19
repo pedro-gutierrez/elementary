@@ -1,12 +1,8 @@
-defmodule Elementary.Lang.App do
+defmodule Elementary.App do
   @moduledoc false
 
-  use Elementary.Provider,
-    kind: "app",
-    module: __MODULE__
-
-  alias Elementary.{Ast, Kit}
-  alias Elementary.Lang.{Module, Update, Decoders, Encoders, Settings}
+  use Elementary.Provider
+  alias(Elementary.{Ast, Kit, Module, Update, Decoders, Encoders, Settings})
 
   defstruct rank: :high,
             name: "",
@@ -58,6 +54,7 @@ defmodule Elementary.Lang.App do
     asts = [
       {:module, callback,
        [
+         {:fun, :kind, [], :app},
          {:fun, :name, [], {:symbol, app.name}},
          {:fun, :modules, [],
           app.modules
@@ -72,11 +69,9 @@ defmodule Elementary.Lang.App do
          (mod_asts |> encoder_ast())},
       {:module, [app.name, "state", "machine"] |> Elementary.Kit.camelize(),
        [
-         {:usage, Elementary.StateMachine,
-          [
-            name: app.name,
-            callback: callback_module_atom(app)
-          ]}
+         {:fun, :kind, [], :statemachine},
+         {:fun, :name, [], {:symbol, app.name}},
+         {:usage, Elementary.StateMachine, callback_module_atom(app)}
        ]}
     ]
 

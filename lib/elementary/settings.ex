@@ -1,10 +1,9 @@
-defmodule Elementary.Lang.Settings do
+defmodule Elementary.Settings do
   @moduledoc false
 
   use Elementary.Provider, rank: :low
 
-  alias Elementary.{Kit}
-  alias Elementary.Lang.{Dict}
+  alias Elementary.{Kit, Dict}
 
   defstruct rank: :low,
             name: nil,
@@ -41,11 +40,31 @@ defmodule Elementary.Lang.Settings do
   def ast(settings, index) do
     {:module, module_name(settings.name),
      [
+       {:fun, :kind, [], :settings},
+       {:fun, :name, [], {:symbol, settings.name}},
        {:fun, :get, [], settings.spec.__struct__.ast(settings.spec, index)}
      ]}
   end
 
   def module_name(name) do
     ["#{name}", "settings"] |> Elementary.Kit.camelize()
+  end
+
+  def indexed(mods) do
+    {:module, Elementary.Index.Settings,
+     (mods
+      |> Enum.filter(fn m ->
+        m.kind() == :settings
+      end)
+      |> Enum.flat_map(fn m ->
+        [
+          {:fun, :get, [{:symbol, m.name()}], {:call, m, :get, []}},
+          {:fun, :get, [{:text, m.name()}], {:call, m, :get, []}}
+        ]
+      end)) ++
+       [
+         {:fun, :get, [{:var, :_}], {:tuple, [:error, :not_found]}}
+       ]}
+    |> Elementary.Ast.compiled()
   end
 end

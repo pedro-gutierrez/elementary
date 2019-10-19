@@ -1,4 +1,4 @@
-defmodule Elementary.Lang.Mount do
+defmodule Elementary.Mount do
   @moduledoc false
 
   defstruct app: "", path: "", protocol: "http"

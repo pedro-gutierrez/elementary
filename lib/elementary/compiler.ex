@@ -4,13 +4,13 @@ defmodule Elementary.Compiler do
   alias Elementary.{Kit, Ast}
   require Logger
 
-  def start_link(_) do
-    GenServer.start_link(__MODULE__, [])
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts)
   end
 
-  def init(_) do
+  def init([providers]) do
     {:ok, pid} = Kit.watch()
-    {:ok, [watcher: pid]}
+    {:ok, [watcher: pid, providers: providers]}
   end
 
   def handle_info({:file_event, _, {_, [:created]}}, state) do
@@ -18,13 +18,13 @@ defmodule Elementary.Compiler do
   end
 
   def handle_info({:file_event, _, {_, _}}, state) do
-    compiled()
+    compiled(state[:providers])
     {:noreply, state}
   end
 
-  def compiled() do
-    with providers <- Kit.providers(),
-         {:ok, specs} <- Kit.read_yamls() |> Kit.parse_specs(providers),
+  def compiled(providers) do
+    with specs <- Kit.read_yamls(),
+         {:ok, specs} <- Kit.parse_specs(specs, providers),
          asts <- specs |> Kit.asts(),
          {:ok, mods} <- asts |> Ast.compiled() do
       {:ok, mods}
