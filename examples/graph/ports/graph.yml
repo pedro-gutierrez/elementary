@@ -1,0 +1,9 @@
+kind: port
+name: graph
+spec:
+  port: 9999
+  apps:
+    graphiql:
+      http: /graphiql
+    projects:
+      http: /projects

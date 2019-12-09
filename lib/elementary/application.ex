@@ -7,6 +7,8 @@ defmodule Elementary.Application do
   alias Elementary.Kit
   alias Elementary.Effect
   alias Elementary.Settings
+  alias Elementary.Playbook
+  alias Elementary.Graph
 
   def start(_type, _args) do
     plugins = Kit.plugins()
@@ -16,7 +18,9 @@ defmodule Elementary.Application do
     children =
       with {:ok, mods} <- Compiler.compiled(providers),
            {:ok, _} <- Effect.compiled(effects),
-           {:ok, _} <- Settings.indexed(mods) do
+           {:ok, _} <- Settings.indexed(mods),
+           {:ok, _} <- Playbook.indexed(mods),
+           {:ok, _} <- Graph.indexed(mods) do
         Kit.supervised(mods)
       else
         {:error, e} ->

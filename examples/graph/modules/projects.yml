@@ -1,0 +1,35 @@
+kind: module
+name: projects
+spec:
+  decoders:
+    http:
+      query:
+        method: POST
+        body:
+          any: text
+    graph:
+      result:
+        data:
+          any: dict
+        time:
+          any: number
+  update:
+    query:
+      model:
+        data: @body
+      cmds:
+        graph: query
+    result:
+      model: @
+      cmds:
+        response: result
+  encoders:
+    query:
+      graph: projects
+      query: @data
+    result:
+      status: 200
+      headers:
+        content-type: application/json
+        absinthe-micros: @time
+      body: @data

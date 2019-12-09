@@ -302,8 +302,27 @@ defmodule Elementary.Kit do
 
   def camelize(parts) do
     parts
-    |> Enum.map(&String.capitalize(&1))
+    |> Enum.map(&capitalize(&1))
     |> Enum.join("")
+  end
+
+  defp capitalize(atom) when is_atom(atom) do
+    atom |> Atom.to_string() |> capitalize()
+  end
+
+  defp capitalize(str) when is_binary(str) do
+    String.capitalize(str)
+  end
+
+  @doc """
+  Builds an atom, by concatenating the given list of atoms
+
+  """
+  def atom_from(atoms) do
+    atoms
+    |> Enum.map(&Atom.to_string(&1))
+    |> Enum.join("_")
+    |> String.to_atom()
   end
 
   @doc """

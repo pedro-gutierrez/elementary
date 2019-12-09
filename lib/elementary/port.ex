@@ -17,29 +17,40 @@ defmodule Elementary.Port do
           "version" => version,
           "kind" => "port",
           "name" => name,
-          "spec" => %{
-            "port" => port,
-            "apps" => apps
-          }
-        } = spec,
+          "spec" => spec
+        } = spec0,
         _
       ) do
-    case Mount.parse(apps) do
+    with {:ok, port} <- parse_port(spec),
+         {:ok, apps} <- parse_apps(spec) do
+      {:ok,
+       %__MODULE__{
+         name: name,
+         version: version,
+         port: port,
+         apps: apps
+       }}
+    else
       {:error, e} ->
-        {:error, %{spec: spec, reason: e}}
-
-      {:ok, mounts} ->
-        {:ok,
-         %__MODULE__{
-           name: name,
-           version: version,
-           port: port,
-           apps: mounts
-         }}
+        {:error, %{spec: spec0, reason: e}}
     end
   end
 
   def parse(spec, _), do: Kit.error(:not_supported, spec)
+
+  def parse_port(%{"port" => port}) do
+    {:ok, port}
+  end
+
+  def parse_port(spec) do
+    {:error, %{spec: spec, reason: :missing_port}}
+  end
+
+  def parse_apps(%{"apps" => apps}) do
+    Mount.parse(apps)
+  end
+
+  def parse_apps(_), do: {:ok, []}
 
   def ast(port, _) do
     [

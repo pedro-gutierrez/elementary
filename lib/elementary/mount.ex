@@ -5,17 +5,15 @@ defmodule Elementary.Mount do
 
   def parse(mounts) do
     {:ok,
-     mounts
-     |> Enum.reduce_while([], fn {app, mounts}, acc ->
-       {:cont,
-        (acc ++ mounts)
-        |> Enum.map(fn {protocol, path} ->
-          %__MODULE__{
-            app: app,
-            protocol: protocol,
-            path: path
-          }
-        end)}
-     end)}
+     Enum.flat_map(mounts, fn {app, app_mounts} ->
+       Enum.map(app_mounts, fn {protocol, path} ->
+         %__MODULE__{
+           app: app,
+           protocol: protocol,
+           path: path
+         }
+       end)
+     end)
+     |> Enum.reverse()}
   end
 end

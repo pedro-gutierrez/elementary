@@ -46,6 +46,14 @@ defmodule Elementary.Ast do
      ]}
   end
 
+  def quoted({:usage, names, params}) when is_list(names) do
+    {:use, @line,
+     [
+       {:__aliases__, @line, Enum.map(names, &symbol(&1))},
+       params
+     ]}
+  end
+
   def quoted({:usage, name, params}) do
     {:use, @line,
      [
@@ -83,6 +91,31 @@ defmodule Elementary.Ast do
           quoted_guards(guards)
         ]},
        [do: quoted(body)]
+     ]}
+  end
+
+  def quoted({:lambda, params, body}) do
+    {:fn, @line,
+     [
+       {:->, @line,
+        [
+          Enum.map(params, &quoted_param(&1)),
+          quoted(body)
+        ]}
+     ]}
+  end
+
+  def quoted({:block, name, params, content}) when is_list(params) do
+    {name, @line,
+     Enum.map(params, &quoted/1) ++
+       [[do: {:__block__, [], Enum.map(content, &quoted/1)}]]}
+  end
+
+  def quoted({:block, name, param, content}) do
+    {name, @line,
+     [
+       quoted(param),
+       [do: {:__block__, [], Enum.map(content, &quoted/1)}]
      ]}
   end
 
@@ -342,8 +375,12 @@ defmodule Elementary.Ast do
     single |> quoted()
   end
 
-  def quoted_guards(guards) do
-    {:and, @line, guards |> Enum.map(&quoted(&1))}
+  def quoted_guards([first | rest]) do
+    {:and, @line,
+     [
+       quoted_guards(rest),
+       quoted(first)
+     ]}
   end
 
   def compiled(asts) when is_list(asts) do

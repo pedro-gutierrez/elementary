@@ -29,4 +29,9 @@ defmodule Elementary.Any do
     {var, lv} = lv |> Kit.new_var()
     {{:var, var}, [{:call, :is_binary, [{:var, var}]}], {:var, var}, lv}
   end
+
+  def decoder_ast(%{kind: "number"}, lv) do
+    {var, lv} = lv |> Kit.new_var()
+    {{:var, var}, [{:call, :is_number, [{:var, var}]}], {:var, var}, lv}
+  end
 end

@@ -74,9 +74,9 @@ defmodule Elementary.Http do
         req =
           :cowboy_req.reply(
             status,
-            Map.merge(headers, %{
-              "elementary-app" => "#{@app}",
-              "elementary-micros" => "#{elapsed}"
+            encoded_headers(headers, %{
+              "elementary-app" => @app,
+              "elementary-micros" => elapsed
             }),
             body,
             req
@@ -85,6 +85,15 @@ defmodule Elementary.Http do
         Process.demonitor(state.ref)
         state.mod.terminate(state.pid)
         {:stop, req, state}
+      end
+
+      defp encoded_headers(h1, h2) do
+        h1
+        |> Map.merge(h2)
+        |> Enum.reduce([], fn {k, v}, m ->
+          [{k, "#{v}"} | m]
+        end)
+        |> Enum.into(%{})
       end
 
       defp encoded_body!(body, %{"content-type" => "application/json"}) do

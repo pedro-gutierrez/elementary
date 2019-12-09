@@ -1,0 +1,18 @@
+kind: module
+name: graphiql
+spec:
+  decoders:
+    http:
+      graphiql:
+        method: GET
+  update:
+    graphiql:
+      cmds:
+        response: graphiql
+  encoders:
+    graphiql:
+      status: 200
+      headers:
+        content-type: text/html
+      body:
+        graphiql: /projects

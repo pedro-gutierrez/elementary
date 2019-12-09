@@ -1,0 +1,5 @@
+kind: app
+name: projects
+spec:
+  modules:
+    - projects

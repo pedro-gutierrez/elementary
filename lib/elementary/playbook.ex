@@ -43,30 +43,66 @@ defmodule Elementary.Playbook do
     IO.inspect(playbook: playbook)
 
     run_asts =
-      Enum.filter(playbook.steps, fn s ->
-        true
-        # s.spec.__struct__ == Elementary.Steps
-      end)
-      |> Enum.flat_map(fn s ->
-        [{:fun, :run, [{:text, s.title}, :_data], {:tuple, [:ok, {:text, s.title}]}}] ++
-          Enum.map(s.tags, fn t ->
-            {:fun, :run, [{:symbol, t}, :data], {:call, :run, [{:text, s.title}, {:var, :data}]}}
-          end)
+      (Enum.filter(playbook.steps, fn s ->
+         true
+         # s.spec.__struct__ == Elementary.Steps
+       end)
+       |> Enum.map(fn s ->
+         {:fun, :run, [{:text, s.title}, :_context], {:tuple, [:ok, {:text, s.title}]}}
+       end)) ++
+        [{:fun, :run, [{:var, :_name}, :_context], {:tuple, [:error, :not_found]}}]
+
+    index_by_tags =
+      Enum.reduce(playbook.steps, %{}, fn s, tags ->
+        Enum.reduce(s.tags, tags, fn t, tags ->
+          values = Map.get(tags, t, [])
+          Map.put(tags, t, [s.title | values])
+        end)
       end)
 
-    default_run_ast = [{:fun, :run, [{:var, :_name}, :_data], {:tuple, [:error, :not_found]}}]
+    run_by_tag_asts =
+      Enum.flat_map(index_by_tags, fn {t, steps} ->
+        res = {:tuple, [:ok, {:list, Enum.reverse(steps)}]}
+        [{:fun, :tagged, [{:symbol, t}], res}, {:fun, :tagged, [{:text, t}], res}]
+      end) ++
+        [{:fun, :tagged, [:_tag], {:tuple, [:error, :not_found]}}]
 
     [
-      {:module, test_module_name(playbook),
+      {:module, module_name(playbook),
        [
          {:fun, :kind, [], :playbook},
          {:fun, :name, [], {:symbol, playbook.name}}
-       ] ++ run_asts ++ default_run_ast}
+       ] ++ run_asts ++ run_by_tag_asts}
     ]
   end
 
-  defp test_module_name(test) do
-    Kit.camelize([test.name, "Playbook"])
+  def indexed(mods) do
+    {:module, Elementary.Index.Playbook,
+     (mods
+      |> Enum.filter(fn m ->
+        m.kind() == :playbook
+      end)
+      |> Enum.flat_map(fn m ->
+        IO.inspect(indexing: m)
+        res = {:tuple, [:ok, m]}
+
+        [
+          {:fun, :get, [{:symbol, m.name()}], res},
+          {:fun, :get, [{:text, m.name()}], res}
+        ]
+      end)) ++
+       [
+         {:fun, :get, [{:var, :_}], {:tuple, [:error, :not_found]}}
+       ]}
+    |> Elementary.Ast.compiled()
+  end
+
+  defp module_name(p) when is_map(p) do
+    module_name(p.name)
+  end
+
+  defp module_name(n) when is_binary(n) or is_atom(n) do
+    Kit.camelize([n, "Playbook"])
   end
 
   defp playbooks(%{"playbooks" => playbooks}, _) do

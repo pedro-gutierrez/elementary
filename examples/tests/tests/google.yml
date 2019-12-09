@@ -4,6 +4,12 @@ spec:
   playbooks: []
   steps:
     - title: "Google should be available"
+      tags: google, demo
+      steps:
+        - "When I visit Google's homepage"
+        - "I should have status code 200"
+
+    - title: "Google should be fast"
       tags: google
       steps:
         - "When I visit Google's homepage"
