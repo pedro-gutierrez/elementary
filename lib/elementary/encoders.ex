@@ -43,7 +43,7 @@ defmodule Elementary.Encoders do
 
   def ast(%{spec: names}, index) do
     (names
-     |> Enum.map(fn {name, spec} ->
+     |> Enum.flat_map(fn {name, spec} ->
        spec.__struct__.ast(spec, index)
        |> encoder_fun_ast(name)
      end)) ++
@@ -64,6 +64,10 @@ defmodule Elementary.Encoders do
 
   defp encoder_fun_ast(ast, name) do
     data_var = Elementary.Ast.fn_clause_var_name(ast, :data)
-    {:fun, :encode, [{:symbol, name}, data_var], ast}
+
+    [
+      {:fun, :encode, [{:symbol, name}, data_var], ast},
+      {:fun, :encode, [name, data_var], ast}
+    ]
   end
 end

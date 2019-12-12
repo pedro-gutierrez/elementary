@@ -1,0 +1,24 @@
+kind: module
+name: project
+spec:
+  decoders:
+    projects:
+      create:
+        event: create
+        kind: project
+        data:
+          id:
+            any: text
+          name:
+            any: text
+  update:
+    create:
+      cmds:
+        stream: project_created
+  encoders:
+    project_create_identity:
+      id: @data.id
+    project_created:
+      event: created
+      kind: project
+      data: @

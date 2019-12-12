@@ -304,6 +304,7 @@ defmodule Elementary.Kit do
     parts
     |> Enum.map(&capitalize(&1))
     |> Enum.join("")
+    |> Macro.camelize()
   end
 
   defp capitalize(atom) when is_atom(atom) do

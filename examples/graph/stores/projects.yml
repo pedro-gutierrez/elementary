@@ -1,0 +1,9 @@
+kind: store
+name: projects
+spec:
+  scheme: mongodb+srv
+  host: dev-g3pdz.mongodb.net
+  options:
+    retryWrites: true
+    w: majority
+  pool: 3

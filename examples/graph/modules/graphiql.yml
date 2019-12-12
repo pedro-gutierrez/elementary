@@ -15,4 +15,4 @@ spec:
       headers:
         content-type: text/html
       body:
-        graphiql: /projects
+        graphiql: /api/projects

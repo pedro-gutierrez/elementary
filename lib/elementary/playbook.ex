@@ -43,7 +43,7 @@ defmodule Elementary.Playbook do
     IO.inspect(playbook: playbook)
 
     run_asts =
-      (Enum.filter(playbook.steps, fn s ->
+      (Enum.filter(playbook.steps, fn _s ->
          true
          # s.spec.__struct__ == Elementary.Steps
        end)

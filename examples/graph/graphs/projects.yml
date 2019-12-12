@@ -1,6 +1,7 @@
 kind: graph
 name: projects
 spec:
+  store: projects
   entities:
     project:
       attributes:

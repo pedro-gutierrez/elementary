@@ -3,6 +3,7 @@ defmodule Elementary.Http do
 
   defmacro __using__(app: app) do
     quote do
+      require Logger
       @effect :http
       @app unquote(app)
 
@@ -45,6 +46,15 @@ defmodule Elementary.Http do
       end
 
       def info({:DOWN, ref, :process, pid, reason}, req, %{ref: ref, pid: pid} = state) do
+        Logger.error(
+          "Process terminated: #{
+            inspect(
+              pid: pid,
+              reason: reason
+            )
+          }"
+        )
+
         info(:crashed, req, state)
       end
 

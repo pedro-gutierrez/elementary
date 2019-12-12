@@ -94,6 +94,17 @@ defmodule Elementary.Ast do
      ]}
   end
 
+  def quoted({:lambda, params, body}) when is_list(body) do
+    {:fn, @line,
+     [
+       {:->, @line,
+        [
+          Enum.map(params, &quoted_param(&1)),
+          {:__block__, [], quoted(body)}
+        ]}
+     ]}
+  end
+
   def quoted({:lambda, params, body}) do
     {:fn, @line,
      [

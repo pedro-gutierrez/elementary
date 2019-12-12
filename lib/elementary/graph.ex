@@ -7,6 +7,7 @@ defmodule Elementary.Graph do
   defstruct rank: :high,
             name: "",
             version: "1",
+            store: nil,
             settings: [],
             entities: []
 
@@ -71,18 +72,28 @@ defmodule Elementary.Graph do
           [name]
       end
 
-    with {:ok, entities} <- parse_entities(spec) do
+    with {:ok, entities} <- parse_entities(spec),
+         {:ok, store} <- parse_store(spec) do
       {:ok,
        %__MODULE__{
          name: name,
          version: version,
          settings: Enum.uniq(settings),
-         entities: entities
+         entities: entities,
+         store: store
        }}
     end
   end
 
   def parse(spec, _), do: Kit.error(:not_supported, spec)
+
+  def parse_store(%{"store" => store}) do
+    {:ok, String.to_atom(store)}
+  end
+
+  def parse_store(spec) do
+    {:error, %{spec: spec, reason: :missing_store}}
+  end
 
   def parse_entities(%{"entities" => entities}) do
     Enum.reduce_while(entities, [], fn {name, spec}, acc ->
@@ -206,10 +217,11 @@ defmodule Elementary.Graph do
           {:fun, :kind, [], :graph},
           {:fun, :name, [], {:symbol, graph.name}}
         ] ++
+          [op_type()] ++
           types(graph.entities) ++
           [
             {:block, :query, {:props, [name: "Query"]}, queries(graph.entities)},
-            {:block, :mutation, {:props, [name: "Mutation"]}, mutations(graph.entities)}
+            {:block, :mutation, {:props, [name: "Mutation"]}, mutations(graph)}
           ]
       }
     ]
@@ -229,9 +241,9 @@ defmodule Elementary.Graph do
     end)
   end
 
-  defp mutations(entities) do
-    Enum.flat_map(entities, fn e ->
-      mutations_for_entity(e, entities)
+  defp mutations(graph) do
+    Enum.flat_map(graph.entities, fn e ->
+      mutations_for_entity(e, graph)
     end)
   end
 
@@ -241,6 +253,13 @@ defmodule Elementary.Graph do
        attribute_fields_for_entity(e, all),
        relation_fields_for_entity(e, all)
      ])}
+  end
+
+  defp op_type() do
+    {:block, :object, :op,
+     [
+       {:call, :field, [:ref, :id]}
+     ]}
   end
 
   defp attribute_fields_for_entity(e, _all) do
@@ -314,45 +333,68 @@ defmodule Elementary.Graph do
      ]}
   end
 
-  defp mutations_for_entity(e, all) do
+  defp mutations_for_entity(e, graph) do
     [
-      create_mutation(e, all),
-      update_mutation(e, all),
-      delete_mutation(e, all)
+      create_mutation(e, graph),
+      update_mutation(e, graph),
+      delete_mutation(e, graph)
     ]
   end
 
-  defp create_mutation(e, all) do
-    {:block, :field, [Kit.atom_from([:create, e.name]), e.name],
-     create_args_for_entity(e, all) ++
+  defp create_mutation(e, graph) do
+    store_name = Elementary.Store.store_name(graph.store)
+
+    {:block, :field, [Kit.atom_from([:create, e.name]), :op],
+     create_args_for_entity(e, graph) ++
        [
          {:call, :resolve,
           [
-            {:lambda, [:_, :_, :_], {:ok, {:map, []}}}
+            mutation_ast(store_name, e.name, :create)
           ]}
        ]}
   end
 
-  defp update_mutation(e, all) do
-    {:block, :field, [Kit.atom_from([:update, e.name]), e.name],
-     update_args_for_entity(e, all) ++
+  defp update_mutation(e, graph) do
+    store_name = Elementary.Store.store_name(graph.store)
+
+    {:block, :field, [Kit.atom_from([:update, e.name]), :op],
+     update_args_for_entity(e, graph) ++
        [
          {:call, :resolve,
           [
-            {:lambda, [:_, :_, :_], {:ok, {:map, []}}}
+            mutation_ast(store_name, e.name, :update)
           ]}
        ]}
   end
 
-  defp delete_mutation(e, _) do
-    {:block, :field, [Kit.atom_from([:delete, e.name]), e.name],
+  defp delete_mutation(e, graph) do
+    store_name = Elementary.Store.store_name(graph.store)
+
+    {:block, :field, [Kit.atom_from([:delete, e.name]), :op],
      [
        arg_from_attribute(Attribute.id()),
        {:call, :resolve,
         [
-          {:lambda, [:_, :_, :_], {:ok, {:map, []}}}
+          mutation_ast(store_name, e.name, :delete)
         ]}
      ]}
+  end
+
+  defp mutation_ast(store, entity_name, event) do
+    {:lambda, [:_, :params, :_],
+     {:let,
+      [
+        id:
+          {:call, store, :write,
+           [
+             {:map,
+              [
+                {:kind, entity_name},
+                {:event, event},
+                {:data, {:var, :params}}
+              ]}
+           ]}
+      ], {:ok, {:map, [ref: {:var, :id}]}}}}
   end
 
   defp arg_from_attribute(attr) do

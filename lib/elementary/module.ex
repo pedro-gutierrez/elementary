@@ -7,6 +7,7 @@ defmodule Elementary.Module do
   alias Elementary.{Init, Decoders, Update, Encoders}
 
   defstruct rank: :medium,
+            kind: :module,
             name: "",
             version: "1",
             spec: %{
@@ -26,10 +27,7 @@ defmodule Elementary.Module do
         providers
       ) do
     with spec <- %__MODULE__{name: name, version: version},
-         {:ok, spec} <- with_section(spec, raw_spec, providers, :init, Init),
-         {:ok, spec} <- with_section(spec, raw_spec, providers, :decoders, Decoders),
-         {:ok, spec} <- with_section(spec, raw_spec, providers, :update, Update),
-         {:ok, spec} <- with_section(spec, raw_spec, providers, :encoders, Encoders) do
+         {:ok, spec} <- parse_spec(spec, raw_spec, providers) do
       {:ok, spec}
     else
       {:error, e} ->
@@ -43,7 +41,16 @@ defmodule Elementary.Module do
 
   def parse(spec, _), do: Kit.error(:not_supported, spec)
 
-  def with_section(%{spec: spec} = mod, raw, providers, section, parser) do
+  def parse_spec(spec, raw_spec, providers) do
+    with {:ok, spec} <- with_section(spec, raw_spec, providers, :init, Init),
+         {:ok, spec} <- with_section(spec, raw_spec, providers, :decoders, Decoders),
+         {:ok, spec} <- with_section(spec, raw_spec, providers, :update, Update),
+         {:ok, spec} <- with_section(spec, raw_spec, providers, :encoders, Encoders) do
+      {:ok, spec}
+    end
+  end
+
+  defp with_section(%{spec: spec} = mod, raw, providers, section, parser) do
     case raw |> parser.parse(providers) do
       {:ok, parsed} ->
         {:ok, %{mod | spec: Map.put(spec, section, parsed)}}
@@ -60,10 +67,14 @@ defmodule Elementary.Module do
   end
 
   def ast(mod, index) do
-    {:module, mod.name |> module_name(),
+    ast(mod, mod.name |> module_name(), mod.name, index)
+  end
+
+  def ast(mod, mod_name, name, index) do
+    {:module, mod_name,
      [
-       {:fun, :kind, [], :module},
-       {:fun, :name, [], {:symbol, mod.name}}
+       {:fun, :kind, [], mod.kind},
+       {:fun, :name, [], {:symbol, name}}
      ] ++
        Init.ast(mod.spec.init, index) ++
        Update.ast(mod.spec.update, index) ++

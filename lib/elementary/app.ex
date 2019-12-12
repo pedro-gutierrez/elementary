@@ -2,7 +2,7 @@ defmodule Elementary.App do
   @moduledoc false
 
   use Elementary.Provider
-  alias(Elementary.{Ast, Kit, Module, Update, Decoders, Encoders, Settings})
+  alias(Elementary.{Ast, Kit, Update, Decoders, Encoders, Settings})
 
   defstruct rank: :high,
             name: "",
@@ -43,7 +43,7 @@ defmodule Elementary.App do
   def parse(spec, _), do: Kit.error(:not_supported, spec)
 
   def ast(app, asts) do
-    mod_names = app.modules |> Enum.map(&Module.module_name(&1))
+    mod_names = app.modules |> Enum.map(&Elementary.Module.module_name(&1))
     mod_asts = asts |> Ast.filter({:module, mod_names})
 
     settings_names = Enum.map(app.settings, &Settings.module_name(&1))
@@ -160,5 +160,11 @@ defmodule Elementary.App do
       [
         Encoders.not_implemented_ast()
       ]
+  end
+
+  def app_name(name) do
+    Module.concat([
+      Kit.camelize([name, "App"])
+    ])
   end
 end

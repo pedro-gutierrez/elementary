@@ -5,5 +5,5 @@ spec:
   apps:
     graphiql:
       http: /graphiql
-    projects:
-      http: /projects
+    projects_api:
+      http: /api/projects

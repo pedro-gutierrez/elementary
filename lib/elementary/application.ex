@@ -28,6 +28,8 @@ defmodule Elementary.Application do
           []
       end
 
+    Logger.configure(level: :info)
+
     Supervisor.start_link(children ++ [{Elementary.Compiler, [providers]}, Elementary.Apps],
       strategy: :one_for_one,
       name: Elementary.Supervisor
