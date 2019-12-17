@@ -1,6 +1,0 @@
-kind: stream
-name: projects_events
-spec:
-  store: projects
-  topic: events
-  replay: true
