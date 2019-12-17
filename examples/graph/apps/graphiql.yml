@@ -1,5 +1,0 @@
-kind: app
-name: graphiql
-spec:
-  modules:
-    - graphiql

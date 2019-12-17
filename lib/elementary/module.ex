@@ -83,6 +83,11 @@ defmodule Elementary.Module do
   end
 
   def module_name(name) do
-    ["#{name}", "module"] |> Elementary.Kit.camelize()
+    Module.concat([
+      Elementary.Kit.camelize([
+        "#{name}",
+        "module"
+      ])
+    ])
   end
 end

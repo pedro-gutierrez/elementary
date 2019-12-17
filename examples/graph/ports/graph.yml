@@ -2,8 +2,6 @@ kind: port
 name: graph
 spec:
   port: 9999
-  apps:
-    graphiql:
-      http: /graphiql
-    projects_api:
-      http: /api/projects
+  graphs:
+    fullpass:
+      http: /api/fullpass

@@ -1,0 +1,6 @@
+kind: stream
+name: projects_commands
+spec:
+  store: projects
+  topic: commands
+  replay: false

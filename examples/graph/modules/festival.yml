@@ -1,40 +1,40 @@
 kind: module
-name: project
+name: festival
 spec:
   decoders:
-    projects:
-      create:
+    fullpass:
+      create_festival:
         event: create
-        kind: project
+        kind: festival
         id:
           any: text
         data:
           name:
             any: text
-      created:
+      festival_created:
         event: created
-        kind: project
+        kind: festival
         id:
           any: text
         data:
           name:
             any: text
   update:
-    create:
+    create_festival:
       model:
         id: @id
         name: @data.name
       cmds:
-        store: project_created
-    created:
+        store: festival_created
+    festival_created:
       model:
         id: @id
         name: @data.name
   encoders:
-    project_created:
-      kind: project
+    festival_created:
+      kind: festival
       event: created
       id: @id
       data:
         name: @name
-      in: projects
+      in: fullpass

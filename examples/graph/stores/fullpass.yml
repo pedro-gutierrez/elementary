@@ -1,9 +1,9 @@
 kind: store
-name: projects
+name: fullpass
 spec:
   scheme: mongodb+srv
-  username: ""
-  password: ""
+  username: cm
+  password: cm
   host: dev-g3pdz.mongodb.net
   options:
     retryWrites: true

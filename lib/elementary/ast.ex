@@ -34,6 +34,24 @@ defmodule Elementary.Ast do
     end)
   end
 
+  def filter(asts, {:kind, kind}) when is_list(asts) do
+    asts
+    |> Enum.filter(fn
+      {:module, _, body} ->
+        Enum.filter(body, fn
+          {:fun, :kind, [], ^kind} ->
+            true
+
+          _ ->
+            false
+        end)
+        |> Enum.empty?() == false
+
+      _ ->
+        false
+    end)
+  end
+
   def quoted(:empty_map) do
     {:map, []}
   end
@@ -114,6 +132,10 @@ defmodule Elementary.Ast do
           quoted(body)
         ]}
      ]}
+  end
+
+  def quoted({:block, name, param}) do
+    {name, @line, quoted(param)}
   end
 
   def quoted({:block, name, params, content}) when is_list(params) do
@@ -395,8 +417,6 @@ defmodule Elementary.Ast do
   end
 
   def compiled(asts) when is_list(asts) do
-    Code.compiler_options(ignore_module_conflict: true)
-
     Enum.reduce_while(asts, [], fn ast, acc ->
       case compiled(ast) do
         {:ok, mod} ->
@@ -541,4 +561,28 @@ defmodule Elementary.Ast do
   defp extract_literal(ast), do: ast
 
   defp var(i), do: String.to_atom("v#{i}")
+
+  def index(mods, index, kind) do
+    mods =
+      Enum.filter(mods, fn m ->
+        m.kind() == kind
+      end)
+
+    {:module, index,
+     Enum.flat_map(mods, fn m ->
+       res = {:tuple, [:ok, m]}
+
+       [
+         {:fun, :get, [{:symbol, m.name()}], res},
+         {:fun, :get, [{:text, m.name()}], res}
+       ]
+     end) ++
+       [
+         {:fun, :get, [{:var, :_}], {:tuple, [:error, :not_found]}},
+         {:fun, :all, [],
+          Enum.map(mods, fn mod ->
+            mod.name()
+          end)}
+       ]}
+  end
 end

@@ -1,0 +1,11 @@
+kind: entity
+name: event
+spec:
+  graph: fullpass
+  attributes:
+    name:
+      kind: string
+      tags: key
+  relations:
+    venue:
+      tags: belongs

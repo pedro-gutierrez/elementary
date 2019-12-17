@@ -1,0 +1,22 @@
+kind: graph
+name: fullpass
+spec:
+  store: fullpass
+
+  ##entities:
+  ##  venue:
+  ##    attributes:
+  ##      name:
+  ##        kind: string
+  ##        tags: key
+  ##    relations:
+  ##      festivals:
+  ##        entity: festival
+  ##        tags: many
+  ##  festival:
+  ##    attributes:
+  ##      name: string
+  ##    relations:
+  ##      venue:
+  ##        entity: venue
+  ##        tags: belongs

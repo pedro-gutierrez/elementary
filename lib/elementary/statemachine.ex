@@ -8,6 +8,7 @@ defmodule Elementary.StateMachine do
     opts = [cb: cb, model: model, cmds: cmds, settings: settings]
 
     quote do
+      require Logger
       @cb unquote(opts[:cb])
       @model unquote(Macro.escape(model))
       @cmds unquote(Macro.escape(cmds))
@@ -15,8 +16,12 @@ defmodule Elementary.StateMachine do
       def cb(), do: @cb
       def permanent(), do: false
 
-      def start_link(args) do
-        GenStateMachine.start_link(__MODULE__, args)
+      def start_link(owner, id) do
+        GenStateMachine.start_link(__MODULE__, owner, name: {:via, Registry, {Apps, id}})
+      end
+
+      def start_link(owner) do
+        GenStateMachine.start_link(__MODULE__, owner)
       end
 
       def update(pid, effect, data) do
@@ -54,6 +59,18 @@ defmodule Elementary.StateMachine do
           {:keep_state, %{state | model: model}}
         else
           {:error, e} ->
+            Logger.error(
+              "#{
+                inspect(
+                  module: __MODULE__,
+                  data: data,
+                  effect: effect,
+                  model: state.model,
+                  error: e
+                )
+              }"
+            )
+
             send(state.owner, e)
             {:stop, {:shutdown, e}}
         end

@@ -1,0 +1,6 @@
+kind: stream
+name: fullpass_commands
+spec:
+  store: fullpass
+  topic: commands
+  replay: false

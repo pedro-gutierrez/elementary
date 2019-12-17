@@ -3,14 +3,21 @@ defmodule Elementary.Application do
 
   use Application
   require Logger
-  alias Elementary.Compiler
-  alias Elementary.Kit
-  alias Elementary.Effect
-  alias Elementary.Settings
-  alias Elementary.Playbook
-  alias Elementary.Graph
+
+  alias Elementary.{
+    Compiler,
+    Kit,
+    Effect,
+    Settings,
+    Playbook,
+    Graph,
+    Store,
+    Entity
+  }
 
   def start(_type, _args) do
+    Code.compiler_options(ignore_module_conflict: true)
+
     plugins = Kit.plugins()
     providers = Kit.providers(plugins)
     effects = Kit.effects(plugins)
@@ -20,13 +27,24 @@ defmodule Elementary.Application do
            {:ok, _} <- Effect.compiled(effects),
            {:ok, _} <- Settings.indexed(mods),
            {:ok, _} <- Playbook.indexed(mods),
-           {:ok, _} <- Graph.indexed(mods) do
+           {:ok, _} <- Graph.indexed(mods),
+           {:ok, _} <- Store.indexed(mods),
+           {:ok, _} <- Entity.indexed(mods) do
         Kit.supervised(mods)
       else
         {:error, e} ->
           IO.inspect(e)
           []
       end
+
+    children = [
+      {Registry,
+       [
+         keys: :unique,
+         name: Apps
+       ]}
+      | children
+    ]
 
     Logger.configure(level: :info)
 

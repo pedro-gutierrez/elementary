@@ -1,0 +1,7 @@
+kind: app
+name: fullpass
+spec:
+  modules:
+    - store
+    - festival
+    - venue

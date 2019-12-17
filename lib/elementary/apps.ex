@@ -26,6 +26,44 @@ defmodule Elementary.Apps do
   end
 
   @doc """
+  Launch a new app, with the given id. If the app
+  is already running, simply return its pid
+  """
+  def launch(app, id) do
+    case DynamicSupervisor.start_child(__MODULE__, %{
+           id: "#{app}#{id}",
+           start: {app, :start_link, [self(), id]},
+           type: :worker,
+           restart: :transient,
+           shutdown: 1000
+         }) do
+      {:error, {:already_started, pid}} ->
+        {:ok, pid}
+
+      {:ok, pid} ->
+        {:ok, pid}
+
+      other ->
+        other
+    end
+  end
+
+  @doc """
+  Launch a new app, with the given id. If the app
+  is already running, raise an error
+  """
+  def launch!(app, id) do
+    {:ok, _} =
+      DynamicSupervisor.start_child(__MODULE__, %{
+        id: "#{app}#{id}",
+        start: {app, :start_link, [self(), id]},
+        type: :worker,
+        restart: :transient,
+        shutdown: 1000
+      })
+  end
+
+  @doc """
   Launch a new app, with the given initial data
   """
   def launch(app) do

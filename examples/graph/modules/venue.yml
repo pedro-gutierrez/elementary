@@ -1,0 +1,15 @@
+kind: module
+name: venue
+spec:
+  update:
+    create:
+      cmds:
+        encoder: created
+  encoders:
+    created:
+      kind: venue
+      event: created
+      id: @id
+      data:
+        name: @name
+      in: fullpass

@@ -62,7 +62,17 @@ defmodule Elementary.Kit do
 
   defp of_kind(mods, kind) do
     Enum.filter(mods, fn mod ->
-      kind in (mod.module_info(:attributes)[:behaviour] || [])
+      kind in behaviours(mod)
+    end)
+  end
+
+  def behaviours(mod) do
+    Enum.reduce(mod.module_info(:attributes), [], fn
+      {:behaviour, [b]}, all ->
+        [b | all]
+
+      _, all ->
+        all
     end)
   end
 
@@ -124,6 +134,9 @@ defmodule Elementary.Kit do
 
       {:ok, _} = r ->
         r
+
+      other ->
+        raise("Unexpected return value from provider #{p} in parse/2: #{inspect(other)}")
     end
   end
 
@@ -334,5 +347,30 @@ defmodule Elementary.Kit do
   """
   def new_var(lv) do
     {"v#{lv}" |> String.to_atom(), lv + 1}
+  end
+
+  def string_keys(doc) do
+    doc |> Map.new(fn {k, v} -> {"#{k}", v} end)
+  end
+
+  def now() do
+    DateTime.to_unix(DateTime.utc_now(), :microsecond)
+  end
+
+  @doc """
+  Return a UTC datetime from the given Mongo objectid
+  """
+  def datetime_from_mongo_id(id) do
+    {part, _} = String.split_at(id, 8)
+    {ts, ""} = Integer.parse(part, 16)
+    {:ok, dt} = DateTime.from_unix(ts)
+    dt
+  end
+
+  @doc """
+  Check whether the given module is defined and loaded
+  """
+  def module_defined?(mod) do
+    function_exported?(mod, :__info__, 1)
   end
 end

@@ -167,4 +167,15 @@ defmodule Elementary.App do
       Kit.camelize([name, "App"])
     ])
   end
+
+  def state_machine_name(name) do
+    Module.concat([
+      Kit.camelize([
+        "elixir.",
+        name,
+        "state",
+        "machine"
+      ])
+    ])
+  end
 end

@@ -1,0 +1,12 @@
+kind: module
+name: store
+spec:
+  decoders:
+    store:
+      store_written:
+        status: ok
+        written:
+          any: text
+  update:
+    store_written:
+      model: {}

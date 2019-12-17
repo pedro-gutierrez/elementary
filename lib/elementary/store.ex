@@ -2,7 +2,7 @@ defmodule Elementary.Store do
   @moduledoc false
 
   use Elementary.Provider
-  alias(Elementary.{Kit})
+  alias(Elementary.{Kit, Ast})
 
   defstruct rank: :high,
             name: "",
@@ -77,6 +77,8 @@ defmodule Elementary.Store do
   defmacro __using__(opts) do
     quote do
       @store unquote(opts[:name])
+      @events "events"
+      @commands "commands"
 
       def store(), do: @store
 
@@ -98,25 +100,85 @@ defmodule Elementary.Store do
         }
       end
 
-      def write(entry, col \\ "events") do
+      def write_command(kind, name, %{id: id} = data) do
+        write_command(kind, name, id, Map.drop(data, [:id]))
+      end
+
+      def write_command(kind, name, id, data) do
+        write(@commands, kind, name, id, data)
+      end
+
+      def write_event(kind, name, id, data) do
+        write(@events, kind, name, id, data)
+      end
+
+      def write(%{"kind" => kind, "event" => name, "id" => id, "data" => data}) do
+        write(@events, kind, name, id, data)
+      end
+
+      defp write(col, kind, name, id, data, partition \\ 0) do
         with {:ok,
               %Mongo.InsertOneResult{
-                inserted_id: id
-              }} <- Mongo.insert_one(@store, col, entry) do
-          {:ok, BSON.ObjectId.encode!(id)}
+                inserted_id: _
+              }} <-
+               Mongo.insert_one(
+                 @store,
+                 col,
+                 %{
+                   kind: kind,
+                   event: name,
+                   id: id,
+                   partition: partition,
+                   ts: Elementary.Kit.now(),
+                   node: Node.self(),
+                   data: data
+                 }
+               ) do
+          {:ok, id}
         end
       end
 
-      def stream(fun, col \\ "events") do
+      defp sanitized(doc) do
+        Map.drop(doc, ["_id"])
+      end
+
+      def replay(fun, col \\ @events) do
         spawn_link(fn ->
           cursor = Mongo.find(@store, col, %{})
-          cursor |> Enum.each(fun)
-          cursor = Mongo.watch_collection(@store, col, [], fn _ -> nil end, [])
 
           cursor
-          |> Enum.each(fn %{"fullDocument" => doc} -> fun.(doc) end)
+          |> Enum.each(fn doc ->
+            fun.(sanitized(doc))
+          end)
+
+          watch(fun, col)
+        end)
+      end
+
+      def watch(fun, col \\ @events) do
+        Mongo.watch_collection(@store, col, [], fn _ -> nil end, [])
+        |> Enum.each(fn %{"fullDocument" => doc} ->
+          fun.(sanitized(doc))
         end)
       end
     end
+  end
+
+  use Elementary.Effect, :store
+
+  def effect(owner, %{"kind" => kind, "event" => name, "id" => id, "data" => data, "in" => store}) do
+    with {:ok, store} <- Elementary.Index.Store.get(store),
+         {:ok, _} <- store.write_event(kind, name, id, data) do
+      %{"status" => "ok", "written" => id, "store" => store}
+    else
+      {:error, reason} ->
+        %{"status" => "error", "store" => store, "reason" => reason}
+    end
+    |> update(owner)
+  end
+
+  def indexed(mods) do
+    Ast.index(mods, Elementary.Index.Store, :store)
+    |> Ast.compiled()
   end
 end
