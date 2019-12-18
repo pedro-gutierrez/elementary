@@ -100,6 +100,26 @@ defmodule Elementary.Store do
         }
       end
 
+      def find(col, query, opts) do
+        {:ok,
+         Mongo.find(@store, col, query,
+           skip: Keyword.get(opts, :offset, 0),
+           limit: Keyword.get(opts, :limit, 20)
+         )
+         |> Stream.map(&sanitized(&1))
+         |> Enum.to_list()}
+      end
+
+      def find_one(col, query) do
+        case Mongo.find_one(@store, col, query) do
+          nil ->
+            :not_found
+
+          other ->
+            {:ok, sanitized(other)}
+        end
+      end
+
       def write_command(kind, name, %{id: id} = data) do
         write_command(kind, name, id, Map.drop(data, [:id]))
       end
@@ -138,7 +158,7 @@ defmodule Elementary.Store do
         end
       end
 
-      defp sanitized(doc) do
+      def sanitized(doc) do
         Map.drop(doc, ["_id"])
       end
 

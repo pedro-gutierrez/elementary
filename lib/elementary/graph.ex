@@ -134,13 +134,6 @@ defmodule Elementary.Graph do
     ])
   end
 
-  def all_in_graph(graph) do
-    Enum.filter(Elementary.Index.Entity.all(), fn e ->
-      {:ok, mod} = Elementary.Index.Entity.get(e)
-      Enum.member?(mod.graphs(), graph)
-    end)
-  end
-
   def ast(graph, index) do
     entities = graph_entities(index, graph)
 

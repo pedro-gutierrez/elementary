@@ -182,8 +182,7 @@ defmodule Elementary.Entity do
        [
          {:usage, Elementary.Entity,
           [
-            entity: entity.name,
-            graph: entity.graph
+            entity: entity
           ]},
          {:fun, :graph, [], entity.graph},
          {:fun, :kind, [], :entity},
@@ -212,130 +211,179 @@ defmodule Elementary.Entity do
   end
 
   defmacro __using__(opts) do
-    quote do
-      @entity unquote(opts[:entity])
-      @module unquote(Elementary.Module.module_name(opts[:entity]))
-      @graph unquote(opts[:graph])
-      @store unquote(Elementary.Store.store_name(opts[:graph]))
+    entity = opts[:entity]
+    view_col = String.to_atom("#{entity.plural}-view")
 
-      require Logger
+    ast1 =
+      quote do
+        @entity unquote(entity.name)
+        @module unquote(Elementary.Module.module_name(entity.name))
+        @graph unquote(entity.graph)
+        @store unquote(Elementary.Store.store_name(entity.graph))
 
-      use GenStateMachine, callback_mode: :state_functions
+        require Logger
 
-      def start_link(_owner, id) do
-        GenStateMachine.start_link(__MODULE__, id, name: {:via, Registry, {Apps, {@entity, id}}})
-      end
+        use GenStateMachine, callback_mode: :state_functions
 
-      defstruct id: nil, model: %{}
+        def start_link(_owner, id) do
+          GenStateMachine.start_link(__MODULE__, id, name: {:via, Registry, {Apps, {@entity, id}}})
+        end
 
-      @impl true
-      def init(id) do
-        # at some stage the init phase should involve
-        # reconstructing the state for the entity by reading the last
-        # snapshots + latest events from the store
-        {:ok, :ready, %__MODULE__{id: id}}
-      end
+        defstruct id: nil, model: %{}
 
-      def ready(:cast, {:update, data}, state) do
-        with {:ok, model, events} <- handle(data, state.model) do
-          Enum.each(events, fn e ->
-            {:ok, _} = @store.write(e)
-          end)
+        @impl true
+        def init(id) do
+          # at some stage the init phase should involve
+          # reconstructing the state for the entity by reading the last
+          # snapshots + latest events from the store
+          {:ok, :ready, %__MODULE__{id: id}}
+        end
 
-          {:keep_state, %{state | model: model}}
-        else
-          e ->
-            Logger.error("#{inspect(e)}")
-            {:stop, :shutdown, nil}
+        def ready(:cast, {:update, data}, state) do
+          with {:ok, model, events} <- handle(data, state.model) do
+            Enum.each(events, fn e ->
+              {:ok, _} = @store.write(e)
+            end)
+
+            {:keep_state, %{state | model: model}}
+          else
+            e ->
+              Logger.error("#{inspect(e)}")
+              {:stop, :shutdown, nil}
+          end
+        end
+
+        defp handle(%{"event" => e, "data" => data} = event, model) do
+          case update(e, data, model) do
+            :no_update ->
+              # There is no user defined policy for the given incoming
+              # event. Check whether we have a default, built-in event
+              case default_event(event) do
+                {:ok, event} ->
+                  # Emit the default event produced by the entity
+                  # for the incoming event
+                  {:ok, data, [event]}
+
+                :ignore ->
+                  # No user defined, and no built-in event
+                  Logger.warn(
+                    "#{
+                      inspect(
+                        entity: @entity,
+                        process: __MODULE__,
+                        module: @module,
+                        ignored: event
+                      )
+                    }"
+                  )
+
+                  {:ok, data, []}
+              end
+
+            {:ok, m2, []} ->
+              # The user-defined policy simply aggregates the state,
+              # but does not emit new events
+              {:ok, Map.merge(model, m2), []}
+
+            {:ok, m2, [encoder: _enc]} ->
+              # The user defined policy produces a new aggregated state
+              # and also emits new events
+              {:ok, Map.merge(model, m2), []}
+          end
+        end
+
+        def update(e, data, model) do
+          case Elementary.Kit.module_defined?(@module) do
+            false ->
+              :no_update
+
+            true ->
+              case @module.update(e, data, model) do
+                {:error, :no_update} ->
+                  :no_update
+
+                other ->
+                  other
+              end
+          end
+        end
+
+        defp handle(data, model) do
+          IO.inspect(ignored: data, model: model)
+          {:ok, model, []}
+        end
+
+        defp default_event(%{"event" => e} = event) do
+          with {:ok, e} <- event_for(e) do
+            {:ok, Map.put(event, "event", e)}
+          end
+        end
+
+        defp event_for("create"), do: {:ok, "created"}
+        defp event_for("update"), do: {:ok, "updated"}
+        defp event_for("delete"), do: {:ok, "deleted"}
+        defp event_for(_), do: :ignore
+
+        @impl true
+        def terminate(reason, state, data) do
+          Logger.warn(
+            "#{
+              inspect(
+                store: @store,
+                module: @module,
+                terminated: reason,
+                state: state,
+                data: data
+              )
+            }"
+          )
         end
       end
 
-      defp handle(%{"event" => e, "data" => data} = event, model) do
-        case update(e, data, model) do
-          :no_update ->
-            # There is no user defined policy for the given incoming
-            # event. Check whether we have a default, built-in event
-            case default_event(event) do
-              {:ok, event} ->
-                # Emit the default event produced by the entity
-                # for the incoming event
-                {:ok, data, [event]}
-
-              :ignore ->
-                # No user defined, and no built-in event
-                Logger.warn(
-                  "#{
-                    inspect(
-                      entity: @entity,
-                      process: __MODULE__,
-                      module: @module,
-                      ignored: event
-                    )
-                  }"
-                )
-
-                {:ok, data, []}
-            end
-
-          {:ok, m2, []} ->
-            # The user-defined policy simply aggregates the state,
-            # but does not emit new events
-            {:ok, Map.merge(model, m2), []}
-
-          {:ok, m2, [encoder: _enc]} ->
-            # The user defined policy produces a new aggregated state
-            # and also emits new events
-            {:ok, Map.merge(model, m2), []}
+    finder_by_id_ast =
+      quote do
+        def find_by_id(id) do
+          @store.find_one(unquote(view_col), %{id: id})
         end
       end
 
-      def update(e, data, model) do
-        case Elementary.Kit.module_defined?(@module) do
-          false ->
-            :no_update
+    finders_by_attribute_asts =
+      Enum.filter(entity.attributes, fn attr ->
+        Attribute.is(attr, :key)
+      end)
+      |> Enum.map(fn attr ->
+        quote do
+          def unquote(:"find_by_#{attr.name}")(v) do
+            query = %{unquote(:"#{attr.name}") => v}
+            @store.find_one(unquote(view_col), query)
+          end
+        end
+      end)
 
-          true ->
-            case @module.update(e, data, model) do
-              {:error, :no_update} ->
-                :no_update
-
-              other ->
-                other
-            end
+    finder_for_all_ast =
+      quote do
+        def find_all(opts) do
+          @store.find(unquote(view_col), opts)
         end
       end
 
-      defp handle(data, model) do
-        IO.inspect(ignored: data, model: model)
-        {:ok, model, []}
-      end
-
-      defp default_event(%{"event" => e} = event) do
-        with {:ok, e} <- event_for(e) do
-          {:ok, Map.put(event, "event", e)}
+    finders_by_relation_asts =
+      Enum.map(entity.relations, fn rel ->
+        quote do
+          def unquote(:"find_by_#{rel.name}")(id, opts) do
+            query = %{unquote(:"#{rel.name}") => id}
+            @store.find(unquote(view_col), query, opts)
+          end
         end
-      end
+      end)
 
-      defp event_for("create"), do: {:ok, "created"}
-      defp event_for("update"), do: {:ok, "updated"}
-      defp event_for("delete"), do: {:ok, "deleted"}
-      defp event_for(_), do: :ignore
-
-      @impl true
-      def terminate(reason, state, data) do
-        Logger.warn(
-          "#{
-            inspect(
-              store: @store,
-              module: @module,
-              terminated: reason,
-              state: state,
-              data: data
-            )
-          }"
-        )
-      end
-    end
+    List.flatten([
+      ast1,
+      finder_by_id_ast,
+      finders_by_attribute_asts,
+      finders_by_relation_asts,
+      finder_for_all_ast
+    ])
   end
 
   def module(e) do
@@ -393,7 +441,7 @@ defmodule Elementary.Entity do
 
   defp queries_for_entity(e) do
     [
-      query_for_entity_list(e),
+      query_for_multiple(e),
       e
       |> key_attributes()
       |> Enum.map(fn attr ->
@@ -408,21 +456,18 @@ defmodule Elementary.Entity do
     {:block, :field, [Kit.atom_from([e.name, :by, attr.name]), e.name],
      [
        arg_from_attribute(attr),
-       {:call, :resolve,
-        [
-          {:lambda, [:_, :_, :_], {:ok, {:map, []}}}
-        ]}
+       {:call, :resolve, [query_for_single_by_attribute_ast(e, attr)]}
      ]}
   end
 
-  defp query_for_entity_list(e) do
+  defp query_for_multiple(e) do
     {:block, :field, [e.plural, {:call, :list_of, [e.name]}],
      [
        limit_arg(),
        offset_arg(),
        {:call, :resolve,
         [
-          {:lambda, [:_, :_, :_], {:ok, []}}
+          query_for_multiple_ast(e)
         ]}
      ]}
   end
@@ -430,7 +475,9 @@ defmodule Elementary.Entity do
   defp queries_for_multiple_by_relations(e) do
     e.relations
     |> Enum.filter(&Relation.is(&1, :belongs))
-    |> Enum.map(&query_for_multiple_by_relation(e, &1))
+    |> Enum.map(fn rel ->
+      query_for_multiple_by_relation(e, rel)
+    end)
   end
 
   defp query_for_multiple_by_relation(e, rel) do
@@ -443,7 +490,7 @@ defmodule Elementary.Entity do
        offset_arg(),
        {:call, :resolve,
         [
-          {:lambda, [:_, :_, :_], {:ok, []}}
+          query_for_multiple_by_relation_ast(e, rel)
         ]}
      ]}
   end
@@ -507,6 +554,57 @@ defmodule Elementary.Entity do
              {:var, :params}
            ]}
       ], {:ok, {:map, [ref: {:var, :id}]}}}}
+  end
+
+  defp query_for_single_by_attribute_ast(e, attr) do
+    entity_mod = module(e.name)
+
+    {:lambda, [:_, {:map, [{{:symbol, attr.name}, {:var, :value}}]}, :_],
+     {:call, entity_mod, String.to_atom("find_by_#{attr.name}"),
+      [
+        attr.name,
+        {:var, :value}
+      ]}}
+  end
+
+  defp query_for_multiple_ast(e) do
+    entity_mod = module(e.name)
+
+    {:lambda,
+     [
+       :_,
+       {:map, [{{:symbol, :limit}, {:var, :limit}}, {{:symbol, :offset}, {:var, :offset}}]},
+       :_
+     ],
+     {:call, entity_mod, :find_all,
+      [
+        pagination_ast()
+      ]}}
+  end
+
+  defp query_for_multiple_by_relation_ast(e, rel) do
+    entity_mod = module(e.name)
+
+    {:lambda,
+     [
+       :_,
+       {:map,
+        [
+          {{:symbol, :limit}, {:var, :limit}},
+          {{:symbol, :offset}, {:var, :offset}},
+          {{:symbol, rel.name}, {:var, rel.name}}
+        ]},
+       :_
+     ],
+     {:call, entity_mod, String.to_atom("find_by_#{rel.name}"),
+      [
+        {:var, rel.name},
+        pagination_ast()
+      ]}}
+  end
+
+  defp pagination_ast() do
+    {:props, [limit: {:var, :limit}, offset: {:var, :offset}]}
   end
 
   defp arg_from_attribute(attr) do
