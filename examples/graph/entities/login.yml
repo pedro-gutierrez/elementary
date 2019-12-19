@@ -1,0 +1,9 @@
+kind: entity
+name: login
+spec:
+  graph: fullpass
+  attributes:
+    email:
+      kind: string
+    password:
+      kind: string

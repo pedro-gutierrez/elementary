@@ -1,0 +1,10 @@
+kind: entity
+name: token
+spec:
+  graph: fullpass
+  attributes:
+    data:
+      kind: string
+  relations:
+    user:
+      tags: belongs
