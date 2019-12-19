@@ -159,13 +159,19 @@ defmodule Elementary.Store do
       end
 
       def update(col, %{id: id} = doc) do
-        Mongo.replace_one(
-          @store,
-          col,
-          %{id: id},
-          doc,
-          upsert: true
-        )
+        with {:ok} <-
+               Mongo.replace_one(
+                 @store,
+                 col,
+                 %{id: id},
+                 doc,
+                 upsert: true
+               ) do
+          :ok
+        else
+          {:error, %{write_errors: [%{"code" => code}]}} ->
+            {:error, error_for(code)}
+        end
       end
 
       def update(col, %{"id" => id} = doc) do
@@ -176,6 +182,25 @@ defmodule Elementary.Store do
           doc,
           upsert: true
         )
+      end
+
+      def unique_index(col, name, fields) do
+        with {:ok, _} <-
+               Mongo.command(
+                 @store,
+                 [
+                   createIndexes: col,
+                   indexes: [
+                     [name: name, unique: true, key: Enum.map(fields, fn f -> {f, 1} end)]
+                   ]
+                 ],
+                 []
+               ) do
+          :ok
+        else
+          {:error, %{message: msg}} ->
+            {:error, msg}
+        end
       end
 
       def sanitized(doc) do
@@ -201,6 +226,9 @@ defmodule Elementary.Store do
           fun.(sanitized(doc))
         end)
       end
+
+      defp error_for(11000), do: :conflict
+      defp error_for(code), do: code
     end
   end
 

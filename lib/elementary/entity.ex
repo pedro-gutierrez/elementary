@@ -272,18 +272,6 @@ defmodule Elementary.Entity do
                 {:ok, data, [{col, event}]}
 
               :ignore ->
-                # No user defined, and no built-in event
-                Logger.warn(
-                  "#{
-                    inspect(
-                      entity: @entity,
-                      process: __MODULE__,
-                      module: @module,
-                      ignored: event
-                    )
-                  }"
-                )
-
                 {:ok, data, []}
             end
 
@@ -316,21 +304,22 @@ defmodule Elementary.Entity do
       end
 
       defp handle(data, model) do
-        IO.inspect(ignored: data, model: model)
         {:ok, model, []}
       end
 
-      defp default_event(%{"event" => e, "kind" => kind} = event) do
-        with {:ok, col, e} <- event_for(kind, e) do
-          {:ok, col, Map.put(event, "event", e)}
-        end
+      defp default_event(%{"event" => "create"} = event) do
+        {:ok, "events", Map.put(event, "event", "created")}
       end
 
-      defp event_for(_, "create"), do: {:ok, "events", "created"}
-      defp event_for(_, "update"), do: {:ok, "events", "updated"}
-      defp event_for(_, "delete"), do: {:ok, "events", "deleted"}
-      defp event_for(kind, "created"), do: {:ok, "view-#{kind}", "view"}
-      defp event_for(_, _), do: :ignore
+      defp default_event(%{"event" => "update"} = event) do
+        {:ok, "events", Map.put(event, "event", "updated")}
+      end
+
+      defp default_event(%{"event" => "delete"} = event) do
+        {:ok, "events", Map.put(event, "event", "deleted")}
+      end
+
+      defp default_event(_), do: :ignore
 
       @impl true
       def terminate(reason, state, data) do
@@ -373,9 +362,17 @@ defmodule Elementary.Entity do
           end) ++
           [:id]
 
+      entity_key_attributes =
+        Elementary.Entity.key_attributes(entity)
+        |> Enum.map(fn attr ->
+          attr.name
+        end)
+
       ast =
         quote do
           @store unquote(Elementary.Store.store_name(entity.graph))
+          @col unquote(view_col)
+          @key_attrs unquote(entity_key_attributes)
           require Logger
 
           use GenStateMachine, callback_mode: :state_functions
@@ -388,20 +385,17 @@ defmodule Elementary.Entity do
 
           @impl true
           def init(id) do
-            # at some stage the init phase should involve
-            # reconstructing the state for the entity by reading the last
-            # snapshots + latest events from the store
+            :ok = ensure_unique_indices()
             {:ok, :ready, nil}
           end
 
           def ready(:cast, {:update, %{"event" => event, "id" => id, "data" => data}}, state)
               when event == "created" or event == "updated" do
-            res = @store.update(unquote(view_col), Map.put(data, "id", id))
+            res = @store.update(@col, Map.put(data, "id", id))
             {:keep_state, state}
           end
 
           def ready(:cast, {:update, data}, state) do
-            IO.inspect(ignore: data, module: __MODULE__)
             {:keep_state, state}
           end
 
@@ -421,6 +415,12 @@ defmodule Elementary.Entity do
 
           defp to_atom_keys(other) do
             other
+          end
+
+          defp ensure_unique_indices() do
+            Enum.each(@key_attrs, fn attr ->
+              :ok = FullpassStore.unique_index(@col, attr, [attr])
+            end)
           end
         end
 
