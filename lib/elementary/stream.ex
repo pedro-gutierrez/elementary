@@ -107,6 +107,8 @@ defmodule Elementary.Stream do
       def activate(%{"kind" => kind, "id" => id} = data) do
         {:ok, pid} = Entity.activate(kind, id)
         Entity.update(pid, data)
+        {:ok, pid} = Entity.View.activate(kind, id)
+        Entity.View.update(pid, data)
       end
     end
   end

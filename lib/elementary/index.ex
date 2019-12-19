@@ -7,4 +7,9 @@ defmodule Elementary.Index do
     def get(_), do: {:error, :not_found}
     def all(), do: []
   end
+
+  defmodule EntityView do
+    def get(_), do: {:error, :not_found}
+    def all(), do: []
+  end
 end

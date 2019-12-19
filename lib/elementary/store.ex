@@ -113,7 +113,7 @@ defmodule Elementary.Store do
       def find_one(col, query) do
         case Mongo.find_one(@store, col, query) do
           nil ->
-            :not_found
+            {:error, :not_found}
 
           other ->
             {:ok, sanitized(other)}
@@ -132,8 +132,8 @@ defmodule Elementary.Store do
         write(@events, kind, name, id, data)
       end
 
-      def write(%{"kind" => kind, "event" => name, "id" => id, "data" => data}) do
-        write(@events, kind, name, id, data)
+      def write(col, %{"kind" => kind, "event" => name, "id" => id, "data" => data}) do
+        write(col, kind, name, id, data)
       end
 
       defp write(col, kind, name, id, data, partition \\ 0) do
@@ -156,6 +156,26 @@ defmodule Elementary.Store do
                ) do
           {:ok, id}
         end
+      end
+
+      def update(col, %{id: id} = doc) do
+        Mongo.replace_one(
+          @store,
+          col,
+          %{id: id},
+          doc,
+          upsert: true
+        )
+      end
+
+      def update(col, %{"id" => id} = doc) do
+        Mongo.replace_one(
+          @store,
+          col,
+          %{id: id},
+          doc,
+          upsert: true
+        )
       end
 
       def sanitized(doc) do
