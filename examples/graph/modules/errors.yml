@@ -1,0 +1,6 @@
+kind: module
+name: errors
+spec:
+  encoders:
+    forbidden:
+      status: 401

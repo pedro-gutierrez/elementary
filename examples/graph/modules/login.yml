@@ -1,0 +1,21 @@
+kind: module
+name: login
+spec:
+  decoders:
+    entity:
+      not_found:
+        status: not_found
+  update:
+    created:
+      model: @
+      cmds:
+        entity: user
+    not_found:
+      cmds:
+        return: forbidden
+  encoders:
+    user:
+      first: user
+      in: @store
+      where:
+        username: @username

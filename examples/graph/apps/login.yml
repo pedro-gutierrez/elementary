@@ -1,0 +1,6 @@
+kind: app
+name: login
+spec:
+  modules:
+    - login
+    - errors

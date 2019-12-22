@@ -1,7 +1,10 @@
 kind: app
 name: fullpass
 spec:
-  modules:
-    - store
-    - festival
+  entities:
     - venue
+    - event
+    - user
+    - token
+    - login
+    - password

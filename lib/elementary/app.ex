@@ -2,90 +2,72 @@ defmodule Elementary.App do
   @moduledoc false
 
   use Elementary.Provider
-  alias(Elementary.{Ast, Kit, Update, Decoders, Encoders, Settings})
+  alias(Elementary.{Ast, Kit, Decoders, Encoders, Update, Settings})
 
   defstruct rank: :high,
-            name: "",
+            name: nil,
             version: "1",
             settings: [],
-            modules: []
+            modules: [],
+            entities: []
 
   def parse(
         %{
           "version" => version,
           "kind" => "app",
           "name" => name,
-          "spec" =>
-            %{
-              "modules" => modules
-            } = spec
+          "spec" => spec
         },
         _
       ) do
-    settings =
-      case spec do
-        %{"settings" => settings} ->
-          [name | settings]
-
-        _ ->
-          [name]
-      end
-
-    {:ok,
-     %__MODULE__{
-       name: name,
-       version: version,
-       settings: Enum.uniq(settings),
-       modules: Enum.uniq(modules)
-     }}
+    with {:ok, modules} <- parse_modules(spec),
+         {:ok, entities} <- parse_entities(spec),
+         {:ok, settings} <- parse_settings(spec) do
+      {:ok,
+       %__MODULE__{
+         name: String.to_atom(name),
+         version: version,
+         settings: Kit.unique_atoms([name | settings]),
+         modules: Kit.unique_atoms(modules),
+         entities: Kit.unique_atoms(entities)
+       }}
+    end
   end
 
   def parse(spec, _), do: Kit.error(:not_supported, spec)
 
+  defp parse_modules(spec) do
+    {:ok, Map.get(spec, "modules", [])}
+  end
+
+  defp parse_entities(spec) do
+    {:ok, Map.get(spec, "entities", [])}
+  end
+
+  defp parse_settings(spec) do
+    {:ok, Map.get(spec, "settings", [])}
+  end
+
   def ast(app, asts) do
     mod_names = app.modules |> Enum.map(&Elementary.Module.module_name(&1))
     mod_asts = asts |> Ast.filter({:module, mod_names})
-
     settings_names = Enum.map(app.settings, &Settings.module_name(&1))
     settings_asts = Ast.filter(asts, {:module, settings_names})
 
-    callback = [app.name, "app"] |> Elementary.Kit.camelize()
-
-    asts = [
-      {:module, callback,
+    [
+      {:module, app_name(app.name),
        [
          {:fun, :kind, [], :app},
-         {:fun, :name, [], {:symbol, app.name}},
-         {:fun, :modules, [],
-          app.modules
-          |> Enum.map(fn m ->
-            {:symbol, m}
-          end)},
-         mod_asts |> init_ast(),
-         settings_asts |> settings_ast()
+         {:fun, :name, [], app.name},
+         {:fun, :entities, [], app.entities},
+         {:fun, :modules, [], app.modules},
+         settings_ast(settings_asts),
+         init_ast(mod_asts)
        ] ++
-         (mod_asts |> update_ast()) ++
-         (mod_asts |> decoder_ast()) ++
-         (mod_asts |> encoder_ast())},
-      {:module, [app.name, "state", "machine"] |> Elementary.Kit.camelize(),
-       [
-         {:fun, :kind, [], :statemachine},
-         {:fun, :name, [], {:symbol, app.name}},
-         {:usage, Elementary.StateMachine, callback_module_atom(app)}
-       ]}
+         update_ast(mod_asts) ++
+         decoder_ast(mod_asts) ++
+         encoder_ast(mod_asts)}
     ]
-
-    asts
-  end
-
-  defp callback_module_atom(app) do
-    [
-      "elixir.",
-      app.name,
-      "app"
-    ]
-    |> Kit.camelize()
-    |> String.to_atom()
   end
 
   defp settings_ast(mods) do
@@ -168,14 +150,65 @@ defmodule Elementary.App do
     ])
   end
 
-  def state_machine_name(name) do
-    Module.concat([
-      Kit.camelize([
-        "elixir.",
-        name,
-        "state",
-        "machine"
-      ])
-    ])
+  def indexed(mods) do
+    Ast.index(mods, Elementary.Index.App, :app)
+    |> Ast.compiled()
+  end
+
+  defmacro __using__(_opts) do
+    quote do
+      require Logger
+
+      defp error(context, e) do
+        Logger.error("#{inspect(Keyword.merge(context, error: e))}")
+      end
+
+      defp decode(mod, effect, data, model) do
+        case mod.decode(effect, data, model) do
+          {:ok, event, decoded} ->
+            update(mod, event, decoded, model)
+
+          {:error, e} ->
+            error([app: mod, effect: effect], e)
+            {:error, e}
+        end
+      end
+
+      defp update(mod, event, data, model0) do
+        case mod.update(event, data, model0) do
+          {:ok, model, [{effect, enc}]} ->
+            model = Map.merge(model0, model)
+
+            case mod.encode(enc, model) do
+              {:ok, encoded} ->
+                case effect do
+                  :return ->
+                    {:ok, encoded}
+
+                  _ ->
+                    with {:ok, effect_mod} <- Elementary.Index.Effect.get(effect),
+                         {:ok, data} <- effect_mod.call(encoded) do
+                      decode(mod, effect, data, model)
+                    else
+                      {:error, e} ->
+                        error([app: mod, effect: effect, data: encoded], e)
+                        {:error, e}
+
+                      other ->
+                        error([app: mod, effect: effect, data: encoded], %{unexpected: other})
+                        {:error, :unexpected}
+                    end
+                end
+
+              {:error, e} ->
+                error([app: mod, encoder: enc], e)
+                {:error, e}
+            end
+
+          {:ok, model, []} ->
+            {:ok, model}
+        end
+      end
+    end
   end
 end

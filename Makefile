@@ -1,2 +1,2 @@
 start:
-	@ELEMENTARY_HOME=${PWD}/examples/$(p) iex -S mix
+	@ELEMENTARY_HOME=${PWD}/examples/graph iex -S mix

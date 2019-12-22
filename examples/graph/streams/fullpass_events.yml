@@ -1,6 +1,0 @@
-kind: stream
-name: fullpass_events
-spec:
-  store: fullpass
-  topic: events
-  replay: true

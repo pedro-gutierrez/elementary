@@ -2,6 +2,10 @@ kind: port
 name: graph
 spec:
   port: 9999
-  graphs:
+  apps:
     fullpass:
-      http: /api/fullpass
+      http: /api
+
+  #graphs:
+  #fullpass:
+  #http: /api/fullpass

@@ -1,8 +1,7 @@
 kind: entity
 name: user
 spec:
-  graph: fullpass
   attributes:
-    name:
+    username:
       kind: string
       tags: key

@@ -52,6 +52,24 @@ defmodule Elementary.Ast do
     end)
   end
 
+  def filter(asts, {:kind, kind}, {:name, name}) when is_list(asts) do
+    asts
+    |> Enum.filter(fn
+      {:module, _, body} ->
+        Enum.member?(
+          body,
+          {:fun, :kind, [], kind}
+        ) and
+          Enum.member?(
+            body,
+            {:fun, :name, [], name}
+          )
+
+      _ ->
+        false
+    end)
+  end
+
   def quoted(:empty_map) do
     {:map, []}
   end
@@ -563,11 +581,13 @@ defmodule Elementary.Ast do
   defp var(i), do: String.to_atom("v#{i}")
 
   def index(mods, index, kind) do
-    mods =
-      Enum.filter(mods, fn m ->
-        m.kind() == kind
-      end)
+    Enum.filter(mods, fn m ->
+      m.kind() == kind
+    end)
+    |> index(index)
+  end
 
+  def index(mods, index) do
     {:module, index,
      Enum.flat_map(mods, fn m ->
        res = {:tuple, [:ok, m]}

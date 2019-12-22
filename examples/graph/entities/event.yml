@@ -1,7 +1,6 @@
 kind: entity
 name: event
 spec:
-  graph: fullpass
   attributes:
     name:
       kind: string

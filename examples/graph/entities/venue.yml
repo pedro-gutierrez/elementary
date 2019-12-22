@@ -1,7 +1,6 @@
 kind: entity
 name: venue
 spec:
-  graph: fullpass
   attributes:
     name:
       kind: string

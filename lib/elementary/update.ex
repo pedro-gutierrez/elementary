@@ -53,6 +53,8 @@ defmodule Elementary.Update do
     parse_clauses([single], providers)
   end
 
+  def default(), do: %__MODULE__{}
+
   def ast(update, index) do
     (update.spec
      |> Enum.map(fn {event, clauses} ->

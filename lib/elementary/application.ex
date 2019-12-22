@@ -8,9 +8,9 @@ defmodule Elementary.Application do
     Compiler,
     Kit,
     Effect,
+    App,
     Settings,
     Playbook,
-    Graph,
     Store,
     Entity
   }
@@ -24,10 +24,10 @@ defmodule Elementary.Application do
 
     children =
       with {:ok, mods} <- Compiler.compiled(providers),
-           {:ok, _} <- Effect.compiled(effects),
+           {:ok, _} <- Effect.indexed(effects),
            {:ok, _} <- Settings.indexed(mods),
+           {:ok, _} <- App.indexed(mods),
            {:ok, _} <- Playbook.indexed(mods),
-           {:ok, _} <- Graph.indexed(mods),
            {:ok, _} <- Store.indexed(mods),
            {:ok, _} <- Entity.indexed(mods) do
         Kit.supervised(mods)
@@ -48,9 +48,13 @@ defmodule Elementary.Application do
 
     Logger.configure(level: :info)
 
-    Supervisor.start_link(children ++ [{Elementary.Compiler, [providers]}, Elementary.Apps],
-      strategy: :one_for_one,
-      name: Elementary.Supervisor
-    )
+    {:ok, pid} =
+      Supervisor.start_link(children ++ [{Elementary.Compiler, [providers]}, Elementary.Apps],
+        strategy: :one_for_one,
+        name: Elementary.Supervisor
+      )
+
+    Store.init_all()
+    {:ok, pid}
   end
 end

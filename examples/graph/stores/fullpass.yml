@@ -1,11 +1,3 @@
 kind: store
 name: fullpass
-spec:
-  scheme: mongodb+srv
-  username: cm
-  password: cm
-  host: dev-g3pdz.mongodb.net
-  options:
-    retryWrites: true
-    w: majority
-  pool: 3
+spec: {}

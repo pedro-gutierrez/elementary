@@ -5,49 +5,21 @@ defmodule Elementary.Store do
   alias(Elementary.{Kit, Ast})
 
   defstruct rank: :high,
-            name: "",
-            version: "1",
-            pool: 1,
-            url: nil
+            name: nil,
+            version: "1"
 
   def parse(
-        %{"version" => version, "kind" => "store", "name" => name, "spec" => spec},
+        %{"version" => version, "kind" => "store", "name" => name},
         _
       ) do
-    with {:ok, url} <- parse_url(Map.put(spec, "db", name)),
-         {:ok, pool} <- parse_pool(spec) do
-      {:ok,
-       %__MODULE__{
-         name: name,
-         version: version,
-         url: url,
-         pool: pool
-       }}
-    end
+    {:ok,
+     %__MODULE__{
+       name: String.to_atom(name),
+       version: version
+     }}
   end
 
   def parse(spec, _), do: Kit.error(:not_supported, spec)
-
-  defp parse_url(%{
-         "scheme" => scheme,
-         "username" => username,
-         "password" => password,
-         "host" => host,
-         "db" => db,
-         "options" => options
-       }) do
-    params =
-      Enum.reduce(options, [], fn {k, v}, opts ->
-        ["#{k}=#{v}" | opts]
-      end)
-      |> Enum.join("&")
-
-    {:ok, "#{scheme}://#{username}:#{password}@#{host}/#{db}?#{params}"}
-  end
-
-  defp parse_pool(%{"pool" => pool}) do
-    {:ok, pool}
-  end
 
   def store_name(name) do
     Module.concat([
@@ -62,27 +34,73 @@ defmodule Elementary.Store do
       {:module, store_name,
        [
          {:fun, :kind, [], :store},
-         {:fun, :name, [], {:symbol, store.name}},
+         {:fun, :name, [], store.name},
          {:fun, :supervised, [], {:boolean, true}},
          {:usage, __MODULE__,
           [
-            name: store_name,
-            pool: store.pool,
-            url: store.url
+            settings: store.name,
+            name: store_name
           ]}
        ]}
     ]
   end
 
+  alias Elementary.Index.App, as: Apps
+  alias Elementary.Index.Store, as: Stores
+  alias Elementary.Index.Entity, as: Entities
+
+  def init_all() do
+    Apps.all()
+    |> Enum.each(fn app ->
+      {:ok, app} = Apps.get(app)
+
+      with {:ok, store} <- Stores.get(app),
+           entities <- app.entities() do
+        store.collection(:log)
+        store.index(:log, :pkey, [:id, :version])
+
+        Enum.each(entities, fn e ->
+          {:ok, entity} = Entities.get(e)
+          entity.init(store)
+        end)
+      end
+    end)
+  end
+
+  def parse_url(%{
+        "scheme" => scheme,
+        "username" => username,
+        "password" => password,
+        "host" => host,
+        "db" => db,
+        "options" => options
+      }) do
+    params =
+      Enum.reduce(options, [], fn {k, v}, opts ->
+        ["#{k}=#{v}" | opts]
+      end)
+      |> Enum.join("&")
+
+    {:ok, "#{scheme}://#{username}:#{password}@#{host}/#{db}?#{params}"}
+  end
+
+  def parse_pool(%{"pool" => pool}) do
+    {:ok, pool}
+  end
+
   defmacro __using__(opts) do
     quote do
+      @settings unquote(opts[:settings])
       @store unquote(opts[:name])
-      @events "events"
-      @commands "commands"
 
       def store(), do: @store
 
       def child_spec(_) do
+        {:ok, %{"store" => spec}} = Elementary.Index.Settings.get(@settings)
+
+        {:ok, url} = Elementary.Store.parse_url(spec)
+        {:ok, pool} = Elementary.Store.parse_pool(spec)
+
         %{
           id: @store,
           start:
@@ -90,8 +108,8 @@ defmodule Elementary.Store do
              [
                [
                  name: @store,
-                 url: unquote(opts[:url]),
-                 pool_size: unquote(opts[:pool])
+                 url: url,
+                 pool_size: pool
                ]
              ]},
           type: :worker,
@@ -100,7 +118,7 @@ defmodule Elementary.Store do
         }
       end
 
-      def find(col, query, opts) do
+      def all(col, query, opts) do
         {:ok,
          Mongo.find(@store, col, query,
            skip: Keyword.get(opts, :offset, 0),
@@ -110,7 +128,7 @@ defmodule Elementary.Store do
          |> Enum.to_list()}
       end
 
-      def find_one(col, query) do
+      def first(col, query) do
         case Mongo.find_one(@store, col, query) do
           nil ->
             {:error, :not_found}
@@ -120,71 +138,49 @@ defmodule Elementary.Store do
         end
       end
 
-      def write_command(kind, name, %{id: id} = data) do
-        write_command(kind, name, id, Map.drop(data, [:id]))
+      def write(items) do
+        Mongo.Session.with_transaction(@store, fn opts ->
+          Enum.map(items, fn
+            {:insert, col, doc} ->
+              Mongo.insert_one(
+                @store,
+                col,
+                doc
+              )
+
+            {:update, col, query, doc} ->
+              Mongo.replace_one(
+                @store,
+                col,
+                query,
+                doc,
+                upsert: true
+              )
+
+            {:delete, col, query} ->
+              Mongo.delete_one(
+                @store,
+                col,
+                query
+              )
+          end)
+          |> Enum.reduce_while(:ok, fn
+            {:ok, _}, _ ->
+              {:cont, :ok}
+
+            {:error,
+             %Mongo.WriteError{
+               write_errors: [
+                 %{"code" => code} | _
+               ]
+             }},
+            _ ->
+              {:halt, {:error, error_for(code)}}
+          end)
+        end)
       end
 
-      def write_command(kind, name, id, data) do
-        write(@commands, kind, name, id, data)
-      end
-
-      def write_event(kind, name, id, data) do
-        write(@events, kind, name, id, data)
-      end
-
-      def write(col, %{"kind" => kind, "event" => name, "id" => id, "data" => data}) do
-        write(col, kind, name, id, data)
-      end
-
-      defp write(col, kind, name, id, data, partition \\ 0) do
-        with {:ok,
-              %Mongo.InsertOneResult{
-                inserted_id: _
-              }} <-
-               Mongo.insert_one(
-                 @store,
-                 col,
-                 %{
-                   kind: kind,
-                   event: name,
-                   id: id,
-                   partition: partition,
-                   ts: Elementary.Kit.now(),
-                   node: Node.self(),
-                   data: data
-                 }
-               ) do
-          {:ok, id}
-        end
-      end
-
-      def update(col, %{id: id} = doc) do
-        with {:ok} <-
-               Mongo.replace_one(
-                 @store,
-                 col,
-                 %{id: id},
-                 doc,
-                 upsert: true
-               ) do
-          :ok
-        else
-          {:error, %{write_errors: [%{"code" => code}]}} ->
-            {:error, error_for(code)}
-        end
-      end
-
-      def update(col, %{"id" => id} = doc) do
-        Mongo.replace_one(
-          @store,
-          col,
-          %{id: id},
-          doc,
-          upsert: true
-        )
-      end
-
-      def unique_index(col, name, fields) do
+      def index(col, name, fields) do
         with {:ok, _} <-
                Mongo.command(
                  @store,
@@ -203,46 +199,19 @@ defmodule Elementary.Store do
         end
       end
 
+      def collection(col) do
+        with {:error, %Mongo.Error{code: 48}} <- Mongo.create(@store, :log) do
+          :ok
+        end
+      end
+
       def sanitized(doc) do
         Map.drop(doc, ["_id"])
-      end
-
-      def replay(fun, col \\ @events) do
-        spawn_link(fn ->
-          cursor = Mongo.find(@store, col, %{})
-
-          cursor
-          |> Enum.each(fn doc ->
-            fun.(sanitized(doc))
-          end)
-
-          watch(fun, col)
-        end)
-      end
-
-      def watch(fun, col \\ @events) do
-        Mongo.watch_collection(@store, col, [], fn _ -> nil end, [])
-        |> Enum.each(fn %{"fullDocument" => doc} ->
-          fun.(sanitized(doc))
-        end)
       end
 
       defp error_for(11000), do: :conflict
       defp error_for(code), do: code
     end
-  end
-
-  use Elementary.Effect, :store
-
-  def effect(owner, %{"kind" => kind, "event" => name, "id" => id, "data" => data, "in" => store}) do
-    with {:ok, store} <- Elementary.Index.Store.get(store),
-         {:ok, _} <- store.write_event(kind, name, id, data) do
-      %{"status" => "ok", "written" => id, "store" => store}
-    else
-      {:error, reason} ->
-        %{"status" => "error", "store" => store, "reason" => reason}
-    end
-    |> update(owner)
   end
 
   def indexed(mods) do

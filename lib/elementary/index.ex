@@ -1,6 +1,12 @@
 defmodule Elementary.Index do
-  defmodule Store do
+  defmodule App do
     def get(_), do: {:error, :not_found}
+    def all(), do: []
+  end
+
+  defmodule Settings do
+    def get(_), do: {:error, :not_found}
+    def all(), do: []
   end
 
   defmodule Entity do
@@ -8,7 +14,7 @@ defmodule Elementary.Index do
     def all(), do: []
   end
 
-  defmodule EntityView do
+  defmodule Store do
     def get(_), do: {:error, :not_found}
     def all(), do: []
   end

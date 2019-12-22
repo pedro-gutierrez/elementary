@@ -3,8 +3,7 @@ defmodule Elementary.Port do
 
   use Elementary.Provider
 
-  alias Elementary.Kit
-  alias Elementary.Mount
+  alias Elementary.{Kit, Mount, Ast}
 
   defstruct rank: :high,
             name: "",
@@ -23,15 +22,13 @@ defmodule Elementary.Port do
         _
       ) do
     with {:ok, port} <- parse_port(spec),
-         {:ok, apps} <- parse_apps(spec),
-         {:ok, graphs} <- parse_graphs(spec) do
+         {:ok, apps} <- parse_apps(spec) do
       {:ok,
        %__MODULE__{
-         name: name,
+         name: String.to_atom(name),
          version: version,
          port: port,
-         apps: apps,
-         graphs: graphs
+         apps: apps
        }}
     else
       {:error, e} ->
@@ -41,56 +38,29 @@ defmodule Elementary.Port do
 
   def parse(spec, _), do: Kit.error(:not_supported, spec)
 
-  defp parse_port(%{"port" => port}) do
-    {:ok, port}
-  end
-
   defp parse_port(spec) do
-    {:error, %{spec: spec, reason: :missing_port}}
+    {:ok, Map.get(spec, "port", 8080)}
   end
 
-  defp parse_apps(%{"apps" => apps}) do
-    Mount.parse(apps)
+  defp parse_apps(spec) do
+    Mount.parse(Map.get(spec, "apps", []))
   end
 
-  defp parse_apps(_), do: {:ok, []}
-
-  defp parse_graphs(%{"graphs" => graphs}) do
-    Mount.parse(graphs)
-  end
-
-  defp parse_graphs(_), do: {:ok, []}
-
-  def ast(port, _) do
+  def ast(port, index) do
     [
       {:module, [port.name, "port"] |> Kit.camelize(),
        [
          {:usage, Elementary.Port,
           [
-            name: port.name |> String.to_atom(),
+            name: port.name,
             port: port.port,
             apps:
-              Enum.map(port.apps, fn mount ->
-                [
-                  path: mount.path,
-                  handler: mount |> app_handler_module(),
-                  app: mount |> app_state_machine_module()
-                ]
-              end) ++
-                Enum.map(port.graphs, fn mount ->
-                  [
-                    path: mount.path,
-                    handler: mount |> graphql_handler_module(),
-                    app: mount.app
-                  ]
-                end) ++
-                Enum.map(port.graphs, fn mount ->
-                  [
-                    path: "/graphiql/#{mount.app}",
-                    handler: mount |> graphiql_handler_module(),
-                    app: mount.app
-                  ]
-                end)
+              Enum.flat_map(port.apps, fn mount ->
+                app_entities(mount, index)
+              end)
+              |> Enum.map(fn %{app: app, handler: handler, path: path} ->
+                [handler: handler, path: path, app: app]
+              end)
           ]},
          {:fun, :kind, [], :port},
          {:fun, :name, [], {:symbol, port.name}},
@@ -102,40 +72,53 @@ defmodule Elementary.Port do
          [
            {:usage, Elementary.Http,
             [
-              app: String.to_atom(mount.app)
+              app: mount.app
             ]},
            {:fun, :kind, [], :http},
            {:fun, :name, [], {:tuple, [{:symbol, port.name}, {:symbol, mount.app}]}}
          ]}
-      end) ++
-      Enum.flat_map(port.graphs, fn mount ->
-        [
-          {:module, graphql_handler_module(mount),
-           [
-             {:usage, Elementary.Graph.Http,
-              [
-                graph: String.to_atom(mount.app)
-              ]},
-             {:fun, :kind, [], :http},
-             {:fun, :name, [], {:tuple, [{:symbol, port.name}, {:symbol, mount.app}]}}
-           ]},
-          {:module, graphiql_handler_module(mount),
-           [
-             {:usage, Elementary.Graph.Graphiql,
-              [
-                graph: String.to_atom(mount.app),
-                path: mount.path
-              ]},
-             {:fun, :kind, [], :http},
-             {:fun, :name, [],
-              {:tuple, [{:symbol, port.name}, {:symbol, mount.app}, {:symbol, :graphiql}]}}
-           ]}
-        ]
       end)
   end
 
-  defp app_state_machine_module(%Mount{} = mount) do
-    Elementary.App.state_machine_name(mount.app)
+  defp app_entities(mount, index) do
+    [ast] = Ast.filter(index, {:kind, :app}, {:name, mount.app})
+    [{_, _, _, entities}] = Ast.filter(ast, {:fun, :entities})
+
+    Enum.flat_map(entities, fn e ->
+      [ast] = Ast.filter(index, {:kind, :entity}, {:name, e})
+      [{_, _, _, plural}] = Ast.filter(ast, {:fun, :plural})
+      [{_, _, _, tags}] = Ast.filter(ast, {:fun, :tags})
+
+      handler = Elementary.Entity.http_handler(e)
+
+      default = [
+        %{
+          handler: handler,
+          path: "#{mount.path}/#{plural}",
+          app: mount.app
+        },
+        %{
+          handler: handler,
+          path: "#{mount.path}/#{plural}/:id",
+          app: mount.app
+        }
+      ]
+
+      case Enum.member?(tags, :immutable) do
+        true ->
+          default
+
+        false ->
+          [
+            %{
+              handler: handler,
+              path: "#{mount.path}/#{plural}/:id/:version",
+              app: mount.app
+            }
+            | default
+          ]
+      end
+    end)
   end
 
   defp app_handler_module(%Mount{} = mount) do
@@ -143,28 +126,6 @@ defmodule Elementary.Port do
       Kit.camelize([
         mount.app,
         mount.protocol,
-        "handler"
-      ])
-    ])
-  end
-
-  defp graphql_handler_module(%Mount{} = mount) do
-    Module.concat([
-      Kit.camelize([
-        mount.app,
-        mount.protocol,
-        "graphql",
-        "handler"
-      ])
-    ])
-  end
-
-  defp graphiql_handler_module(%Mount{} = mount) do
-    Module.concat([
-      Kit.camelize([
-        mount.app,
-        mount.protocol,
-        "graphiql",
         "handler"
       ])
     ])
@@ -182,10 +143,10 @@ defmodule Elementary.Port do
         dispatch =
           :cowboy_router.compile([
             {:_,
-             apps
-             |> Enum.map(fn
-               [path: path, handler: handler, app: app] ->
-                 {path, handler, [app]}
+             Enum.map(apps, fn mount ->
+               {:ok, app} = Elementary.Index.App.get(mount[:app])
+               {:ok, settings} = app.settings()
+               {mount[:path], mount[:handler], [mount[:app], settings]}
              end)}
           ])
 
@@ -197,13 +158,8 @@ defmodule Elementary.Port do
           )
 
         IO.inspect(
-          kind: :port,
-          name: name,
-          port: port,
-          routes:
-            Enum.map(apps, fn mount ->
-              mount[:path]
-            end)
+          port: name,
+          port: port
         )
 
         {:ok, pid}

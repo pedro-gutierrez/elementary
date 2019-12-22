@@ -151,8 +151,11 @@ defmodule Elementary.Kit do
   def parse_specs(yamls, providers) do
     case Enum.reduce_while(yamls, [], fn yaml, specs ->
            case yaml |> parse_spec(providers) do
-             {:ok, spec} ->
+             {:ok, spec} when is_map(spec) ->
                {:cont, [spec | specs]}
+
+             {:ok, more_specs} when is_list(specs) ->
+               {:cont, more_specs ++ specs}
 
              {:error, _} = e ->
                {:halt, e}
@@ -372,5 +375,47 @@ defmodule Elementary.Kit do
   """
   def module_defined?(mod) do
     function_exported?(mod, :__info__, 1)
+  end
+
+  @doc """
+  Removes duplicates and converts into strings
+
+  """
+  def unique_atoms(strings) do
+    strings
+    |> Enum.uniq()
+    |> Enum.map(&String.to_atom(&1))
+  end
+
+  @doc """
+  Parse the given string, as an integer, or return
+  the given default, in case of error
+  """
+  def parse_int(nil, default), do: default
+
+  def parse_int(str, default) do
+    case Integer.parse(str) do
+      {num, ""} ->
+        num
+
+      _ ->
+        default
+    end
+  end
+
+  @doc """
+  Parse the given string, as an integer, or return
+  an error
+  """
+  def parse_int(nil), do: {:error, :invalid}
+
+  def parse_int(str) do
+    case Integer.parse(str) do
+      {num, ""} ->
+        {:ok, num}
+
+      _ ->
+        {:error, :invalid}
+    end
   end
 end

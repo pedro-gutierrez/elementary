@@ -1,9 +1,9 @@
 kind: entity
 name: login
 spec:
-  graph: fullpass
+  tags: immutable
   attributes:
-    email:
+    username:
       kind: string
     password:
       kind: string
