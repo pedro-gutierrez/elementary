@@ -8,3 +8,4 @@ spec:
     - token
     - login
     - password
+    - signup

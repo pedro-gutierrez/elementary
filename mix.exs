@@ -30,8 +30,7 @@ defmodule Elementary.MixProject do
       {:yaml_elixir, "~> 2.4.0"},
       {:cowboy, "~> 2.6.3"},
       {:jason, "~> 1.1.2"},
-      {:gen_state_machine, ">= 2.0.5"},
-      {:absinthe, "~> 1.4"},
+      {:uuid, "~> 1.1"},
       {:mongodb_driver, "~> 0.6"}
     ]
   end

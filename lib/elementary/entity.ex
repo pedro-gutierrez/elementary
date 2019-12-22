@@ -333,11 +333,7 @@ defmodule Elementary.Entity do
               {:ok, store} = Store.get(app)
               data = Map.merge(data, %{"id" => id, "version" => version})
 
-              with :ok <-
-                     unquote(mod).create(
-                       store,
-                       data
-                     ) do
+              with :ok <- unquote(mod).create(store, data) do
                 update(unquote(app_mod), "created", data, settings)
               end
 
@@ -406,14 +402,26 @@ defmodule Elementary.Entity do
 
   @entities Elementary.Index.Entity
 
-  def handle_call(%{"in" => store, "first" => entity, "where" => where} = q) do
+  def handle_call(%{"in" => store, "first" => entity, "where" => where}) do
     with {:ok, entity} <- @entities.get(entity) do
       case entity.list(store, where) do
         {:ok, [item]} ->
           {:ok, item}
 
         {:ok, []} ->
-          {:ok, %{"status" => "not_found", "query" => q}}
+          {:ok, %{"status" => "not_found"}}
+      end
+    end
+  end
+
+  def handle_call(%{"in" => store, "create" => entity, "data" => data}) do
+    with {:ok, entity} <- @entities.get(entity) do
+      case entity.create(store, data) do
+        :ok ->
+          {:ok, %{"status" => "ok"}}
+
+        {:error, e} ->
+          {:ok, %{"status" => "error", "reason" => "#{e}"}}
       end
     end
   end

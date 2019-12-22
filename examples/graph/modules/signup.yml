@@ -1,0 +1,34 @@
+kind: module
+name: signup
+spec:
+  decoders:
+    uuid:
+      token:
+        uuid:
+          any: text
+    entity:
+      success:
+        status: ok
+  update:
+    created:
+      model: @
+      cmds:
+        uuid: {}
+    token:
+      model:
+        uuid: @uuid
+      cmds:
+        entity: new_token
+    success:
+      cmds:
+        return: token
+  encoders:
+    new_token:
+      create: token
+      in: @store
+      data:
+        id: @uuid
+        version: 1
+        value: @uuid
+    token:
+      token: @uuid

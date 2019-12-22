@@ -161,6 +161,7 @@ defmodule Elementary.App do
 
       defp error(context, e) do
         Logger.error("#{inspect(Keyword.merge(context, error: e))}")
+        {:error, e}
       end
 
       defp decode(mod, effect, data, model) do
@@ -170,43 +171,57 @@ defmodule Elementary.App do
 
           {:error, e} ->
             error([app: mod, effect: effect], e)
-            {:error, e}
         end
       end
 
       defp update(mod, event, data, model0) do
         case mod.update(event, data, model0) do
           {:ok, model, [{effect, enc}]} ->
-            model = Map.merge(model0, model)
+            cmd(mod, effect, enc, Map.merge(model0, model))
 
-            case mod.encode(enc, model) do
-              {:ok, encoded} ->
-                case effect do
-                  :return ->
-                    {:ok, encoded}
-
-                  _ ->
-                    with {:ok, effect_mod} <- Elementary.Index.Effect.get(effect),
-                         {:ok, data} <- effect_mod.call(encoded) do
-                      decode(mod, effect, data, model)
-                    else
-                      {:error, e} ->
-                        error([app: mod, effect: effect, data: encoded], e)
-                        {:error, e}
-
-                      other ->
-                        error([app: mod, effect: effect, data: encoded], %{unexpected: other})
-                        {:error, :unexpected}
-                    end
-                end
-
-              {:error, e} ->
-                error([app: mod, encoder: enc], e)
-                {:error, e}
-            end
+          {:ok, model, [effect]} ->
+            cmd(mod, effect, nil, Map.merge(model0, model))
 
           {:ok, model, []} ->
             {:ok, model}
+        end
+      end
+
+      defp cmd(mod, :return, nil, model) do
+        {:ok, %{"status" => "ok"}}
+      end
+
+      defp cmd(mod, effect, nil, model) do
+        effect(mod, effect, nil, model)
+      end
+
+      defp cmd(mod, effect, enc, model) do
+        case mod.encode(enc, model) do
+          {:ok, encoded} ->
+            case effect do
+              :return ->
+                {:ok, encoded}
+
+              _ ->
+                effect(mod, effect, encoded, model)
+            end
+
+          {:error, e} ->
+            error([app: mod, encoder: enc], e)
+        end
+      end
+
+      defp effect(mod, effect, encoded, model) do
+        with {:ok, effect_mod} <- Elementary.Index.Effect.get(effect),
+             {:ok, data} <- effect_mod.call(encoded) do
+          decode(mod, effect, data, model)
+        else
+          {:error, e} ->
+            error([app: mod, effect: effect, data: encoded], e)
+            {:error, :internal_error}
+
+          other ->
+            error([app: mod, effect: effect, data: encoded], %{unexpected: other})
         end
       end
     end

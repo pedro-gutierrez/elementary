@@ -66,18 +66,7 @@ defmodule Elementary.Port do
          {:fun, :name, [], {:symbol, port.name}},
          {:fun, :supervised, [], {:boolean, true}}
        ]}
-    ] ++
-      Enum.map(port.apps, fn mount ->
-        {:module, app_handler_module(mount),
-         [
-           {:usage, Elementary.Http,
-            [
-              app: mount.app
-            ]},
-           {:fun, :kind, [], :http},
-           {:fun, :name, [], {:tuple, [{:symbol, port.name}, {:symbol, mount.app}]}}
-         ]}
-      end)
+    ]
   end
 
   defp app_entities(mount, index) do
@@ -104,7 +93,7 @@ defmodule Elementary.Port do
         }
       ]
 
-      case Enum.member?(tags, :immutable) do
+      case Enum.member?(tags, :"no-version") do
         true ->
           default
 
@@ -119,16 +108,6 @@ defmodule Elementary.Port do
           ]
       end
     end)
-  end
-
-  defp app_handler_module(%Mount{} = mount) do
-    Module.concat([
-      Kit.camelize([
-        mount.app,
-        mount.protocol,
-        "handler"
-      ])
-    ])
   end
 
   defmacro __using__(opts) do

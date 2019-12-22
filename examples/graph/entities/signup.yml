@@ -1,9 +1,8 @@
 kind: entity
-name: login
+name: signup
 spec:
   tags: no-version
   attributes:
     username:
       kind: string
-    password:
-      kind: string
+      tags: key
