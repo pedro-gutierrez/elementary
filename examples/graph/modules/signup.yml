@@ -18,17 +18,23 @@ spec:
       model:
         uuid: @uuid
       cmds:
-        entity: new_token
+        entity: signup
     success:
       cmds:
         return: token
   encoders:
-    new_token:
-      create: token
+    signup:
+      create:
+        token:
+          id: @uuid
+          version: 1
+          value: @uuid
+          acl: passwd:reset
+          user: @uuid
+        user:
+          id: @uuid
+          version: 1
+          username: @username
       in: @store
-      data:
-        id: @uuid
-        version: 1
-        value: @uuid
     token:
       token: @uuid

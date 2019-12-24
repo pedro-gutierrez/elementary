@@ -18,6 +18,7 @@ defmodule Elementary.Entity do
               tags: []
 
     def id(), do: %__MODULE__{name: :id, type: :id}
+    def version(), do: %__MODULE__{name: :version, type: :integer}
 
     def is(%__MODULE__{} = attr, tag) do
       Enum.member?(attr.tags, tag)
@@ -77,6 +78,9 @@ defmodule Elementary.Entity do
         "decoders" => %{
           "http" => %{
             "default" => decoder(entity)
+          },
+          "validation" => %{
+            "default" => validator(entity)
           }
         },
         "update" => %{},
@@ -89,7 +93,22 @@ defmodule Elementary.Entity do
   def decoder(entity) do
     Map.merge(
       Enum.reject(entity.attributes, fn attr ->
-        attr.name == :id
+        attr.name == :id || Attribute.is(attr, :computed)
+      end)
+      |> Enum.reduce(%{}, fn attr, spec ->
+        Map.put(spec, attr.name, %{"any" => decoder_type(attr.type)})
+      end),
+      Enum.reduce(entity.relations, %{}, fn rel, spec ->
+        Map.put(spec, rel.name, %{"any" => "text"})
+      end)
+    )
+  end
+
+  def validator(entity) do
+    Map.merge(
+      [Attribute.version() | entity.attributes]
+      |> Enum.reject(fn attr ->
+        Attribute.is(attr, :volatile)
       end)
       |> Enum.reduce(%{}, fn attr, spec ->
         Map.put(spec, attr.name, %{"any" => decoder_type(attr.type)})
@@ -252,10 +271,13 @@ defmodule Elementary.Entity do
       |> Elementary.Entity.key_attributes()
       |> Enum.map(fn attr -> attr.name end)
 
+    decoder_mod = Module.concat([Kit.camelize([entity.name, :decoder, :module])])
+
     quote do
       @module unquote(Elementary.Module.module_name(entity.name))
       @log :log
       @view unquote(entity.plural)
+      require Logger
 
       def get(store, id) do
         store.first(@view, %{id: id})
@@ -266,12 +288,28 @@ defmodule Elementary.Entity do
       end
 
       def create(store, %{"id" => id, "version" => v} = view) do
-        doc = Map.merge(view, %{"time" => Elementary.Kit.now(), "node" => Node.self()})
+        case unquote(decoder_mod).decode(:validation, view, nil) do
+          {:ok, _, data} ->
+            doc = Map.merge(view, %{"time" => Elementary.Kit.now(), "node" => Node.self()})
 
-        store.write([
-          {:insert, @log, doc},
-          {:update, @view, %{"id" => id}, view}
-        ])
+            store.write([
+              {:insert, @log, Map.put(doc, "entity", unquote(entity.name))},
+              {:update, @view, %{"id" => id}, view}
+            ])
+
+          {:error, e} ->
+            Logger.warn(
+              "#{
+                inspect(
+                  module: __MODULE__,
+                  data: view,
+                  validation: e
+                )
+              }"
+            )
+
+            {:error, e}
+        end
       end
 
       def delete(store, %{"id" => id, "version" => v} = query) do
@@ -333,8 +371,9 @@ defmodule Elementary.Entity do
               {:ok, store} = Store.get(app)
               data = Map.merge(data, %{"id" => id, "version" => version})
 
-              with :ok <- unquote(mod).create(store, data) do
-                update(unquote(app_mod), "created", data, settings)
+              with {:ok, data} <- maybe_update(unquote(app_mod), "create", data, settings),
+                   :ok <- unquote(mod).create(store, data) do
+                maybe_update(unquote(app_mod), "created", data, settings)
               end
 
             {:error, e} ->
@@ -402,11 +441,11 @@ defmodule Elementary.Entity do
 
   @entities Elementary.Index.Entity
 
-  def handle_call(%{"in" => store, "first" => entity, "where" => where}) do
-    with {:ok, entity} <- @entities.get(entity) do
+  def handle_call(%{"in" => store, "first" => entity_name, "where" => where}) do
+    with {:ok, entity} <- @entities.get(entity_name) do
       case entity.list(store, where) do
         {:ok, [item]} ->
-          {:ok, item}
+          {:ok, %{"status" => "ok", entity_name => item}}
 
         {:ok, []} ->
           {:ok, %{"status" => "not_found"}}
@@ -424,5 +463,20 @@ defmodule Elementary.Entity do
           {:ok, %{"status" => "error", "reason" => "#{e}"}}
       end
     end
+  end
+
+  def handle_call(%{"in" => store, "create" => items}) when is_map(items) do
+    Enum.reduce_while(items, {:ok, %{"status" => "ok"}}, fn {entity, doc}, acc ->
+      with {:ok, entity} <- @entities.get(entity),
+           :ok <- entity.create(store, doc) do
+        {:cont, acc}
+      else
+        {:error, %{error: e}} ->
+          {:halt, {:ok, %{"status" => "error", "reason" => "#{e}"}}}
+
+        {:error, e} ->
+          {:halt, {:ok, %{"status" => "error", "reason" => "#{e}"}}}
+      end
+    end)
   end
 end

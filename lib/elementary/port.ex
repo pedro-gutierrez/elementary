@@ -138,7 +138,11 @@ defmodule Elementary.Port do
 
         IO.inspect(
           port: name,
-          port: port
+          port: port,
+          routes:
+            Enum.map(apps, fn mount ->
+              mount[:path]
+            end)
         )
 
         {:ok, pid}

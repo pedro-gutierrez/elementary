@@ -5,6 +5,14 @@ spec:
     entity:
       not_found:
         status: not_found
+      user:
+        status: ok
+        user:
+          any: dict
+      password:
+        status: ok
+        password:
+          any: dict
   update:
     created:
       model: @
@@ -13,9 +21,28 @@ spec:
     not_found:
       cmds:
         return: forbidden
+    user:
+      model:
+        user: @user
+      cmds:
+        entity: password
+    password:
+      model:
+        stored_password: @password
+      cmds:
+        password: check
   encoders:
     user:
       first: user
       in: @store
       where:
         username: @username
+    password:
+      first: password
+      in: @store
+      where:
+        user: @user.id
+    check:
+      clear: @password
+      hash: @stored_password.hash
+    profile: @user

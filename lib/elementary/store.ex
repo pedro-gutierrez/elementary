@@ -50,19 +50,23 @@ defmodule Elementary.Store do
   alias Elementary.Index.Entity, as: Entities
 
   def init_all() do
-    Apps.all()
-    |> Enum.each(fn app ->
-      {:ok, app} = Apps.get(app)
+    Enum.each(Apps.all(), fn app_name ->
+      {:ok, app} = Apps.get(app_name)
 
-      with {:ok, store} <- Stores.get(app),
-           entities <- app.entities() do
-        store.collection(:log)
-        store.index(:log, :pkey, [:id, :version])
+      case app.settings() do
+        {:ok, %{"store" => %{"db" => store}}} ->
+          {:ok, store} = Stores.get(store)
 
-        Enum.each(entities, fn e ->
-          {:ok, entity} = Entities.get(e)
-          entity.init(store)
-        end)
+          :ok = store.collection(:log)
+          :ok = store.index(:log, :pkey, [:entity, :id, :version])
+
+          Enum.each(app.entities(), fn e ->
+            {:ok, entity} = Entities.get(e)
+            :ok = entity.init(store)
+          end)
+
+        _ ->
+          :ok
       end
     end)
   end
@@ -82,6 +86,12 @@ defmodule Elementary.Store do
       |> Enum.join("&")
 
     {:ok, "#{scheme}://#{username}:#{password}@#{host}/#{db}?#{params}"}
+  end
+
+  def parse_url(%{
+        "db" => db
+      }) do
+    {:ok, "mongodb://localhost/#{db}"}
   end
 
   def parse_pool(%{"pool" => pool}) do
@@ -200,7 +210,7 @@ defmodule Elementary.Store do
       end
 
       def collection(col) do
-        with {:error, %Mongo.Error{code: 48}} <- Mongo.create(@store, :log) do
+        with {:error, %Mongo.Error{code: 48}} <- Mongo.create(@store, col) do
           :ok
         end
       end

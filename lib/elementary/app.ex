@@ -171,6 +171,9 @@ defmodule Elementary.App do
 
           {:error, e} ->
             error([app: mod, effect: effect], e)
+
+          false ->
+            {:ok, data}
         end
       end
 
@@ -184,6 +187,25 @@ defmodule Elementary.App do
 
           {:ok, model, []} ->
             {:ok, model}
+
+          {:error, e} ->
+            error([app: mod, update: event], e)
+        end
+      end
+
+      defp maybe_update(mod, event, data, model0) do
+        case Elementary.Kit.module_defined?(mod) do
+          true ->
+            case update(mod, event, data, model0) do
+              {:error, :no_update} ->
+                {:ok, data}
+
+              other ->
+                other
+            end
+
+          false ->
+            {:ok, data}
         end
       end
 
