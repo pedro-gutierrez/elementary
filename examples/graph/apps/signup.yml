@@ -3,4 +3,4 @@ name: signup
 spec:
   modules:
     - signup
-    - errors
+    - http

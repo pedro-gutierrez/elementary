@@ -31,6 +31,7 @@ defmodule Elementary.MixProject do
       {:cowboy, "~> 2.6.3"},
       {:jason, "~> 1.1.2"},
       {:uuid, "~> 1.1"},
+      {:argon2_elixir, "~> 2.0"},
       {:mongodb_driver, "~> 0.6"}
     ]
   end

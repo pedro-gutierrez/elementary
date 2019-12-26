@@ -35,6 +35,7 @@ spec:
           id: @uuid
           version: 1
           username: @username
+          signup: @id
       in: @store
     token:
       token: @uuid

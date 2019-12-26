@@ -1,6 +1,8 @@
 kind: module
-name: errors
+name: http
 spec:
   encoders:
     forbidden:
       status: 401
+    ok:
+      status: 200

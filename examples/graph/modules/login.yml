@@ -30,7 +30,7 @@ spec:
       model:
         stored_password: @password
       cmds:
-        password: check
+        password: verify
   encoders:
     user:
       first: user
@@ -42,7 +42,7 @@ spec:
       in: @store
       where:
         user: @user.id
-    check:
-      clear: @password
-      hash: @stored_password.hash
+    verify:
+      verify: @password
+      with: @stored_password.hash
     profile: @user

@@ -7,6 +7,7 @@ defmodule Elementary.App do
   defstruct rank: :high,
             name: nil,
             version: "1",
+            debug: false,
             settings: [],
             modules: [],
             entities: []
@@ -22,11 +23,13 @@ defmodule Elementary.App do
       ) do
     with {:ok, modules} <- parse_modules(spec),
          {:ok, entities} <- parse_entities(spec),
-         {:ok, settings} <- parse_settings(spec) do
+         {:ok, settings} <- parse_settings(spec),
+         {:ok, debug} <- parse_debug(spec) do
       {:ok,
        %__MODULE__{
          name: String.to_atom(name),
          version: version,
+         debug: debug,
          settings: Kit.unique_atoms([name | settings]),
          modules: Kit.unique_atoms(modules),
          entities: Kit.unique_atoms(entities)
@@ -48,6 +51,10 @@ defmodule Elementary.App do
     {:ok, Map.get(spec, "settings", [])}
   end
 
+  defp parse_debug(spec) do
+    {:ok, Map.get(spec, "debug", false)}
+  end
+
   def ast(app, asts) do
     mod_names = app.modules |> Enum.map(&Elementary.Module.module_name(&1))
     mod_asts = asts |> Ast.filter({:module, mod_names})
@@ -59,6 +66,7 @@ defmodule Elementary.App do
        [
          {:fun, :kind, [], :app},
          {:fun, :name, [], app.name},
+         {:fun, :debug, [], app.debug},
          {:fun, :entities, [], app.entities},
          {:fun, :modules, [], app.modules},
          settings_ast(settings_asts),
@@ -165,6 +173,8 @@ defmodule Elementary.App do
       end
 
       defp decode(mod, effect, data, model) do
+        debug(mod, effect: effect, data: data, model: model)
+
         case mod.decode(effect, data, model) do
           {:ok, event, decoded} ->
             update(mod, event, decoded, model)
@@ -178,6 +188,8 @@ defmodule Elementary.App do
       end
 
       defp update(mod, event, data, model0) do
+        debug(mod, event: event, data: data, model: model0)
+
         case mod.update(event, data, model0) do
           {:ok, model, [{effect, enc}]} ->
             cmd(mod, effect, enc, Map.merge(model0, model))
@@ -234,6 +246,8 @@ defmodule Elementary.App do
       end
 
       defp effect(mod, effect, encoded, model) do
+        debug(mod, effect: effect, data: encoded, model: model)
+
         with {:ok, effect_mod} <- Elementary.Index.Effect.get(effect),
              {:ok, data} <- effect_mod.call(encoded) do
           decode(mod, effect, data, model)
@@ -244,6 +258,16 @@ defmodule Elementary.App do
 
           other ->
             error([app: mod, effect: effect, data: encoded], %{unexpected: other})
+        end
+      end
+
+      defp debug(mod, info) do
+        case mod.debug() do
+          true ->
+            Logger.info("#{inspect(info)}")
+
+          false ->
+            :ok
         end
       end
     end

@@ -5,3 +5,6 @@ spec:
     username:
       kind: string
       tags: key
+  relations:
+    signup:
+      tags: belongs
