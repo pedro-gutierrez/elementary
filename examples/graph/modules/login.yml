@@ -13,6 +13,18 @@ spec:
         status: ok
         password:
           any: dict
+      success:
+        status: ok
+        create:
+          token:
+            any: dict
+    password:
+      verified:
+        status: ok
+    uuid:
+      token:
+        uuid:
+          any: text
   update:
     created:
       model: @
@@ -31,6 +43,17 @@ spec:
         stored_password: @password
       cmds:
         password: verify
+    verified:
+      cmds:
+        uuid: {}
+    token:
+      model:
+        token: @uuid
+      cmds:
+        entity: token
+    success:
+      cmds:
+        return: profile
   encoders:
     user:
       first: user
@@ -45,4 +68,15 @@ spec:
     verify:
       verify: @password
       with: @stored_password.hash
-    profile: @user
+    token:
+      create:
+        token:
+          id: @token
+          version: 1
+          value: @token
+          acl: read
+          user: @user.id
+      in: @store
+    profile:
+      user: @user
+      token: @token

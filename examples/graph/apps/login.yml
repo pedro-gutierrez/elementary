@@ -1,7 +1,6 @@
 kind: app
 name: login
 spec:
-  debug: true
   modules:
     - login
     - http

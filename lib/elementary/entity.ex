@@ -132,10 +132,20 @@ defmodule Elementary.Entity do
         "init" => %{},
         "decoders" => %{},
         "update" => %{},
-        "encoders" => %{}
+        "encoders" => %{
+          "key" => key_encoder(entity)
+        }
       }
     }
     |> Elementary.Module.parse(providers)
+  end
+
+  defp key_encoder(entity) do
+    entity
+    |> key()
+    |> Enum.reduce(%{}, fn key, acc ->
+      Map.put(acc, key, "@#{key}")
+    end)
   end
 
   def key_attributes(%__MODULE__{} = e) do
@@ -143,6 +153,22 @@ defmodule Elementary.Entity do
     |> Enum.filter(fn attr ->
       Attribute.is(attr, :key)
     end)
+  end
+
+  def key_relations(%__MODULE__{} = e) do
+    e.relations
+    |> Enum.filter(fn rel ->
+      Relation.is(rel, :key)
+    end)
+  end
+
+  def key(%__MODULE__{} = e) do
+    with [] <-
+           Enum.map(key_attributes(e) ++ key_relations(e), fn field ->
+             field.name
+           end) do
+      [:id]
+    end
   end
 
   defp parse_attributes(%{"attributes" => attrs}) do
@@ -249,7 +275,8 @@ defmodule Elementary.Entity do
          {:fun, :kind, [], :entity},
          {:fun, :name, [], entity.name},
          {:fun, :plural, [], entity.plural},
-         {:fun, :tags, [], entity.tags}
+         {:fun, :tags, [], entity.tags},
+         {:fun, :key, [], key(entity)}
        ]},
       {:module, http_handler(entity.name),
        [
@@ -266,14 +293,11 @@ defmodule Elementary.Entity do
   defmacro __using__(opts) do
     entity = opts[:entity]
 
-    key =
-      entity
-      |> Elementary.Entity.key_attributes()
-      |> Enum.map(fn attr -> attr.name end)
-
     decoder_mod = Module.concat([Kit.camelize([entity.name, :decoder, :module])])
+    encoder_mod = Module.concat([Kit.camelize([entity.name, :encoder, :module])])
 
     quote do
+      @entity unquote(Elementary.Entity.entity_module(entity))
       @module unquote(Elementary.Module.module_name(entity.name))
       @log :log
       @view unquote(entity.plural)
@@ -292,10 +316,12 @@ defmodule Elementary.Entity do
           {:ok, _, data} ->
             doc = Map.merge(view, %{"time" => Elementary.Kit.now(), "node" => Node.self()})
 
-            store.write([
-              {:insert, @log, Map.put(doc, "entity", unquote(entity.name))},
-              {:update, @view, %{"id" => id}, view}
-            ])
+            with {:ok, key} <- unquote(encoder_mod).encode(:key, doc) do
+              store.write([
+                {:insert, @log, Map.put(doc, "entity", unquote(entity.name))},
+                {:update, @view, key, view}
+              ])
+            end
 
           {:error, e} ->
             Logger.warn(
@@ -328,15 +354,7 @@ defmodule Elementary.Entity do
 
       def init(store) do
         :ok = store.collection(@view)
-        :ok = store.index(@view, :pkey, [:id])
-
-        case unquote(key) do
-          [] ->
-            :ok
-
-          _ ->
-            :ok = store.index(@view, :name, unquote(key))
-        end
+        :ok = store.index(@view, :key, @entity.key())
       end
     end
   end
@@ -466,7 +484,8 @@ defmodule Elementary.Entity do
   end
 
   def handle_call(%{"in" => store, "create" => items}) when is_map(items) do
-    Enum.reduce_while(items, {:ok, %{"status" => "ok"}}, fn {entity, doc}, acc ->
+    Enum.reduce_while(items, {:ok, %{"status" => "ok", "create" => items}}, fn {entity, doc},
+                                                                               acc ->
       with {:ok, entity} <- @entities.get(entity),
            :ok <- entity.create(store, doc) do
         {:cont, acc}
