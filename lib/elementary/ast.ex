@@ -272,7 +272,11 @@ defmodule Elementary.Ast do
   end
 
   def quoted({:list, items}) when is_list(items) do
-    quoted(items)
+    Enum.map(items, fn item ->
+      with {:ok, quoted} <- quoted(item) do
+        quoted
+      end
+    end)
   end
 
   def quoted({:tuple, items}) when is_list(items) do

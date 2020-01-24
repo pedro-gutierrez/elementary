@@ -98,6 +98,10 @@ defmodule Elementary.Store do
     {:ok, pool}
   end
 
+  def parse_pool(_) do
+    {:ok, 1}
+  end
+
   defmacro __using__(opts) do
     quote do
       @settings unquote(opts[:settings])

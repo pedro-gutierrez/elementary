@@ -2,9 +2,14 @@ defmodule Elementary.Kit do
   @moduledoc false
 
   @doc """
-  Returns the home folrder, where all yamls are
+  Returns the home folder, where all yamls are
   """
   def home(), do: System.get_env("ELEMENTARY_HOME", "/elementary")
+
+  @doc """
+  Returns the assets folder
+  """
+  def assets(), do: System.get_env("ELEMENTARY_ASSETS", "/tmp")
 
   @doc """
   Discovers all yaml filenames in the home folder

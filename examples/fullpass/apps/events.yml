@@ -1,0 +1,7 @@
+kind: app
+name: events
+spec:
+  settings:
+    - fullpass
+  modules:
+    - events

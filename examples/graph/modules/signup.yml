@@ -9,7 +9,22 @@ spec:
     entity:
       success:
         status: ok
+        create:
+          token:
+            any: dict
+          user:
+            any: dict
+      existing:
+        status: ok
+        user:
+          any: dict
+      not_found:
+        status: not_found
   update:
+    create:
+      model: @
+      cmds:
+        entity: find
     created:
       model: @
       cmds:
@@ -19,10 +34,20 @@ spec:
         uuid: @uuid
       cmds:
         entity: signup
+    not_found:
+      model: {}
     success:
       cmds:
         return: token
+    existing:
+      cmds:
+        return: conflict
   encoders:
+    find:
+      first: user
+      in: @store
+      where:
+        username: @username
     signup:
       create:
         token:

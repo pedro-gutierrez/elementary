@@ -1,0 +1,37 @@
+kind: module
+name: asset
+spec:
+  decoders:
+    http:
+      get:
+        method: GET
+        params:
+          id:
+            any: text
+    asset:
+      data:
+        status: ok
+        data:
+          any: data
+      not_found:
+        reason: not_found
+  update:
+    get:
+      model:
+        asset: @params.id
+      cmds:
+        asset: named
+    data:
+      model:
+        data: @data
+      cmds:
+        return: asset
+    not_found:
+      cmds:
+        return: not_found
+  encoders:
+    named:
+      named: @asset
+    asset:
+      status: 200
+      body: @data

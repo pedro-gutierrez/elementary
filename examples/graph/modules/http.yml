@@ -4,5 +4,7 @@ spec:
   encoders:
     forbidden:
       status: 401
+    conflict:
+      status: 409
     ok:
       status: 200

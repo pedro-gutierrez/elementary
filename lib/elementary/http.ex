@@ -1,131 +1,8 @@
 defmodule Elementary.Http do
   @moduledoc false
-
-  defmodule Rest do
+  defmodule Helper do
     defmacro __using__(_) do
       quote do
-        alias Elementary.Kit
-
-        @limit "@limit"
-        @offset "@offset"
-        @pagination [@limit, @offset]
-
-        def init(
-              %{bindings: %{id: id, version: version} = bindings, method: method} = req,
-              [app, settings] = state
-            ) do
-          start = System.system_time(:microsecond)
-
-          settings = with_store(app, settings)
-
-          {req, res} =
-            case Kit.parse_int(version) do
-              {:ok, version} ->
-                case method do
-                  "POST" ->
-                    case body(req) do
-                      {:ok, req, body} ->
-                        {req, create(id, version, body, app, settings)}
-
-                      {:error, req, _} ->
-                        {req, {:error, :invalid}}
-                    end
-
-                  "DELETE" ->
-                    {req, delete(id, version, app, settings)}
-
-                  _ ->
-                    {req, {:error, :not_implemented}}
-                end
-
-              {:error, :invalid} ->
-                {req, {:error, :invalid}}
-            end
-
-          elapsed = System.system_time(:microsecond) - start
-
-          req = json(req, app, elapsed, res)
-          {:ok, req, state}
-        end
-
-        def init(
-              %{bindings: %{id: id}, method: method} = req,
-              [app, settings] = state
-            ) do
-          start = System.system_time(:microsecond)
-
-          settings = with_store(app, settings)
-
-          {req, res} =
-            case method do
-              "GET" ->
-                {req, fetch(id, app, settings)}
-
-              "POST" ->
-                case body(req) do
-                  {:ok, req, body} ->
-                    {req, create(id, 1, body, app, settings)}
-
-                  {:error, req, _} ->
-                    {req, {:error, :invalid}}
-                end
-
-              _ ->
-                {req, {:error, :not_implemented}}
-            end
-
-          elapsed = System.system_time(:microsecond) - start
-
-          req = json(req, app, elapsed, res)
-          {:ok, req, state}
-        end
-
-        def init(
-              %{method: method} = req,
-              [app, settings] = state
-            ) do
-          start = System.system_time(:microsecond)
-
-          settings = with_store(app, settings)
-
-          {req, res} =
-            case method do
-              "GET" ->
-                query = Enum.into(:cowboy_req.parse_qs(req), %{})
-                {opts, filter} = Map.split(query, @pagination)
-                {req, list(filter, pagination(opts), app, settings)}
-
-              "POST" ->
-                case body(req) do
-                  {:ok, req, body} ->
-                    {req, create(UUID.uuid4(), 1, body, app, settings)}
-
-                  {:error, req, _} ->
-                    {req, {:error, :invalid}}
-                end
-
-              _ ->
-                {req, {:error, :not_implemented}}
-            end
-
-          elapsed = System.system_time(:microsecond) - start
-
-          req = json(req, app, elapsed, res)
-          {:ok, req, state}
-        end
-
-        defp with_store(app, settings) do
-          {:ok, store} = Elementary.Index.Store.get(app)
-          Map.put(settings, "store", store)
-        end
-
-        defp pagination(opts) do
-          [
-            limit: Map.get(opts, @limit) |> Kit.parse_int(20),
-            offset: Map.get(opts, @offset) |> Kit.parse_int(0)
-          ]
-        end
-
         defp body(req) do
           case :cowboy_req.has_body(req) do
             false ->
@@ -144,40 +21,111 @@ defmodule Elementary.Http do
           end
         end
 
-        defp reply(:ok), do: {200, %{}}
-
-        defp reply({:ok, %{"status" => status, "body" => body}}), do: {status, body}
-        defp reply({:ok, %{"status" => status}}), do: {status, %{}}
-
-        defp reply({:ok, data}), do: {200, data}
-        defp reply({:error, reason}), do: {status(reason), %{}}
-
-        defp status(:not_found), do: 404
-        defp status(:invalid), do: 400
-        defp status(:unauthorized), do: 401
-        defp status(:forbidden), do: 403
-        defp status(:conflict), do: 409
-        defp status(:not_implemented), do: 501
-        defp status(_), do: 500
-
-        defp json(req, app, elapsed, res) do
-          {status, data} = reply(res)
-          json(req, app, elapsed, status, data)
+        defp encoded_headers(h) do
+          Enum.reduce(h, %{}, fn {k, v}, acc ->
+            Map.put(acc, "#{k}", "#{v}")
+          end)
         end
 
-        defp json(req, app, elapsed, status, data) do
+        defp encoded_params(h) do
+          Enum.reduce(h, %{}, fn {k, v}, acc ->
+            Map.put(acc, "#{k}", v)
+          end)
+        end
+
+        defp encoded_error(e) do
+          %{"status" => 500, "headers" => %{}, "body" => %{}}
+        end
+
+        defp json(req, app, started, %{"status" => status, "body" => body}) do
+          elapsed = System.system_time(:microsecond) - started
+
           :cowboy_req.reply(
             status,
             %{
-              "content-type" => "application/json",
               "app" => "#{app}",
-              "elapsed" => "#{elapsed}"
+              "time" => "#{elapsed}"
             },
-            Jason.encode!(data),
+            body,
+            req
+          )
+        end
+
+        defp json(req, app, started, %{
+               "status" => status,
+               "headers" => %{"content-type" => "application/json"} = headers,
+               "body" => body
+             }) do
+          body = Jason.encode!(body)
+          headers = encoded_headers(headers)
+          elapsed = System.system_time(:microsecond) - started
+
+          :cowboy_req.reply(
+            status,
+            Map.merge(
+              %{
+                "content-type" => "application/json",
+                "app" => "#{app}",
+                "time" => "#{elapsed}"
+              },
+              headers
+            ),
+            body,
             req
           )
         end
       end
+    end
+  end
+
+  defmodule Handler do
+    use Elementary.Http.Helper
+    alias Elementary.App.Helper, as: App
+
+    def init(
+          %{
+            bindings: params,
+            method: method,
+            headers: headers
+          } = req,
+          [app, mod, settings] = state
+        ) do
+      start = System.system_time(:microsecond)
+
+      req =
+        with {:ok, req, body} <- body(req),
+             {:ok, model} <- App.init(mod, settings),
+             {:ok, resp} <-
+               App.decode(
+                 mod,
+                 :http,
+                 %{
+                   "method" => method,
+                   "headers" => headers,
+                   "params" => encoded_params(params),
+                   "body" => body
+                 },
+                 model
+               ) do
+          json(req, app, start, resp)
+        else
+          {:error, req, e} ->
+            resp = encoded_error(e)
+            json(req, app, start, resp)
+
+          {:error, %{effect: :http, error: :no_decoder}} ->
+            json(req, app, start, %{
+              "status" => 400,
+              "headers" => %{},
+              "body" => %{}
+            })
+
+          {:error, e} ->
+            resp = encoded_error(e)
+            json(req, app, start, resp)
+        end
+
+      {:ok, req, state}
     end
   end
 end

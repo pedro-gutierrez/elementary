@@ -1,0 +1,9 @@
+kind: module
+name: http
+spec:
+  encoders:
+    not_found:
+      status: 404
+      headers:
+        content-type: application/json
+      body: {}

@@ -22,6 +22,8 @@ defmodule Elementary.Application do
     providers = Kit.providers(plugins)
     effects = Kit.effects(plugins)
 
+    IO.inspect(yamls: Kit.read_yamls())
+
     children =
       with {:ok, mods} <- Compiler.compiled(providers),
            {:ok, _} <- Effect.indexed(effects),

@@ -1,0 +1,8 @@
+kind: app
+name: asset
+spec:
+  settings:
+    - fullpass
+  modules:
+    - asset
+    - http

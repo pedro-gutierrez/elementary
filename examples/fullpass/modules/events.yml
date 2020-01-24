@@ -1,0 +1,28 @@
+kind: module
+name: events
+spec:
+  decoders:
+    http:
+      all:
+        method: GET
+  update:
+    all:
+      model:
+        events:
+          - id: abc
+            name: Afrofestival
+            cover: xyz
+          - id: def
+            name: Temptation
+            cover: uvw
+          - id: ghi
+            name: Crazy
+            cover: rst
+      cmds:
+        return: events
+  encoders:
+    events:
+      status: 200
+      headers:
+        content-type: application/json
+      body: @events

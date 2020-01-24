@@ -3,14 +3,13 @@ defmodule Elementary.Port do
 
   use Elementary.Provider
 
-  alias Elementary.{Kit, Mount, Ast}
+  alias Elementary.{Kit, Mount}
 
   defstruct rank: :high,
             name: "",
             version: "1",
             port: 8080,
-            apps: [],
-            graphs: []
+            apps: []
 
   def parse(
         %{
@@ -46,7 +45,7 @@ defmodule Elementary.Port do
     Mount.parse(Map.get(spec, "apps", []))
   end
 
-  def ast(port, index) do
+  def ast(port, _) do
     [
       {:module, [port.name, "port"] |> Kit.camelize(),
        [
@@ -55,11 +54,8 @@ defmodule Elementary.Port do
             name: port.name,
             port: port.port,
             apps:
-              Enum.flat_map(port.apps, fn mount ->
-                app_entities(mount, index)
-              end)
-              |> Enum.map(fn %{app: app, handler: handler, path: path} ->
-                [handler: handler, path: path, app: app]
+              Enum.map(port.apps, fn %{app: app, path: path, protocol: :http} ->
+                [handler: Elementary.Http.Handler, path: path, app: app]
               end)
           ]},
          {:fun, :kind, [], :port},
@@ -67,47 +63,6 @@ defmodule Elementary.Port do
          {:fun, :supervised, [], {:boolean, true}}
        ]}
     ]
-  end
-
-  defp app_entities(mount, index) do
-    [ast] = Ast.filter(index, {:kind, :app}, {:name, mount.app})
-    [{_, _, _, entities}] = Ast.filter(ast, {:fun, :entities})
-
-    Enum.flat_map(entities, fn e ->
-      [ast] = Ast.filter(index, {:kind, :entity}, {:name, e})
-      [{_, _, _, plural}] = Ast.filter(ast, {:fun, :plural})
-      [{_, _, _, tags}] = Ast.filter(ast, {:fun, :tags})
-
-      handler = Elementary.Entity.http_handler(e)
-
-      default = [
-        %{
-          handler: handler,
-          path: "#{mount.path}/#{plural}",
-          app: mount.app
-        },
-        %{
-          handler: handler,
-          path: "#{mount.path}/#{plural}/:id",
-          app: mount.app
-        }
-      ]
-
-      case Enum.member?(tags, :"no-version") do
-        true ->
-          default
-
-        false ->
-          [
-            %{
-              handler: handler,
-              path: "#{mount.path}/#{plural}/:id/:version",
-              app: mount.app
-            }
-            | default
-          ]
-      end
-    end)
   end
 
   defmacro __using__(opts) do
@@ -125,7 +80,7 @@ defmodule Elementary.Port do
              Enum.map(apps, fn mount ->
                {:ok, app} = Elementary.Index.App.get(mount[:app])
                {:ok, settings} = app.settings()
-               {mount[:path], mount[:handler], [mount[:app], settings]}
+               {mount[:path], mount[:handler], [mount[:app], app, settings]}
              end)}
           ])
 

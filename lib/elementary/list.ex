@@ -77,8 +77,9 @@ defmodule Elementary.List do
 
   defp literal_ast_entries(literals, index) do
     Enum.map(literals, fn item ->
-      {:ok, ast} = item.__struct__.ast(item, index)
-      ast
+      with {:ok, ast} <- item.__struct__.ast(item, index) do
+        ast
+      end
     end)
   end
 

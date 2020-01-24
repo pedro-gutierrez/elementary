@@ -18,4 +18,9 @@ defmodule Elementary.Index do
     def get(_), do: {:error, :not_found}
     def all(), do: []
   end
+
+  defmodule Effect do
+    def get(_), do: {:error, :not_found}
+    def all(), do: []
+  end
 end
