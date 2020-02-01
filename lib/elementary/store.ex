@@ -1,6 +1,10 @@
 defmodule Elementary.Store do
   @moduledoc false
 
+  def insert(store, col, doc) do
+    {:error, %{"store" => store, "error" => "not_supported", "collection" => col, "doc" => doc}}
+  end
+
   ## alias(Elementary.{Kit, Ast})
 
   ## def init_all() do
@@ -25,29 +29,6 @@ defmodule Elementary.Store do
   ##  end)
   ## end
 
-  ## def parse_url(%{
-  ##      "scheme" => scheme,
-  ##      "username" => username,
-  ##      "password" => password,
-  ##      "host" => host,
-  ##      "db" => db,
-  ##      "options" => options
-  ##    }) do
-  ##  params =
-  ##    Enum.reduce(options, [], fn {k, v}, opts ->
-  ##      ["#{k}=#{v}" | opts]
-  ##    end)
-  ##    |> Enum.join("&")
-
-  ##  {:ok, "#{scheme}://#{username}:#{password}@#{host}/#{db}?#{params}"}
-  ## end
-
-  ## def parse_url(%{
-  ##      "db" => db
-  ##    }) do
-  ##  {:ok, "mongodb://localhost/#{db}"}
-  ## end
-
   ## def parse_pool(%{"pool" => pool}) do
   ##  {:ok, pool}
   ## end
@@ -69,21 +50,6 @@ defmodule Elementary.Store do
   ##      {:ok, url} = Elementary.Store.parse_url(spec)
   ##      {:ok, pool} = Elementary.Store.parse_pool(spec)
 
-  ##      %{
-  ##        id: @store,
-  ##        start:
-  ##          {Mongo, :start_link,
-  ##           [
-  ##             [
-  ##               name: @store,
-  ##               url: url,
-  ##               pool_size: pool
-  ##             ]
-  ##           ]},
-  ##        type: :worker,
-  ##        restart: :permanent,
-  ##        shutdown: 5000
-  ##      }
   ##    end
 
   ##    def all(col, query, opts) do

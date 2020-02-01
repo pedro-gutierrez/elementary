@@ -24,6 +24,7 @@ defmodule Elementary.Compiler do
   end
 
   def compile() do
+    index_specs(Spec.all())
     compile_specs(Spec.all())
   end
 
@@ -39,6 +40,34 @@ defmodule Elementary.Compiler do
       {:ok, mod} = defmod(mod, ast)
       mod
     end)
+  end
+
+  defp index_specs(specs) do
+    mods =
+      specs
+      |> Spec.flatten()
+      |> Enum.map(fn %{"kind" => kind, "name" => name} ->
+        {name, kind, module_name(name, kind)}
+      end)
+
+    {:ok, _} =
+      defmod(
+        Elementary.Index,
+        Enum.map(mods, fn {name, kind, mod} ->
+          quote do
+            def get(unquote(kind), unquote(name)) do
+              {:ok, unquote(mod)}
+            end
+          end
+        end) ++
+          [
+            quote do
+              def get(kind, name) do
+                {:error, :not_found}
+              end
+            end
+          ]
+      )
   end
 
   defp compile(_specs, %{"kind" => "app", "name" => name, "spec" => spec}) do
@@ -69,10 +98,13 @@ defmodule Elementary.Compiler do
          end
 
          def init(settings) do
-           Encoder.encode(
-             @init,
-             settings
-           )
+           with {:ok, model, cmds} <-
+                  Encoder.encode(
+                    @init,
+                    settings
+                  ) do
+             {:ok, Map.merge(settings, model), cmds}
+           end
          end
 
          def decode(effect, data, context) do
@@ -214,6 +246,67 @@ defmodule Elementary.Compiler do
     ]
   end
 
+  defp compile(_specs, %{
+         "kind" => "store",
+         "name" => name,
+         "spec" => spec
+       }) do
+    registered_name = String.to_atom("#{name}_store")
+    pool = spec["pool"] || 1
+    url = Elementary.Kit.mongo_url(Map.merge(%{"db" => name}, spec))
+
+    [
+      {store_module_name(name),
+       quote do
+         @name unquote(name)
+         @registered_name unquote(registered_name)
+         @url unquote(url)
+         @pool unquote(pool)
+         def name(), do: @name
+
+         def child_spec(opts) do
+           %{
+             id: @registered_name,
+             start:
+               {Mongo, :start_link,
+                [
+                  [
+                    name: @registered_name,
+                    url: @url,
+                    pool_size: @pool
+                  ]
+                ]},
+             type: :worker,
+             restart: :permanent,
+             shutdown: 5000
+           }
+         end
+
+         def insert(col, doc) when is_map(doc) do
+           case Mongo.insert_one(
+                  @registered_name,
+                  col,
+                  doc
+                ) do
+             {:ok, _} ->
+               :ok
+
+             {:error, e} ->
+               {:error, mongo_error(e)}
+           end
+         end
+
+         defp mongo_error(%{write_errors: [error]}) do
+           mongo_error(error)
+         end
+
+         defp mongo_error(%{"code" => 11000}) do
+           "conflict"
+         end
+       end}
+    ]
+  end
+
   defp compile(_specs, _), do: []
 
   defp defmod(mod, content) do
@@ -224,5 +317,6 @@ defmodule Elementary.Compiler do
   def port_module_name(name), do: module_name(name, "port")
   def app_module_name(name), do: module_name(name, "app")
   def settings_module_name(name), do: module_name(name, "settings")
+  def store_module_name(name), do: module_name(name, "store")
   defp module_name(name, kind), do: Kit.module_name([name, kind])
 end

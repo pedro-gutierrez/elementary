@@ -40,4 +40,21 @@ defmodule Elementary.Effect do
   def apply("password", %{"hash" => clear}) do
     {:ok, %{"status" => "ok", "hash" => Argon2.hash_pwd_salt(clear)}}
   end
+
+  def apply("store", %{"store" => store, "insert" => doc, "into" => col})
+      when is_map(doc) do
+    {:ok, store} = Elementary.Index.get("store", store)
+
+    case store.insert(col, doc) do
+      :ok ->
+        {:ok, %{"status" => "ok"}}
+
+      {:error, e} ->
+        {:ok, %{"error" => e}}
+    end
+  end
+
+  def apply(effect, data) do
+    {:error, %{"error" => "no_such_effect", "effect" => effect, "data" => data}}
+  end
 end

@@ -5,6 +5,24 @@ spec:
     http:
       all:
         method: GET
+      create:
+        method: POST
+        headers:
+          content-type: application/json
+        body:
+          id:
+            any: text
+          title:
+            any: text
+          city:
+            any: text
+          country:
+            any: text
+          date:
+            any: date
+    store:
+      conflict:
+        error: conflict
   update:
     all:
       model:
@@ -20,7 +38,19 @@ spec:
             cover: rst
       cmds:
         return: events
+    create:
+      model:
+        event: @body
+      cmds:
+        store: create
+    conflict:
+      cmds:
+        return: conflict
   encoders:
+    create:
+      store: @store
+      insert: @event
+      into: events
     events:
       status: 200
       headers:

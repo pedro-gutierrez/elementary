@@ -50,22 +50,6 @@ defmodule Elementary.App do
     end
   end
 
-  def maybe_update(mod, event, data, model0) do
-    case Elementary.Kit.module_defined?(mod) do
-      true ->
-        case update(mod, event, data, model0) do
-          {:error, :no_update} ->
-            {:ok, data}
-
-          other ->
-            other
-        end
-
-      false ->
-        {:ok, data}
-    end
-  end
-
   def cmd(mod, effect, nil, model) do
     effect(mod, effect, nil, model)
   end

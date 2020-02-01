@@ -11,13 +11,23 @@ defmodule Elementary.Decoder do
     decode_error(spec, data)
   end
 
-  def decode(%{"any" => "text"} = spec, data, _) do
+  def decode(%{"any" => "text"} = spec, data, _) when is_binary(data) do
     case String.valid?(data) do
       true ->
         {:ok, data}
 
       false ->
         decode_error(spec, data)
+    end
+  end
+
+  def decode(%{"any" => "date"} = spec, data, _) when is_binary(data) do
+    case DateTime.from_iso8601(data) do
+      {:error, _} ->
+        decode_error(spec, data)
+
+      {:ok, datetime, _offset} ->
+        {:ok, datetime}
     end
   end
 

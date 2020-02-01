@@ -34,7 +34,7 @@ defmodule Elementary.Encoder do
       key, map when is_map(map) ->
         case map[key] do
           nil ->
-            {:error, %{"error" => "no_such_key", "key" => key, "data" => map}}
+            {:halt, {:error, %{"error" => "no_such_key", "key" => key, "data" => map}}}
 
           value ->
             {:cont, value}

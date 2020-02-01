@@ -7,3 +7,8 @@ spec:
       headers:
         content-type: application/json
       body: {}
+    conflict:
+      status: 409
+      headers:
+        content-type: application/json
+      body: {}
