@@ -5,58 +5,36 @@ defmodule Elementary.Application do
   require Logger
 
   alias Elementary.{
-    Compiler,
     Kit,
-    Effect,
-    App,
-    Settings,
-    Playbook,
-    Store,
-    Entity
+    Compiler
   }
 
   def start(_type, _args) do
     Code.compiler_options(ignore_module_conflict: true)
 
-    plugins = Kit.plugins()
-    providers = Kit.providers(plugins)
-    effects = Kit.effects(plugins)
+    mods = Compiler.compile()
 
-    IO.inspect(yamls: Kit.read_yamls())
-
-    children =
-      with {:ok, mods} <- Compiler.compiled(providers),
-           {:ok, _} <- Effect.indexed(effects),
-           {:ok, _} <- Settings.indexed(mods),
-           {:ok, _} <- App.indexed(mods),
-           {:ok, _} <- Playbook.indexed(mods),
-           {:ok, _} <- Store.indexed(mods),
-           {:ok, _} <- Entity.indexed(mods) do
-        Kit.supervised(mods)
-      else
-        {:error, e} ->
-          IO.inspect(e)
-          []
-      end
-
-    children = [
-      {Registry,
-       [
-         keys: :unique,
-         name: Apps
-       ]}
-      | children
-    ]
+    children = Enum.filter(mods, &Kit.defines_child_spec?(&1))
 
     Logger.configure(level: :info)
 
     {:ok, pid} =
-      Supervisor.start_link(children ++ [{Elementary.Compiler, [providers]}, Elementary.Apps],
+      Supervisor.start_link(children ++ [Elementary.Compiler],
         strategy: :one_for_one,
         name: Elementary.Supervisor
       )
 
-    Store.init_all()
+    # Store.init_all()
     {:ok, pid}
   end
+
+  ##  {:ok, mod} =
+  ##    Kit.defmod(
+  ##      Elementary.Cache,
+  ##      Enum.map(specs, fn %{"kind" => kind, "name" => name} = spec ->
+  ##        quote do
+  ##          def get(unquote(kind), unquote(name)), do: unquote(Macro.escape(spec))
+  ##        end
+  ##      end)
+  ##    )
 end

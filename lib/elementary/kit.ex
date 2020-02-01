@@ -12,30 +12,82 @@ defmodule Elementary.Kit do
   def assets(), do: System.get_env("ELEMENTARY_ASSETS", "/tmp")
 
   @doc """
-  Discovers all yaml filenames in the home folder
-  """
-  def yamls() do
-    Path.wildcard(home() <> "/**/*.yml")
-  end
-
-  @doc """
   Parse the given filename as yaml
   """
   def read_yaml(path) do
     YamlElixir.read_from_file(path)
   end
 
-  @doc """
-  Parse all yamls in the home folder
-  """
-  def read_yamls() do
-    yamls()
-    |> Enum.map(fn yaml ->
-      {:ok, content} = read_yaml(yaml)
-      content = Map.put(content, "source", yaml)
-      Map.put_new(content, "version", "1")
-    end)
-  end
+  ##  @doc """
+  ##  Resolve the specs, using the resolvers from the
+  ##  discovered plugins
+  ##  """
+  ##  def resolve_specs(specs, resolvers) do
+  ##    specs
+  ##    |> flatten_specs()
+  ##    |> Enum.reduce_while(%{}, fn spec, index ->
+  ##      case resolve_spec(spec, index, resolvers) do
+  ##        {:ok, resolved} ->
+  ##          {:cont, put_spec(index, resolved)}
+  ##
+  ##        {:error, _} = error ->
+  ##          {:halt, error}
+  ##      end
+  ##    end)
+  ##    |> case do
+  ##      {:error, _} = error ->
+  ##        error
+  ##
+  ##      index ->
+  ##        {:ok, index}
+  ##    end
+  ##  end
+  ##
+  ##  @doc """
+  ##  Resolve the given spec, using the given resolvers. First
+  ##  resolver that succesfully resolves will halt the iteration
+  ##  and return
+  ##  """
+  ##  def resolve_spec(spec, index, resolvers) do
+  ##    Enum.reduce_while(resolvers, spec, fn resolver, spec ->
+  ##      case resolver.resolve(spec, index) do
+  ##        {:ok, resolved} ->
+  ##          {:halt, resolved}
+  ##
+  ##        :skip ->
+  ##          {:cont, spec}
+  ##
+  ##        {:error, _} = error ->
+  ##          {:halt, error}
+  ##      end
+  ##    end)
+  ##    |> case do
+  ##      {:error, _} = error ->
+  ##        error
+  ##
+  ##      spec ->
+  ##        {:ok, spec}
+  ##    end
+  ##  end
+
+  ## @doc """
+  ## Give each spec to all compilers, and collect all generated
+  ## modules
+  ## """
+  ## def compile_specs(specs, index, compilers) do
+  ##  Enum.reduce(specs, [], fn spec, mods ->
+  ##    Enum.reduce(compilers, mods, fn compiler, mods ->
+  ##      case compiler.compile(spec, index) do
+  ##        {:ok, mod, content} ->
+  ##          {:ok, mod} = defmod(mod, content)
+  ##          [mod | mods]
+
+  ##        :skip ->
+  ##          mods
+  ##      end
+  ##    end)
+  ##  end)
+  ## end
 
   @doc """
   Start watching the home folder for file changes
@@ -91,6 +143,25 @@ defmodule Elementary.Kit do
     |> of_kind(Elementary.Provider)
     |> sorted_providers()
     |> Enum.reverse()
+  end
+
+  @doc """
+  Discovers all modules in the given apps, that implement
+  the `Elementary.Resolver` behavior. Resolvers are used in order
+  to verify dependencies and assemble specs.
+  """
+  def resolvers(plugins) do
+    plugins
+    |> of_kind(Elementary.Resolver)
+  end
+
+  @doc """
+  Discovers all modules in the given apps, that implement
+  the `Elementary.Compiler` behavior.
+  """
+  def compilers(plugins) do
+    plugins
+    |> of_kind(Elementary.Compiler)
   end
 
   def effects(plugins) do
@@ -319,6 +390,12 @@ defmodule Elementary.Kit do
       time: DateTime.utc_now(),
       node: Node.self()
     })
+  end
+
+  def module_name(parts) do
+    Module.concat([
+      camelize(parts)
+    ])
   end
 
   def camelize(parts) do
