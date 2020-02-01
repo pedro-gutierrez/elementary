@@ -3,7 +3,7 @@ name: events
 spec:
   decoders:
     http:
-      all:
+      list:
         method: GET
       create:
         method: POST
@@ -12,7 +12,7 @@ spec:
         body:
           id:
             any: text
-          title:
+          name:
             any: text
           city:
             any: text
@@ -21,23 +21,17 @@ spec:
           date:
             any: date
     store:
+      created:
+        status: created
       conflict:
-        error: conflict
+        status: conflict
+      events:
+        items:
+          any: list
   update:
-    all:
-      model:
-        events:
-          - id: abc
-            name: Afrofestival
-            cover: xyz
-          - id: def
-            name: Temptation
-            cover: uvw
-          - id: ghi
-            name: Crazy
-            cover: rst
+    list:
       cmds:
-        return: events
+        store: list
     create:
       model:
         event: @body
@@ -46,11 +40,22 @@ spec:
     conflict:
       cmds:
         return: conflict
+    created:
+      cmds:
+        return: created
+    events:
+      model:
+        events: @items
+      cmds:
+        return: events
   encoders:
     create:
       store: @store
       insert: @event
       into: events
+    list:
+      store: @store
+      from: events
     events:
       status: 200
       headers:

@@ -45,13 +45,27 @@ defmodule Elementary.Effect do
       when is_map(doc) do
     {:ok, store} = Elementary.Index.get("store", store)
 
-    case store.insert(col, doc) do
-      :ok ->
-        {:ok, %{"status" => "ok"}}
+    {:ok,
+     case store.insert(col, doc) do
+       :ok ->
+         %{"status" => "created"}
 
-      {:error, e} ->
-        {:ok, %{"error" => e}}
-    end
+       {:error, e} ->
+         %{"status" => e}
+     end}
+  end
+
+  def apply("store", %{"store" => store, "from" => col}) do
+    {:ok, store} = Elementary.Index.get("store", store)
+
+    {:ok,
+     case store.find_all(col, %{}) do
+       {:ok, items} ->
+         %{"items" => items}
+
+       {:error, e} ->
+         %{"status" => e}
+     end}
   end
 
   def apply(effect, data) do

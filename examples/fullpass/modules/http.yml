@@ -12,3 +12,8 @@ spec:
       headers:
         content-type: application/json
       body: {}
+    created:
+      status: 201
+      headers:
+        content-type: application/json
+      body: {}

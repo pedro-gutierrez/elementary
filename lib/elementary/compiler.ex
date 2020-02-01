@@ -296,12 +296,26 @@ defmodule Elementary.Compiler do
            end
          end
 
+         def find_all(col, query, opts \\ []) do
+           {:ok,
+            Mongo.find(@registered_name, col, query,
+              skip: Keyword.get(opts, :offset, 0),
+              limit: Keyword.get(opts, :limit, 20)
+            )
+            |> Stream.map(&sanitized(&1))
+            |> Enum.to_list()}
+         end
+
          defp mongo_error(%{write_errors: [error]}) do
            mongo_error(error)
          end
 
          defp mongo_error(%{"code" => 11000}) do
            "conflict"
+         end
+
+         defp sanitized(doc) do
+           Map.drop(doc, ["_id"])
          end
        end}
     ]

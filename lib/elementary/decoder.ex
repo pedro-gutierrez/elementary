@@ -21,6 +21,10 @@ defmodule Elementary.Decoder do
     end
   end
 
+  def decode(%{"any" => "list"}, data, _) when is_list(data) do
+    {:ok, data}
+  end
+
   def decode(%{"any" => "date"} = spec, data, _) when is_binary(data) do
     case DateTime.from_iso8601(data) do
       {:error, _} ->
