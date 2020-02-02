@@ -2,6 +2,7 @@ defmodule Elementary.Resolver do
   @moduledoc false
 
   alias Elementary.Spec
+  require Logger
 
   def resolve(specs) do
     specs
@@ -22,6 +23,16 @@ defmodule Elementary.Resolver do
       end)
 
     Map.put(spec, "spec", spec0)
+  end
+
+  defp resolve(specs, %{"kind" => "port"} = spec) do
+    apps = spec["spec"]["apps"] || %{}
+
+    Enum.reduce(apps, [], fn {app, _}, _ ->
+      Spec.find!(specs, "app", app)
+    end)
+
+    spec
   end
 
   defp resolve(_specs, spec), do: spec

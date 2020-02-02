@@ -1,0 +1,26 @@
+kind: module
+name: store
+spec:
+  decoders:
+    http:
+      drop:
+        method: DELETE
+        params:
+          name:
+            any: text
+    store:
+      init:
+        status: init
+  update:
+    drop:
+      model:
+        name: @params.name
+      cmds:
+        store: reset
+    init:
+      cmds:
+        return: ok
+  encoders:
+    reset:
+      store: @name
+      reset: {}

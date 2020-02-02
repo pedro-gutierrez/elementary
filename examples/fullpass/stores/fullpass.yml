@@ -1,3 +1,6 @@
 kind: store
 name: fullpass
-spec: {}
+spec:
+  collections:
+    - venues
+    - events

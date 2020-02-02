@@ -1,0 +1,6 @@
+kind: app
+name: store
+spec:
+  modules:
+    - store
+    - http

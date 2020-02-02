@@ -255,23 +255,26 @@ defmodule Elementary.Compiler do
     pool = spec["pool"] || 1
     url = Elementary.Kit.mongo_url(Map.merge(%{"db" => name}, spec))
 
+    collections = spec["collections"]
+
     [
       {store_module_name(name),
        quote do
          @name unquote(name)
-         @registered_name unquote(registered_name)
+         @store unquote(registered_name)
          @url unquote(url)
          @pool unquote(pool)
+         @collections unquote(collections)
          def name(), do: @name
 
          def child_spec(opts) do
            %{
-             id: @registered_name,
+             id: @store,
              start:
                {Mongo, :start_link,
                 [
                   [
-                    name: @registered_name,
+                    name: @store,
                     url: @url,
                     pool_size: @pool
                   ]
@@ -282,9 +285,34 @@ defmodule Elementary.Compiler do
            }
          end
 
+         def reset() do
+           Enum.reduce_while(@collections, :ok, fn col, _ ->
+             case drop_collection(col) do
+               :ok ->
+                 {:cont, :ok}
+
+               {:error, e} ->
+                 {:halt, mongo_error(e)}
+             end
+           end)
+         end
+
+         def drop_collection(col) do
+           case Mongo.drop_collection(@store, col) do
+             :ok ->
+               :ok
+
+             {:error, %{code: 26}} ->
+               :ok
+
+             {:error, e} ->
+               {:halt, mongo_error(e)}
+           end
+         end
+
          def insert(col, doc) when is_map(doc) do
            case Mongo.insert_one(
-                  @registered_name,
+                  @store,
                   col,
                   doc
                 ) do
@@ -298,7 +326,7 @@ defmodule Elementary.Compiler do
 
          def find_all(col, query, opts \\ []) do
            {:ok,
-            Mongo.find(@registered_name, col, query,
+            Mongo.find(@store, col, query,
               skip: Keyword.get(opts, :offset, 0),
               limit: Keyword.get(opts, :limit, 20)
             )
@@ -306,12 +334,22 @@ defmodule Elementary.Compiler do
             |> Enum.to_list()}
          end
 
+         def find_one(col, query) do
+           case Mongo.find_one(@store, col, query) do
+             nil ->
+               {:error, :not_found}
+
+             doc ->
+               {:ok, sanitized(doc)}
+           end
+         end
+
          defp mongo_error(%{write_errors: [error]}) do
            mongo_error(error)
          end
 
          defp mongo_error(%{"code" => 11000}) do
-           "conflict"
+           :conflict
          end
 
          defp sanitized(doc) do

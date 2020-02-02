@@ -1,0 +1,40 @@
+kind: module
+name: venues
+spec:
+  decoders:
+    http:
+      create:
+        method: POST
+        headers:
+          content-type: application/json
+        body:
+          id:
+            any: text
+          name:
+            any: text
+          city:
+            any: text
+          country:
+            any: text
+    store:
+      created:
+        status: created
+      conflict:
+        status: conflict
+  update:
+    create:
+      model:
+        venue: @body
+      cmds:
+        store: create
+    conflict:
+      cmds:
+        return: conflict
+    created:
+      cmds:
+        return: created
+  encoders:
+    create:
+      store: @store
+      insert: @venue
+      into: venues

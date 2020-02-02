@@ -55,6 +55,19 @@ defmodule Elementary.Effect do
      end}
   end
 
+  def apply("store", %{"store" => store, "from" => col, "fetch" => query, "as" => as}) do
+    {:ok, store} = Elementary.Index.get("store", store)
+
+    {:ok,
+     case store.find_one(col, query) do
+       {:ok, item} ->
+         %{as => item}
+
+       {:error, e} when is_atom(e) ->
+         %{"status" => Atom.to_string(e)}
+     end}
+  end
+
   def apply("store", %{"store" => store, "from" => col}) do
     {:ok, store} = Elementary.Index.get("store", store)
 
@@ -63,9 +76,25 @@ defmodule Elementary.Effect do
        {:ok, items} ->
          %{"items" => items}
 
-       {:error, e} ->
-         %{"status" => e}
+       {:error, e} when is_atom(e) ->
+         %{"status" => Atom.to_string(e)}
      end}
+  end
+
+  def apply("store", %{"reset" => %{}, "store" => store}) do
+    {:ok, store} = Elementary.Index.get("store", store)
+
+    {:ok,
+     %{
+       "status" =>
+         case store.reset() do
+           :ok ->
+             "init"
+
+           {:error, e} when is_atom(e) ->
+             Atom.to_string(e)
+         end
+     }}
   end
 
   def apply(effect, data) do

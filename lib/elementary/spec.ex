@@ -35,7 +35,9 @@ defmodule Elementary.Spec do
         spec
 
       :not_found ->
-        raise "No spec of kind #{kind} and name: #{name}, in #{inspect(names(index, kind))}"
+        raise "No spec of kind \"#{kind}\" and name: \"#{name}\", in #{
+                inspect(names(index, kind))
+              }"
     end
   end
 

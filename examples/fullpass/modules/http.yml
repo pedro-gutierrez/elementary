@@ -2,6 +2,11 @@ kind: module
 name: http
 spec:
   encoders:
+    ok:
+      status: 200
+      headers:
+        content-type: application/json
+      body: {}
     not_found:
       status: 404
       headers:
