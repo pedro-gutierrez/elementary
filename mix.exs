@@ -17,7 +17,8 @@ defmodule Elementary.MixProject do
       extra_applications: [:logger],
       applications: [
         :mongodb_driver,
-        :ranch
+        :ranch,
+        :httpoison
       ],
       mod: {Elementary.Application, []}
     ]
@@ -32,7 +33,8 @@ defmodule Elementary.MixProject do
       {:jason, "~> 1.1.2"},
       {:uuid, "~> 1.1"},
       {:argon2_elixir, "~> 2.0"},
-      {:mongodb_driver, "~> 0.6"}
+      {:mongodb_driver, "~> 0.6"},
+      {:httpoison, "~> 1.6"}
     ]
   end
 end

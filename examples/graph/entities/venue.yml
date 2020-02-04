@@ -1,8 +1,0 @@
-kind: entity
-name: venue
-spec:
-  attributes:
-    name:
-      kind: string
-      tags: key
-  relations: []

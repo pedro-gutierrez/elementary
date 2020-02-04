@@ -1,0 +1,37 @@
+kind: module
+name: test
+spec:
+  decoders:
+    http:
+      run:
+        method: POST
+        params:
+          test:
+            any: text
+          settings:
+            any: text
+    test:
+      started:
+        status: started
+      running:
+        status: running
+      not_found:
+        status: not_found
+  update:
+    run:
+      model: @params
+      cmds:
+        test: run
+    started:
+      cmds:
+        return: created
+    running:
+      cmds:
+        return: conflict
+    not_found:
+      cmds:
+        return: not_found
+  encoders:
+    run:
+      run: @test
+      settings: @settings

@@ -134,4 +134,94 @@ defmodule Elementary.Http do
       req
     )
   end
+
+  defmodule Client do
+    def run(opts) do
+      req =
+        %HTTPoison.Request{
+          method: method(opts[:method] || "get"),
+          url: opts[:url],
+          headers: opts[:headers] || []
+        }
+        |> with_request_body(opts[:body], opts[:headers])
+
+      {micros, res} =
+        :timer.tc(fn ->
+          HTTPoison.request(req)
+        end)
+
+      {:ok,
+       res |> response |> with_response_time(micros) |> with_request(req) |> with_debug(opts)}
+    end
+
+    def method("get"), do: :get
+    def method("post"), do: :post
+    def method("delete"), do: :delete
+    def method("put"), do: :put
+
+    defp response({:ok, %HTTPoison.Response{body: body, headers: headers, status_code: code}}) do
+      headers = Enum.into(headers, %{})
+      body = maybe_json_decode(body, headers)
+      %{"status" => code, "headers" => headers, "body" => body}
+    end
+
+    defp response({:error, %HTTPoison.Error{reason: error}}) do
+      %{"error" => error}
+    end
+
+    defp with_request_body(req, nil, _), do: req
+
+    defp with_request_body(req, body, headers) do
+      %HTTPoison.Request{req | body: maybe_json_encode(body, headers)}
+    end
+
+    defp with_response_time(resp, micros) do
+      Map.put(resp, "time", micros)
+    end
+
+    defp with_request(resp, req) do
+      Map.put(resp, "request", %{
+        "method" => "#{req.method}",
+        "url" => req.url,
+        "headers" => Enum.into(req.headers, %{}),
+        "body" => req.body
+      })
+    end
+
+    defp with_debug(resp, opts) do
+      if opts[:debug] do
+        IO.inspect(resp)
+      end
+
+      resp
+    end
+
+    defp maybe_json_encode(body, req) do
+      case json?(req) do
+        true ->
+          Jason.encode!(body)
+
+        false ->
+          body
+      end
+    end
+
+    defp maybe_json_decode(body, resp) do
+      case json?(resp) do
+        true ->
+          Jason.decode!(body)
+
+        false ->
+          body
+      end
+    end
+
+    @json "application/json"
+
+    defp json?(opts) when is_map(opts) do
+      opts["content-type"] == @json
+    end
+
+    defp json?(_), do: false
+  end
 end

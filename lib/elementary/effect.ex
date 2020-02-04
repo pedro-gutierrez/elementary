@@ -50,8 +50,8 @@ defmodule Elementary.Effect do
        :ok ->
          %{"status" => "created"}
 
-       {:error, e} ->
-         %{"status" => e}
+       {:error, e} when is_atom(e) ->
+         %{"status" => "#{e}"}
      end}
   end
 
@@ -95,6 +95,18 @@ defmodule Elementary.Effect do
              Atom.to_string(e)
          end
      }}
+  end
+
+  def apply("test", %{"run" => test, "settings" => settings}) do
+    with {:ok, _pid} <- Elementary.Test.run(test, settings) do
+      {:ok, %{"status" => "started"}}
+    else
+      {:error, :not_found} ->
+        {:ok, %{"status" => "not_found"}}
+
+      {:error, {:already_started, _}} ->
+        {:ok, %{"status" => "running"}}
+    end
   end
 
   def apply(effect, data) do

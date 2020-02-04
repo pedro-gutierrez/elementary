@@ -1,9 +1,0 @@
-kind: entity
-name: signup
-spec:
-  tags: no-version
-  plural: signup
-  attributes:
-    username:
-      kind: string
-      tags: key

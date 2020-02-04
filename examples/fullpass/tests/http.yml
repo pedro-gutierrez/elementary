@@ -1,0 +1,19 @@
+kind: test
+name: http
+spec:
+  steps:
+    - title: Then I should have a 200
+      assert:
+        equal:
+          - 200
+          - @latest.status
+    - title: Then I should have a 409
+      assert:
+        equal:
+          - 409
+          - @latest.status
+    - title: Then I should have a 201
+      assert:
+        equal:
+          - 201
+          - @latest.status

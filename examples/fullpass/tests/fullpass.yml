@@ -1,0 +1,15 @@
+kind: test
+name: fullpass
+spec:
+  scenarios:
+    - title: Should create venues
+      debug: true
+      steps:
+        - Given the store is empty
+        - Given the Amaragua
+        - When I create that venue
+        - Then I should have a 409
+  include:
+    - http
+    - store
+    - venues

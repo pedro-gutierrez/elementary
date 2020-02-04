@@ -1,7 +1,0 @@
-kind: port
-name: hello
-spec:
-  port: 8819
-  apps:
-    hello:
-      http: /

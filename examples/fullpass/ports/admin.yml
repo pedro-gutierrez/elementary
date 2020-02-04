@@ -5,3 +5,5 @@ spec:
   apps:
     store:
       http: /api/stores/:name
+    test:
+      http: /api/tests/:test/:settings

@@ -72,6 +72,10 @@ defmodule Elementary.Kit do
     String.capitalize(str)
   end
 
+  def duration(since, :millisecond) do
+    ceil((now() - since) / 1_000)
+  end
+
   def now() do
     DateTime.to_unix(DateTime.utc_now(), :microsecond)
   end

@@ -2,5 +2,10 @@ kind: store
 name: fullpass
 spec:
   collections:
-    - venues
-    - events
+    - name: venues
+      indices: [key, name]
+    - name: events
+      indices: [key, name]
+  indices:
+    key: [id]
+    name: [name]

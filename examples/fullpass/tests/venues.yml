@@ -1,0 +1,25 @@
+kind: test
+name: venues
+spec:
+  steps:
+    - title: Given the Amaragua
+      steps:
+        - Details for the Amaragua
+        - When I create that venue
+        - Then I should have a 201
+    - title: Details for the Amaragua
+      venue:
+        id: "1"
+        name: Amaragua
+        city: Torremolinos
+        country: Málaga
+    - title: When I create that venue
+      http:
+        method: post
+        url:
+          - url: @fullpass
+          - /api/venues
+        headers:
+          content-type: application/json
+        body: @venue
+      as: latest

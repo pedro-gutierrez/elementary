@@ -1,6 +1,6 @@
 kind: app
-name: signup
+name: test
 spec:
   modules:
-    - signup
+    - test
     - http

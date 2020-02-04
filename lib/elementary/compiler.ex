@@ -91,6 +91,7 @@ defmodule Elementary.Compiler do
          @init %{"init" => unquote(Macro.escape(init))}
 
          def name(), do: @name
+         def kind(), do: "app"
          def debug(), do: @debug
 
          def settings() do
@@ -181,6 +182,7 @@ defmodule Elementary.Compiler do
                  )
 
          def name(), do: @name
+         def kind(), do: "port"
          def port(), do: @port
          def routes(), do: @routes
 
@@ -238,6 +240,7 @@ defmodule Elementary.Compiler do
        quote do
          @name unquote(name)
          def name(), do: @name
+         def kind(), do: "settings"
 
          def get() do
            unquote(Macro.escape(encoded))
@@ -256,6 +259,7 @@ defmodule Elementary.Compiler do
     url = Elementary.Kit.mongo_url(Map.merge(%{"db" => name}, spec))
 
     collections = spec["collections"]
+    indices = spec["indices"]
 
     [
       {store_module_name(name),
@@ -264,8 +268,10 @@ defmodule Elementary.Compiler do
          @store unquote(registered_name)
          @url unquote(url)
          @pool unquote(pool)
-         @collections unquote(collections)
+         @indices unquote(Macro.escape(indices))
+         @collections unquote(Macro.escape(collections))
          def name(), do: @name
+         def kind(), do: "store"
 
          def child_spec(opts) do
            %{
@@ -286,15 +292,22 @@ defmodule Elementary.Compiler do
          end
 
          def reset() do
-           Enum.reduce_while(@collections, :ok, fn col, _ ->
-             case drop_collection(col) do
-               :ok ->
-                 {:cont, :ok}
-
+           Enum.reduce_while(@collections, :ok, fn %{"name" => col, "indices" => indices}, _ ->
+             with :ok <- drop_collection(col),
+                  :ok <- create_collection(col),
+                  :ok <- ensure_indices(col, indices) do
+               {:cont, :ok}
+             else
                {:error, e} ->
                  {:halt, mongo_error(e)}
              end
            end)
+         end
+
+         def create_collection(col) do
+           with {:error, %Mongo.Error{code: 48}} <- Mongo.create(@store, col) do
+             :ok
+           end
          end
 
          def drop_collection(col) do
@@ -307,6 +320,43 @@ defmodule Elementary.Compiler do
 
              {:error, e} ->
                {:halt, mongo_error(e)}
+           end
+         end
+
+         def ensure_indices(col, indices) do
+           Enum.reduce_while(indices, :ok, fn index, _ ->
+             case @indices[index] do
+               nil ->
+                 raise "Index \"#{index}\" in #{@name}.#{col} is not defined"
+
+               fields ->
+                 case ensure_unique_index(col, index, fields) do
+                   :ok ->
+                     {:cont, :ok}
+
+                   other ->
+                     {:halt, other}
+                 end
+             end
+           end)
+         end
+
+         def ensure_unique_index(col, name, fields) do
+           with {:ok, _} <-
+                  Mongo.command(
+                    @store,
+                    [
+                      createIndexes: col,
+                      indexes: [
+                        [name: name, unique: true, key: Enum.map(fields, fn f -> {f, 1} end)]
+                      ]
+                    ],
+                    []
+                  ) do
+             :ok
+           else
+             {:error, %{message: msg}} ->
+               {:error, msg}
            end
          end
 
@@ -354,6 +404,181 @@ defmodule Elementary.Compiler do
 
          defp sanitized(doc) do
            Map.drop(doc, ["_id"])
+         end
+       end}
+    ]
+  end
+
+  defp compile(_, %{"kind" => "test", "name" => name, "spec" => spec}) do
+    registered_name = String.to_atom("#{name}_test")
+
+    [
+      {module_name(name, "test"),
+       quote do
+         use GenServer
+         require Logger
+         @name unquote(name)
+         @test unquote(registered_name)
+         @timeout 1000
+         @scenarios unquote(Macro.escape(spec["scenarios"] || []))
+         @init unquote(Macro.escape(spec["init"]))
+
+         def name(), do: @name
+         def kind(), do: "test"
+
+         def child_spec(opts) do
+           %{
+             id: @test,
+             start: {__MODULE__, :start_link, [opts]},
+             type: :worker,
+             restart: :temporary,
+             shutdown: 5000
+           }
+         end
+
+         def start_link(opts) do
+           GenServer.start_link(__MODULE__, opts, name: @test)
+         end
+
+         def init(opts) do
+           settings = opts[:settings]
+           tag = opts[:tag]
+           {:ok, facts} = settings.get()
+
+           {:ok, init} =
+             case @init do
+               nil ->
+                 {:ok, facts}
+
+               init_spec ->
+                 Elementary.Encoder.encode(init_spec, facts)
+             end
+
+           scenarios = scenarios(tag)
+
+           Process.send_after(self(), :timeout, @timeout)
+
+           {:ok,
+            %{
+              log: fn _ -> :ok end,
+              started: Elementary.Kit.now(),
+              settings: settings,
+              tag: tag,
+              init: init,
+              scenarios: scenarios,
+              scenario: nil,
+              step: nil,
+              context: nil,
+              report: %{
+                total: length(scenarios),
+                passed: 0,
+                failed: 0
+              }
+            }, {:continue, :scenario}}
+         end
+
+         def handle_continue(:scenario, %{init: init, scenarios: [current | rest]} = state) do
+           log =
+             case current["debug"] do
+               true ->
+                 fn msg ->
+                   Logger.info(msg)
+                 end
+
+               _ ->
+                 fn _ -> :ok end
+             end
+
+           log.("Starting senario #{current["title"]}")
+
+           {:noreply,
+            %{
+              state
+              | log: log,
+                context: init,
+                scenario: current,
+                scenarios: rest
+            }, {:continue, :step}}
+         end
+
+         def handle_continue(
+               :scenario,
+               %{started: started, log: log, report: report, scenarios: []} = state
+             ) do
+           report =
+             Map.merge(
+               %{
+                 :test => @name,
+                 :time => Elementary.Kit.duration(started, :millisecond)
+               },
+               report
+             )
+
+           msg = "Finished: #{inspect(report)}"
+
+           case report.failed do
+             0 -> Logger.info(msg)
+             _ -> Logger.error(msg)
+           end
+
+           {:stop, :normal, state}
+         end
+
+         def handle_continue(
+               :step,
+               %{
+                 log: log,
+                 report: report,
+                 context: context,
+                 scenario: %{"title" => title, "steps" => [current | rest]} = scenario
+               } = state
+             ) do
+           log.("Running step \"#{current["title"]}")
+
+           case Elementary.Encoder.encode(current["spec"], context) do
+             {:ok, context2} ->
+               context = Map.merge(context, context2)
+               scenario = Map.put(scenario, "steps", rest)
+               log.("Step #{current["title"]} successful")
+               log.("Context: #{inspect(context)}")
+
+               {:noreply, %{state | context: context, step: nil, scenario: scenario},
+                {:continue, :step}}
+
+             {:error, e} ->
+               scenario = Map.put(scenario, "steps", [])
+               report = %{report | failed: report.failed + 1}
+
+               Logger.error(
+                 "Step \"#{current["title"]}\" in scenario \"#{title}\" failed: #{inspect(e)}"
+               )
+
+               {:noreply, %{state | report: report, step: nil, scenario: scenario},
+                {:continue, :step}}
+           end
+         end
+
+         def handle_continue(
+               :step,
+               %{log: log, scenario: %{"title" => title, "steps" => []} = scenario} = state
+             ) do
+           log.("Scenario #{title} finished")
+           {:noreply, state, {:continue, :scenario}}
+         end
+
+         def handle_info(:timeout, %{log: log} = state) do
+           log.("Test #{@name} timeout")
+           {:stop, :normal, state}
+         end
+
+         def scenarios(nil) do
+           @scenarios
+         end
+
+         def scenarios(tag) do
+           Enum.filter(@scenarios, fn scenario ->
+             Enum.member?(scenario["tags"], tag)
+           end)
          end
        end}
     ]

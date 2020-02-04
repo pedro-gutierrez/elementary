@@ -1,0 +1,15 @@
+kind: test
+name: store
+spec:
+  steps:
+    - title: Given the store is empty
+      steps:
+        - When I delete the store
+        - Then I should have a 200
+    - title: When I delete the store
+      http:
+        method: delete
+        url:
+          - url: @admin
+          - /api/stores/fullpass
+      as: latest

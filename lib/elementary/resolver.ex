@@ -35,7 +35,53 @@ defmodule Elementary.Resolver do
     spec
   end
 
+  defp resolve(specs, %{"kind" => "test", "spec" => spec0} = spec) do
+    steps = index_steps(spec, %{})
+
+    steps =
+      Enum.reduce(spec0["include"] || [], steps, fn name, index ->
+        included_test = Spec.find!(specs, "test", name)
+        index_steps(included_test, index)
+      end)
+
+    scenarios =
+      Enum.map(spec0["scenarios"] || [], fn scenario ->
+        resolved =
+          resolve_steps(steps, scenario)
+          |> Enum.map(fn step ->
+            %{"title" => step["title"], "spec" => Map.drop(step, ["title"])}
+          end)
+
+        Map.put(scenario, "steps", resolved)
+      end)
+
+    spec0 = Map.put(spec0, "scenarios", scenarios)
+
+    Map.put(spec, "spec", spec0)
+  end
+
   defp resolve(_specs, spec), do: spec
+
+  def index_steps(test, index) do
+    Enum.reduce((test["spec"] || %{})["steps"] || [], index, fn %{"title" => title} = step,
+                                                                index ->
+      Map.put(index, title, step)
+    end)
+  end
+
+  def resolve_steps(steps, %{"title" => parent, "steps" => titles}) do
+    Enum.flat_map(titles, fn title ->
+      case steps[title] do
+        nil ->
+          raise "Undefined step \"#{title}\" in \"#{parent}\""
+
+        step ->
+          resolve_steps(steps, step)
+      end
+    end)
+  end
+
+  def resolve_steps(_, step), do: [step]
 
   def resolve_and_merge(spec, specs, prop, kind) do
     names = Map.get(spec, prop, [])
