@@ -560,10 +560,15 @@ defmodule Elementary.Compiler do
 
          def handle_continue(
                :step,
-               %{log: log, scenario: %{"title" => title, "steps" => []} = scenario} = state
+               %{
+                 report: report,
+                 log: log,
+                 scenario: %{"title" => title, "steps" => []} = scenario
+               } = state
              ) do
            log.("Scenario #{title} finished")
-           {:noreply, state, {:continue, :scenario}}
+           report = %{report | passed: report.passed + 1}
+           {:noreply, %{state | report: report}, {:continue, :scenario}}
          end
 
          def handle_info(:timeout, %{log: log} = state) do

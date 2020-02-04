@@ -1,0 +1,25 @@
+kind: test
+name: events
+spec:
+  steps:
+    - title: Given the Afrofestival
+      steps:
+        - Given details for the Afrofestival
+        - When I create that event
+        - Then I should have a 201
+    - title: Given details for the Afrofestival
+      event:
+        id: "1"
+        name: Afrofestival
+        venue: @venue.id
+        date: 2020-10-01T00:00:07Z
+    - title: When I create that event
+      http:
+        method: post
+        url:
+          - url: @fullpass
+          - /api/events
+        headers:
+          content-type: application/json
+        body: @event
+      as: latest

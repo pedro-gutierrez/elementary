@@ -17,3 +17,8 @@ spec:
         equal:
           - 201
           - @latest.status
+    - title: Then I should have a 404
+      assert:
+        equal:
+          - 404
+          - @latest.status

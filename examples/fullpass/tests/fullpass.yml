@@ -3,13 +3,28 @@ name: fullpass
 spec:
   scenarios:
     - title: Should create venues
-      debug: true
       steps:
         - Given the store is empty
         - Given the Amaragua
         - When I create that venue
         - Then I should have a 409
+    - title: Should create events
+      steps:
+        - Given the store is empty
+        - Given the Amaragua
+        - Given the Afrofestival
+        - When I create that event
+        - Then I should have a 409
+    - title: Should check the venue when creating events
+      debug: true
+      steps:
+        - Given the store is empty
+        - Given a fake venue
+        - Given details for the Afrofestival
+        - When I create that event
+        - Then I should have a 404
   include:
     - http
     - store
     - venues
+    - events

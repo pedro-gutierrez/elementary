@@ -7,6 +7,9 @@ spec:
         - Details for the Amaragua
         - When I create that venue
         - Then I should have a 201
+    - title: Given a fake venue
+      venue:
+        id: "unknown"
     - title: Details for the Amaragua
       venue:
         id: "1"
