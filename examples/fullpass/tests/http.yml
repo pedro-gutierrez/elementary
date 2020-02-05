@@ -3,22 +3,21 @@ name: http
 spec:
   steps:
     - title: Then I should have a 200
-      assert:
-        equal:
-          - 200
-          - @latest.status
+      expect:
+        status: 200
+      in: @latest
     - title: Then I should have a 409
-      assert:
-        equal:
-          - 409
-          - @latest.status
+      expect:
+        status: 409
+      in: @latest
     - title: Then I should have a 201
-      assert:
-        equal:
-          - 201
-          - @latest.status
+      expect:
+        status: 201
+      in: @latest
     - title: Then I should have a 404
-      assert:
-        equal:
-          - 404
-          - @latest.status
+      expect:
+        status: 404
+      in: @latest
+    - title: Then I should get one item
+      item:
+        first: @body

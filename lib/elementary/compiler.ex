@@ -488,7 +488,7 @@ defmodule Elementary.Compiler do
 
          def handle_continue(:scenario, %{init: init, scenarios: [current | rest]} = state) do
            log =
-             case current["debug"] do
+             case Enum.member?(current["tags"] || [], "debug") do
                true ->
                  fn msg ->
                    Logger.info(msg)
@@ -546,7 +546,12 @@ defmodule Elementary.Compiler do
 
            case Elementary.Encoder.encode(current["spec"], context) do
              {:ok, context2} ->
-               context = Map.merge(context, context2)
+               context =
+                 case is_map(context2) do
+                   true -> Map.merge(context, context2)
+                   false -> context
+                 end
+
                scenario = Map.put(scenario, "steps", rest)
                log.("Step #{current["title"]} successful")
                log.("Context: #{inspect(context)}")
@@ -563,7 +568,7 @@ defmodule Elementary.Compiler do
                )
 
                {:noreply, %{state | report: report, step: nil, scenario: scenario},
-                {:continue, :step}}
+                {:continue, :scenario}}
            end
          end
 
@@ -591,7 +596,7 @@ defmodule Elementary.Compiler do
 
          def scenarios(tag) do
            Enum.filter(@scenarios, fn scenario ->
-             Enum.member?(scenario["tags"], tag)
+             Enum.member?(scenario["tags"] || [], tag)
            end)
          end
        end}

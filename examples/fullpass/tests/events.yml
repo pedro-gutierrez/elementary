@@ -7,10 +7,21 @@ spec:
         - Given details for the Afrofestival
         - When I create that event
         - Then I should have a 201
+    - title: Given the Feeling Festival
+      steps:
+        - Given details for the Feeling Festival
+        - When I create that event
+        - Then I should have a 201
     - title: Given details for the Afrofestival
       event:
         id: "1"
         name: Afrofestival
+        place: @place.id
+        date: 2020-10-01T00:00:07Z
+    - title: Given details for the Feeling Festival
+      event:
+        id: "2"
+        name: Feeling Festival
         place: @place.id
         date: 2020-10-01T00:00:07Z
     - title: When I create that event
@@ -23,3 +34,18 @@ spec:
           content-type: application/json
         body: @event
       as: latest
+    - title: When I look for events nearby
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/events/nearby
+        headers:
+          content-type: application/json
+        body: @location
+      as: latest
+    - title: Then that event should match that item
+      assert:
+        equal:
+          - @item.name
+          - @event.name

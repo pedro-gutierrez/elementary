@@ -1,6 +1,11 @@
 kind: test
 name: fullpass
 spec:
+  include:
+    - http
+    - store
+    - places
+    - events
   init:
     baseUrl:
       url: @fullpass
@@ -12,7 +17,6 @@ spec:
         - When I create that place
         - Then I should have a 409
     - title: Should create events
-      debug: true
       steps:
         - Given the store is empty
         - Given the Amaragua
@@ -23,8 +27,18 @@ spec:
         - Given details for the Afrofestival
         - When I create that event
         - Then I should have a 404
-  include:
-    - http
-    - store
-    - places
-    - events
+    - title: Should find events nearby
+      tags:
+        - debug
+      steps:
+        - Given the store is empty
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given the Auditorium
+        - Given the Feeling Festival
+        - Given I am in Torremolinos
+        - When I look for events nearby
+        - Then I should have a 200
+        - Then I should get one item
+        - Given the Afrofestival
+        - Then that event should match that item

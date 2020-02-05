@@ -58,6 +58,19 @@ defmodule Elementary.Encoder do
     {:ok, v}
   end
 
+  def encode(%{"first" => expr} = spec, context, encoders) do
+    with {:ok, encoded} <- encode(expr, context, encoders) do
+      case encoded do
+        [first | _] ->
+          {:ok, first}
+
+        other ->
+          {:error, %{"error" => "unexpected", "actual" => other, "expected" => "non-empty-list"}}
+      end
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"equal" => exprs} = spec, context, encoders) do
     with {:ok, encoded} <- encode_all(exprs, context, encoders) do
       {:ok, all_equal?(encoded)}
@@ -153,7 +166,20 @@ defmodule Elementary.Encoder do
         {:ok, %{}}
 
       {:ok, other} ->
-        {:error, %{"error" => "failed_assertion", "actual" => other, "expected" => true}}
+        {:error, %{"error" => "assert", "actual" => other, "expected" => true}}
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"expect" => expr, "in" => key} = spec, context, encoders) do
+    with {:ok, encoded} <- encode(key, context, encoders) do
+      case Elementary.Decoder.decode(expr, encoded, context) do
+        {:ok, _} ->
+          {:ok, true}
+
+        other ->
+          {:error, %{"error" => "expect", "actual" => other, "expected" => expr}}
+      end
     end
     |> result(spec, context)
   end
