@@ -1,30 +1,30 @@
 kind: test
 name: fullpass
 spec:
+  init:
+    baseUrl:
+      url: @fullpass
   scenarios:
-    - title: Should create venues
+    - title: Should create places
       steps:
         - Given the store is empty
         - Given the Amaragua
-        - When I create that venue
+        - When I create that place
         - Then I should have a 409
     - title: Should create events
+      debug: true
       steps:
         - Given the store is empty
         - Given the Amaragua
         - Given the Afrofestival
         - When I create that event
         - Then I should have a 409
-    - title: Should check the venue when creating events
-      debug: true
-      steps:
-        - Given the store is empty
-        - Given a fake venue
+        - Given a fake place
         - Given details for the Afrofestival
         - When I create that event
         - Then I should have a 404
   include:
     - http
     - store
-    - venues
+    - places
     - events

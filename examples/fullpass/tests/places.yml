@@ -1,28 +1,28 @@
 kind: test
-name: venues
+name: places
 spec:
   steps:
     - title: Given the Amaragua
       steps:
         - Details for the Amaragua
-        - When I create that venue
+        - When I create that place
         - Then I should have a 201
-    - title: Given a fake venue
-      venue:
+    - title: Given a fake place
+      place:
         id: "unknown"
     - title: Details for the Amaragua
-      venue:
+      place:
         id: "1"
         name: Amaragua
-        city: Torremolinos
-        country: Málaga
-    - title: When I create that venue
+        lat: 36.6078731
+        lon: -4.5063965
+    - title: When I create that place
       http:
         method: post
         url:
-          - url: @fullpass
-          - /api/venues
+          - @baseUrl
+          - /api/places
         headers:
           content-type: application/json
-        body: @venue
+        body: @place
       as: latest

@@ -1,5 +1,5 @@
 kind: module
-name: venues
+name: places
 spec:
   decoders:
     http:
@@ -12,10 +12,10 @@ spec:
             any: text
           name:
             any: text
-          city:
-            any: text
-          country:
-            any: text
+          lat:
+            any: number
+          lon:
+            any: number
     store:
       created:
         status: created
@@ -24,7 +24,14 @@ spec:
   update:
     create:
       model:
-        venue: @body
+        place:
+          id: @body.id
+          name: @body.name
+          location:
+            type: Point
+            coordinates:
+              - @body.lon
+              - @body.lat
       cmds:
         store: create
     conflict:
@@ -36,5 +43,5 @@ spec:
   encoders:
     create:
       store: @store
-      insert: @venue
-      into: venues
+      insert: @place
+      into: places

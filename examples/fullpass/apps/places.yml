@@ -1,8 +1,8 @@
 kind: app
-name: venues
+name: places
 spec:
   settings:
     - fullpass
   modules:
-    - venues
+    - places
     - http

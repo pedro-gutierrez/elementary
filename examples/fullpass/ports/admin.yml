@@ -1,9 +1,0 @@
-kind: port
-name: admin
-spec:
-  port: 2101
-  apps:
-    store:
-      http: /api/stores/:name
-    test:
-      http: /api/tests/:test/:settings

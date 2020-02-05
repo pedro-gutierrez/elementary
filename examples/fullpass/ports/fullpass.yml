@@ -3,9 +3,13 @@ name: fullpass
 spec:
   port: 2100
   apps:
-    venues:
-      http: /api/venues
+    places:
+      http: /api/places
     events:
       http: /api/events
     asset:
       http: /api/assets/:id
+    store:
+      http: /api/stores/:name
+    test:
+      http: /api/tests/:test/:settings

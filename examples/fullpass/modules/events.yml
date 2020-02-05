@@ -14,7 +14,7 @@ spec:
             any: text
           name:
             any: text
-          venue:
+          place:
             any: text
           date:
             any: date
@@ -25,8 +25,8 @@ spec:
         status: conflict
       not_found:
         status: not_found
-      venue:
-        venue:
+      place:
+        place:
           any: object
       events:
         items:
@@ -39,8 +39,8 @@ spec:
       model:
         event: @body
       cmds:
-        store: find_venue
-    venue:
+        store: find_place
+    place:
       cmds:
         store: create
     conflict:
@@ -58,12 +58,12 @@ spec:
       cmds:
         return: not_found
   encoders:
-    find_venue:
+    find_place:
       store: @store
       fetch:
-        id: @event.venue
-      from: venues
-      as: venue
+        id: @event.place
+      from: places
+      as: place
     create:
       store: @store
       insert: @event

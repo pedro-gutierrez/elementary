@@ -21,6 +21,10 @@ defmodule Elementary.Decoder do
     end
   end
 
+  def decode(%{"any" => "number"}, data, _) when is_number(data) do
+    {:ok, data}
+  end
+
   def decode(%{"any" => "list"}, data, _) when is_list(data) do
     {:ok, data}
   end

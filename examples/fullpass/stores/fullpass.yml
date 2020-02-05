@@ -2,10 +2,18 @@ kind: store
 name: fullpass
 spec:
   collections:
-    - name: venues
-      indices: [key, name]
+    - name: places
+      indices:
+        - key
+        - name
+        - location
     - name: events
-      indices: [key, name]
+      indices:
+        - key
+        - name
   indices:
-    key: [id]
-    name: [name]
+    key:
+      - id
+    name:
+      - name
+    location: geo

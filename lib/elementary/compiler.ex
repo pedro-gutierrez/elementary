@@ -329,8 +329,17 @@ defmodule Elementary.Compiler do
                nil ->
                  raise "Index \"#{index}\" in #{@name}.#{col} is not defined"
 
-               fields ->
-                 case ensure_unique_index(col, index, fields) do
+               spec ->
+                 opts =
+                   case spec do
+                     "geo" ->
+                       [key: %{index => "2dsphere"}]
+
+                     fields when is_list(fields) ->
+                       [unique: true, key: Enum.map(fields, fn f -> {f, 1} end)]
+                   end
+
+                 case ensure_index(col, index, opts) do
                    :ok ->
                      {:cont, :ok}
 
@@ -341,14 +350,14 @@ defmodule Elementary.Compiler do
            end)
          end
 
-         def ensure_unique_index(col, name, fields) do
+         def ensure_index(col, name, opts) do
            with {:ok, _} <-
                   Mongo.command(
                     @store,
                     [
                       createIndexes: col,
                       indexes: [
-                        [name: name, unique: true, key: Enum.map(fields, fn f -> {f, 1} end)]
+                        Keyword.merge(opts, name: name)
                       ]
                     ],
                     []

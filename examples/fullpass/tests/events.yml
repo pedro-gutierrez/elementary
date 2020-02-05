@@ -11,13 +11,13 @@ spec:
       event:
         id: "1"
         name: Afrofestival
-        venue: @venue.id
+        place: @place.id
         date: 2020-10-01T00:00:07Z
     - title: When I create that event
       http:
         method: post
         url:
-          - url: @fullpass
+          - @baseUrl
           - /api/events
         headers:
           content-type: application/json

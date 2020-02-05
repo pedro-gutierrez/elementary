@@ -10,6 +10,6 @@ spec:
       http:
         method: delete
         url:
-          - url: @admin
+          - @baseUrl
           - /api/stores/fullpass
       as: latest
