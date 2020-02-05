@@ -16,6 +16,10 @@ spec:
       location:
         lat: 36.606657
         lon: -4.5118278
+    - title: Given I am in Madrid
+      location:
+        lat: 40.4439799
+        lon: -3.6652171
     - title: Given a fake place
       place:
         id: "unknown"

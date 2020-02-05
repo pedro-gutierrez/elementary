@@ -20,4 +20,4 @@ spec:
       in: @latest
     - title: Then I should get one item
       item:
-        first: @body
+        first: @latest.body

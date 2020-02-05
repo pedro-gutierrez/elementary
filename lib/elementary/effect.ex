@@ -68,13 +68,13 @@ defmodule Elementary.Effect do
      end}
   end
 
-  def apply("store", %{"store" => store, "from" => col}) do
+  def apply("store", %{"store" => store, "from" => col, "as" => as} = spec) do
     {:ok, store} = Elementary.Index.get("store", store)
 
     {:ok,
-     case store.find_all(col, %{}) do
+     case store.find_all(col, spec["find"] || %{}) do
        {:ok, items} ->
-         %{"items" => items}
+         %{as => items}
 
        {:error, e} when is_atom(e) ->
          %{"status" => Atom.to_string(e)}

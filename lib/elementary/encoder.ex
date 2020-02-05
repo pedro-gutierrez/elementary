@@ -58,6 +58,19 @@ defmodule Elementary.Encoder do
     {:ok, v}
   end
 
+  def encode(%{"map" => expr, "with" => encoder} = spec, context, encoders) do
+    with {:ok, data} <- encode(expr, context, encoders) do
+      case data do
+        [_ | _] ->
+          encode_items(encoder, data, encoders)
+
+        other ->
+          {:error, %{"error" => "not_a_list", "data" => other}}
+      end
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"first" => expr} = spec, context, encoders) do
     with {:ok, encoded} <- encode(expr, context, encoders) do
       case encoded do
@@ -72,7 +85,7 @@ defmodule Elementary.Encoder do
   end
 
   def encode(%{"equal" => exprs} = spec, context, encoders) do
-    with {:ok, encoded} <- encode_all(exprs, context, encoders) do
+    with {:ok, encoded} <- encode_specs(exprs, context, encoders) do
       {:ok, all_equal?(encoded)}
     end
     |> result(spec, context)
@@ -202,9 +215,28 @@ defmodule Elementary.Encoder do
     encode(spec, context, encoders)
   end
 
-  defp encode_all(spec, context, encoders) do
-    Enum.reduce_while(spec, [], fn expr, acc ->
-      case encode(expr, context, encoders) do
+  defp encode_specs(specs, context, encoders) when is_list(specs) do
+    Enum.reduce_while(specs, [], fn spec, acc ->
+      case encode(spec, context, encoders) do
+        {:ok, encoded} ->
+          {:cont, [encoded | acc]}
+
+        {:error, _} = error ->
+          {:halt, error}
+      end
+    end)
+    |> case do
+      {:error, _} = error ->
+        error
+
+      exprs ->
+        {:ok, Enum.reverse(exprs)}
+    end
+  end
+
+  defp encode_items(spec, items, encoders) when is_list(items) do
+    Enum.reduce_while(items, [], fn item, acc ->
+      case encode(spec, item, encoders) do
         {:ok, encoded} ->
           {:cont, [encoded | acc]}
 

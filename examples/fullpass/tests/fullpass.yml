@@ -28,8 +28,6 @@ spec:
         - When I create that event
         - Then I should have a 404
     - title: Should find events nearby
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given the Amaragua
@@ -40,5 +38,12 @@ spec:
         - When I look for events nearby
         - Then I should have a 200
         - Then I should get one item
-        - Given the Afrofestival
+        - Given details for the Afrofestival
         - Then that event should match that item
+        - Given I am in Madrid
+        - When I look for events nearby
+        - Then I should have a 200
+        - Then I should get one item
+        - Given details for the Feeling Festival
+        - Then that event should match that item
+

@@ -39,7 +39,7 @@ spec:
         method: post
         url:
           - @baseUrl
-          - /api/events/nearby
+          - /api/nearby
         headers:
           content-type: application/json
         body: @location

@@ -1,0 +1,9 @@
+kind: app
+name: nearby
+spec:
+  debug: true
+  settings:
+    - fullpass
+  modules:
+    - nearby
+    - http

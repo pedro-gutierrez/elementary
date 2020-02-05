@@ -7,6 +7,8 @@ spec:
       http: /api/places
     events:
       http: /api/events
+    nearby:
+      http: /api/nearby
     asset:
       http: /api/assets/:id
     store:

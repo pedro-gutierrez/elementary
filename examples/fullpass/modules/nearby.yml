@@ -1,0 +1,66 @@
+kind: module
+name: nearby
+spec:
+  decoders:
+    http:
+      search:
+        method: POST
+        headers:
+          content-type: application/json
+        body:
+          lat:
+            any: number
+          lon:
+            any: number
+    store:
+      places:
+        places:
+          any: list
+      events:
+        events:
+          any: list
+  update:
+    search:
+      model:
+        coordinates:
+          - @body.lon
+          - @body.lat
+      cmds:
+        store: places_query
+    places:
+      model:
+        places:
+          map: @places
+          with: @id
+      cmds:
+        store: events_query
+    events:
+      model:
+        events: @events
+      cmds:
+        return: nearby
+  encoders:
+    places_query:
+      store: @store
+      find:
+        location:
+          $near:
+            $geometry:
+              type: Point
+              coordinates: @coordinates
+            $minDistance: 0
+            $maxDistance: 100000
+      from: places
+      as: places
+    events_query:
+      store: @store
+      find:
+        place:
+          $in: @places
+      from: events
+      as: events
+    nearby:
+      status: 200
+      headers:
+        content-type: application/json
+      body: @events
