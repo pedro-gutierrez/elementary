@@ -16,9 +16,16 @@ spec:
         - Given the Amaragua
         - When I create that place
         - Then I should have a 409
+    - title: Should get places by id
+      steps:
+        - Given the store is empty
+        - Given the Amaragua
+        - When I get that place
+        - Then I should have that place
+        - Given a fake place
+        - When I get that place
+        - Then I should have a 404
     - title: Should create events
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given the Amaragua
@@ -28,6 +35,18 @@ spec:
         - Given a fake place
         - Given details for the Afrofestival
         - When I create that event
+        - Then I should have a 404
+    - title: Should get events by id
+      tags:
+        - debug
+      steps:
+        - Given the store is empty
+        - Given the Amaragua
+        - Given the Afrofestival
+        - When I get that event
+        - Then I should have that event
+        - Given a fake event
+        - When I get that event
         - Then I should have a 404
     - title: Should find events nearby
       steps:

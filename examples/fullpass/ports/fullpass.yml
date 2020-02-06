@@ -5,8 +5,12 @@ spec:
   apps:
     places:
       http: /api/places
+    place:
+      http: /api/places/:id
     events:
       http: /api/events
+    event:
+      http: /api/events/:id
     nearby:
       http: /api/nearby
     asset:

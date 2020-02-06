@@ -45,3 +45,16 @@ spec:
           content-type: application/json
         body: @place
       as: latest
+    - title: When I get that place
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/places/
+          - @place.id
+      as: latest
+    - title: Then I should have that place
+      expect:
+        body:
+          id: @place.id
+      in: @latest

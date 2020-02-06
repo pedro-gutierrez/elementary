@@ -84,6 +84,20 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"last" => expr} = spec, context, encoders) do
+    with {:ok, encoded} <- encode(expr, context, encoders) do
+      case is_list(encoded) && length(encoded) > 0 do
+        true ->
+          {:ok, List.last(encoded)}
+
+        false ->
+          {:error,
+           %{"error" => "unexpected", "actual" => encoded, "expected" => "non-empty-list"}}
+      end
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"equal" => exprs} = spec, context, encoders) do
     with {:ok, encoded} <- encode_specs(exprs, context, encoders) do
       {:ok, all_equal?(encoded)}
@@ -91,8 +105,8 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
-  def encode(%{"dict" => dict} = spec, context, encoders) do
-    Enum.reduce_while(dict, %{}, fn {key, spec}, acc ->
+  def encode(%{"object" => object} = spec, context, encoders) do
+    Enum.reduce_while(object, %{}, fn {key, spec}, acc ->
       case encode(spec, context, encoders) do
         {:ok, encoded} ->
           {:cont, Map.put(acc, key, encoded)}
@@ -202,7 +216,7 @@ defmodule Elementary.Encoder do
   end
 
   def encode(spec, context, encoders) when is_map(spec) do
-    encode(%{"dict" => spec}, context, encoders)
+    encode(%{"object" => spec}, context, encoders)
   end
 
   def encode_init(%{} = map, _, _) when map_size(map) == 0 do

@@ -1,0 +1,8 @@
+kind: app
+name: event
+spec:
+  settings:
+    - fullpass
+  modules:
+    - event
+    - http

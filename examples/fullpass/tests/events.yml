@@ -49,3 +49,19 @@ spec:
         equal:
           - @item.name
           - @event.name
+    - title: When I get that event
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/events/
+          - @event.id
+      as: latest
+    - title: Then I should have that event
+      expect:
+        body:
+          id: @event.id
+      in: @latest
+    - title: Given a fake event
+      event:
+        id: "unknown"

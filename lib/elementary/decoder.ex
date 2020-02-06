@@ -62,7 +62,7 @@ defmodule Elementary.Decoder do
   end
 
   def decode(spec, data, context) when is_map(spec) do
-    decode_dict(spec, data, context)
+    decode_object(spec, data, context)
   end
 
   def decode(spec, data, _) do
@@ -81,12 +81,12 @@ defmodule Elementary.Decoder do
     {:error, %{error: :decode, spec: spec, data: data}}
   end
 
-  defp decode_dict(spec, data, context) when is_map(data) do
+  defp decode_object(spec, data, context) when is_map(data) do
     Enum.reduce_while(spec, %{}, fn {key, spec}, acc ->
-      case decode(spec, data[key], context) do
-        {:ok, decoded} ->
-          {:cont, Map.put(acc, key, decoded)}
-
+      with {:ok, encoded} <- Elementary.Encoder.encode(spec, context),
+           {:ok, decoded} <- decode(encoded, data[key], context) do
+        {:cont, Map.put(acc, key, decoded)}
+      else
         {:error, _} = error ->
           {:halt, error}
       end
@@ -94,7 +94,7 @@ defmodule Elementary.Decoder do
     |> result(data)
   end
 
-  defp decode_dict(spec, data, _) do
+  defp decode_object(spec, data, _) do
     decode_error(spec, data)
   end
 end

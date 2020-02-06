@@ -1,0 +1,42 @@
+kind: module
+name: event
+spec:
+  decoders:
+    http:
+      fetch:
+        method: GET
+        params:
+          id:
+            any: text
+    store:
+      not_found:
+        status: not_found
+      found:
+        event:
+          any: object
+  update:
+    fetch:
+      model:
+        id: @params.id
+      cmds:
+        store: fetch
+    found:
+      model:
+        event: @event
+      cmds:
+        return: event
+    not_found:
+      cmds:
+        return: not_found
+  encoders:
+    fetch:
+      store: @store
+      fetch:
+        id: @id
+      from: events
+      as: event
+    event:
+      status: 200
+      headers:
+        content-type: application/json
+      body: @event

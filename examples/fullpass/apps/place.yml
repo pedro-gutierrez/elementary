@@ -1,0 +1,8 @@
+kind: app
+name: place
+spec:
+  settings:
+    - fullpass
+  modules:
+    - place
+    - http
