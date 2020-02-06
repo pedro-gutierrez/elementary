@@ -8,22 +8,12 @@ defmodule Elementary.Effect do
   end
 
   def apply("asset", %{"named" => name}) do
-    path = "#{Kit.assets()}/#{name}"
+    case Elementary.Encoder.encode(name) do
+      {:ok, file} ->
+        {:ok, Map.put(file, "status", "ok")}
 
-    with {:ok, %{type: type, size: size, atime: modified, ctime: created}} <- File.lstat(path),
-         {:ok, data} <- File.read(path) do
-      {:ok,
-       %{
-         "status" => "ok",
-         "data" => data,
-         "size" => size,
-         "type" => type,
-         "modified" => modified,
-         "created" => created
-       }}
-    else
-      {:error, :enoent} ->
-        {:ok, %{"status" => "error", "reason" => "not_found"}}
+      {:error, e} ->
+        {:ok, %{"status" => "error", "reason" => e}}
     end
   end
 
@@ -58,7 +48,7 @@ defmodule Elementary.Effect do
   def apply("store", %{"store" => store, "from" => col, "fetch" => query, "as" => as}) do
     {:ok, store} = Elementary.Index.get("store", store)
 
-    query = Elementary.Kit.with_mongo_id(query)
+    query = Kit.with_mongo_id(query)
 
     {:ok,
      case store.find_one(col, query) do
@@ -97,6 +87,19 @@ defmodule Elementary.Effect do
              Atom.to_string(e)
          end
      }}
+  end
+
+  def apply("store", %{"store" => store, "upload" => data, "as" => name}) do
+    {:ok, store} = Elementary.Index.get("store", store)
+    stream = Kit.stream_from_data(data)
+
+    case store.upload(name, stream) do
+      {:ok, _} ->
+        {:ok, %{"status" => "uploaded"}}
+
+      {:error, e} ->
+        {:ok, %{"status" => "error", "reason" => e}}
+    end
   end
 
   def apply("test", %{"run" => test, "settings" => settings}) do

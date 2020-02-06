@@ -1,0 +1,9 @@
+kind: app
+name: cover
+spec:
+  debug: true
+  settings:
+    - fullpass
+  modules:
+    - cover
+    - http

@@ -125,4 +125,9 @@ defmodule Elementary.Kit do
   end
 
   def without_mongo_id(doc), do: doc
+
+  def stream_from_data(data) when is_binary(data) do
+    {:ok, pid} = StringIO.open(data)
+    IO.binstream(pid, 256)
+  end
 end

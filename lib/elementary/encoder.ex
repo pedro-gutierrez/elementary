@@ -211,6 +211,28 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"asset" => path} = spec, context, encoders) do
+    with {:ok, encoded} <- encode(path, context, encoders) do
+      path = "#{Elementary.Kit.assets()}/#{encoded}"
+
+      with {:ok, %{type: type, size: size, atime: modified, ctime: created}} <- File.lstat(path),
+           {:ok, data} <- File.read(path) do
+        {:ok,
+         %{
+           "data" => data,
+           "size" => size,
+           "type" => type,
+           "modified" => modified,
+           "created" => created
+         }}
+      else
+        {:error, :enoent} ->
+          {:error, "not_found"}
+      end
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"init" => init}, context, encoders) do
     encode_init(init, context, encoders)
   end

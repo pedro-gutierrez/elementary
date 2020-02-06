@@ -1,0 +1,30 @@
+kind: module
+name: cover
+spec:
+  decoders:
+    http:
+      upload:
+        method: POST
+        params:
+          id:
+            any: text
+        body:
+          any: data
+    store:
+      uploaded:
+        status: uploaded
+  update:
+    upload:
+      model:
+        id: @params.id
+        data: @body
+      cmds:
+        store: upload
+    uploaded:
+      cmds:
+        return: created
+  encoders:
+    upload:
+      store: @store
+      upload: @data
+      as: @id

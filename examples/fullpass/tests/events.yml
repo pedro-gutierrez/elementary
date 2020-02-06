@@ -14,13 +14,13 @@ spec:
         - Then I should have a 201
     - title: Given details for the Afrofestival
       event:
-        id: "1"
+        id: f538d736
         name: Afrofestival
         place: @place.id
         date: 2020-10-01T00:00:07Z
     - title: Given details for the Feeling Festival
       event:
-        id: "2"
+        id: e7295fcb
         name: Feeling Festival
         place: @place.id
         date: 2020-10-01T00:00:07Z
@@ -65,3 +65,17 @@ spec:
     - title: Given a fake event
       event:
         id: "unknown"
+    - title: Given a cover
+      cover:
+        asset: cover.jpg
+    - title: When I add that cover to that event
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/events/
+          - @event.id
+          - /cover
+        body: @cover.data
+      as: latest
+

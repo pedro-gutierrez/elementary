@@ -405,6 +405,33 @@ defmodule Elementary.Compiler do
            end
          end
 
+         def upload(name, stream, meta \\ %{}) do
+           upload_stream =
+             @store
+             |> Mongo.GridFs.Bucket.new()
+             |> Mongo.GridFs.Upload.open_upload_stream(name, meta)
+
+           with :ok <-
+                  stream
+                  |> Stream.into(upload_stream)
+                  |> Stream.run() do
+             {:ok, name}
+           end
+         end
+
+         def download(name) do
+           bucket = Mongo.GridFs.Bucket.new(@store)
+
+           with %{"_id" => id} = info <-
+                  Mongo.GridFs.Download.find_one_file(bucket, name),
+                {:ok, stream} <- Mongo.GridFs.Download.open_download_stream(bucket, id) do
+             {:ok, Map.drop(info, ["_id"]), stream}
+           else
+             nil ->
+               {:error, :not_found}
+           end
+         end
+
          defp mongo_error(%{write_errors: [error]}) do
            mongo_error(error)
          end

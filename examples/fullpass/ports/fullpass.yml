@@ -11,6 +11,8 @@ spec:
       http: /api/events
     event:
       http: /api/events/:id
+    cover:
+      http: /api/events/:id/cover
     nearby:
       http: /api/nearby
     asset:

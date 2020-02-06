@@ -2,6 +2,7 @@ defmodule Elementary.Http do
   @effect "http"
 
   alias Elementary.App
+  require Logger
 
   def init(
         %{
@@ -16,7 +17,7 @@ defmodule Elementary.Http do
     {:ok, settings} = mod.settings()
 
     req =
-      with {:ok, req, body} <- body(req),
+      with {:ok, req, body} <- body(req, headers),
            {:ok, model} <- App.init(mod, settings),
            {:ok, %{"status" => _, "body" => _} = resp} <-
              App.decode(
@@ -49,12 +50,16 @@ defmodule Elementary.Http do
         {:ok, _} ->
           resp = encoded_error("invalid_response")
           reply(req, app, start, resp)
+
+        other ->
+          resp = encoded_error(%{"unexpected" => other})
+          reply(req, app, start, resp)
       end
 
     {:ok, req, state}
   end
 
-  defp body(req) do
+  defp body(req, headers) do
     case :cowboy_req.has_body(req) do
       false ->
         {:ok, req, %{}}
@@ -62,14 +67,26 @@ defmodule Elementary.Http do
       true ->
         {:ok, data, req} = :cowboy_req.read_body(req)
 
-        case Jason.decode(data) do
-          {:ok, data} ->
-            {:ok, req, data}
+        case json?(headers) do
+          true ->
+            case Jason.decode(data) do
+              {:ok, data} ->
+                {:ok, req, data}
 
-          {:error, e} ->
-            {:error, req, e}
+              {:error, e} ->
+                {:error, req, e}
+            end
+
+          false ->
+            {:ok, req, data}
         end
     end
+  end
+
+  @json_mime "application/json"
+
+  defp json?(headers) do
+    @json_mime == (headers["content-type"] || "")
   end
 
   defp encoded_headers(h) do
@@ -84,13 +101,14 @@ defmodule Elementary.Http do
     end)
   end
 
-  defp encoded_error(_) do
+  defp encoded_error(e) do
+    Logger.error("#{inspect(e)}")
     %{"status" => 500, "headers" => %{}, "body" => %{}}
   end
 
   defp reply(req, app, started, %{
          "status" => status,
-         "headers" => %{"content-type" => "application/json"} = headers,
+         "headers" => %{"content-type" => @json_mime} = headers,
          "body" => body
        }) do
     body = Jason.encode!(body)

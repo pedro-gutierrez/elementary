@@ -37,8 +37,6 @@ spec:
         - When I create that event
         - Then I should have a 404
     - title: Should get events by id
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given the Amaragua
@@ -67,4 +65,15 @@ spec:
         - Then I should get one item
         - Given details for the Feeling Festival
         - Then that event should match that item
+    - title: Should upload covers
+      tags:
+        - debug
+      steps:
+        - Given the store is empty
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a cover
+        - When I add that cover to that event
+        - Then I should have a 201
+
 

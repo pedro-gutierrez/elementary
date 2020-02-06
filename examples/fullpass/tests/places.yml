@@ -25,13 +25,13 @@ spec:
         id: "unknown"
     - title: Given details for the Amaragua
       place:
-        id: "1"
+        id: d3c175e6
         name: Amaragua
         lat: 36.6078731
         lon: -4.5063965
     - title: Given details for the Auditorium
       place:
-        id: "2"
+        id: 55b0e3ab
         name: Auditorium
         lat: 40.4483318
         lon: -3.5609397
