@@ -17,6 +17,8 @@ spec:
         - When I create that place
         - Then I should have a 409
     - title: Should create events
+      tags:
+        - debug
       steps:
         - Given the store is empty
         - Given the Amaragua

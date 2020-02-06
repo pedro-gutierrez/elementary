@@ -58,6 +58,8 @@ defmodule Elementary.Effect do
   def apply("store", %{"store" => store, "from" => col, "fetch" => query, "as" => as}) do
     {:ok, store} = Elementary.Index.get("store", store)
 
+    query = Elementary.Kit.with_mongo_id(query)
+
     {:ok,
      case store.find_one(col, query) do
        {:ok, item} ->

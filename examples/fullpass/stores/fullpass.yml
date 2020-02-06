@@ -4,16 +4,12 @@ spec:
   collections:
     - name: places
       indices:
-        - key
         - name
         - location
     - name: events
       indices:
-        - key
         - name
   indices:
-    key:
-      - id
     name:
       - name
     location: geo

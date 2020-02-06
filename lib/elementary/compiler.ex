@@ -370,6 +370,8 @@ defmodule Elementary.Compiler do
          end
 
          def insert(col, doc) when is_map(doc) do
+           doc = Elementary.Kit.with_mongo_id(doc)
+
            case Mongo.insert_one(
                   @store,
                   col,
@@ -389,7 +391,7 @@ defmodule Elementary.Compiler do
               skip: Keyword.get(opts, :offset, 0),
               limit: Keyword.get(opts, :limit, 20)
             )
-            |> Stream.map(&sanitized(&1))
+            |> Stream.map(&Elementary.Kit.without_mongo_id(&1))
             |> Enum.to_list()}
          end
 
@@ -399,7 +401,7 @@ defmodule Elementary.Compiler do
                {:error, :not_found}
 
              doc ->
-               {:ok, sanitized(doc)}
+               {:ok, Elementary.Kit.without_mongo_id(doc)}
            end
          end
 
@@ -409,10 +411,6 @@ defmodule Elementary.Compiler do
 
          defp mongo_error(%{"code" => 11000}) do
            :conflict
-         end
-
-         defp sanitized(doc) do
-           Map.drop(doc, ["_id"])
          end
        end}
     ]

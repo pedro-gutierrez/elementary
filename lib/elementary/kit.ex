@@ -109,4 +109,20 @@ defmodule Elementary.Kit do
       }) do
     "mongodb://localhost/#{db}"
   end
+
+  def with_mongo_id(%{"id" => id} = doc) do
+    doc
+    |> Map.put("_id", id)
+    |> Map.drop(["id"])
+  end
+
+  def with_mongo_id(doc), do: doc
+
+  def without_mongo_id(%{"_id" => id} = doc) do
+    doc
+    |> Map.put("id", id)
+    |> Map.drop(["_id"])
+  end
+
+  def without_mongo_id(doc), do: doc
 end
