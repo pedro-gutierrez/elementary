@@ -3,6 +3,8 @@ name: fullpass
 spec:
   port: 2100
   apps:
+    users:
+      http: /api/users
     places:
       http: /api/places
     place:

@@ -10,9 +10,22 @@ spec:
             any: text
         body:
           any: data
+      download:
+        method: GET
+        params:
+          id:
+            any: text
     store:
       uploaded:
-        status: uploaded
+        status: created
+      downloaded:
+        cover:
+          id:
+            any: text
+          original:
+            any: data
+      not_found:
+        status: not_found
   update:
     upload:
       model:
@@ -20,11 +33,37 @@ spec:
         data: @body
       cmds:
         store: upload
+    download:
+      model:
+        id: @params.id
+      cmds:
+        store: download
     uploaded:
       cmds:
         return: created
+    downloaded:
+      model:
+        cover: @cover.original
+      cmds:
+        return: cover
+    not_found:
+      cmds:
+        return: not_found
   encoders:
     upload:
       store: @store
-      upload: @data
-      as: @id
+      insert:
+        id: @id
+        original: @data
+      into: covers
+    download:
+      store: @store
+      fetch:
+        id: @id
+      from: covers
+      as: cover
+    cover:
+      status: 200
+      headers: {}
+      body: @cover
+

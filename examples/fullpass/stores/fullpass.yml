@@ -2,14 +2,14 @@ kind: store
 name: fullpass
 spec:
   collections:
-    - name: places
-      indices:
-        - name
-        - location
-    - name: events
-      indices:
-        - name
-  indices:
-    name:
-      - name
-    location: geo
+    places:
+      indexes:
+        - unique: name
+        - geo: location
+    events:
+      indexes:
+        - unique: name
+    users:
+      indexes:
+        - unique: email
+    covers: {}

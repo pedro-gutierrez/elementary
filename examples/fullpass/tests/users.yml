@@ -1,0 +1,26 @@
+kind: test
+name: users
+spec:
+  steps:
+    - title: Given user Alice
+      steps:
+        - Given details for Alice
+        - When I register
+        - Then I should have a 201
+    - title: Given details for Alice
+      user:
+        object:
+          id: e48329e3
+          first: Alice
+          last: Cooper
+          email: alice@mail.com
+    - title: When I register
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/users
+        headers:
+          content-type: application/json
+        body: @user
+      as: latest

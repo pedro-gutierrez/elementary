@@ -68,7 +68,7 @@ spec:
     - title: Given a cover
       cover:
         asset: cover.jpg
-    - title: When I add that cover to that event
+    - title: When I set that event cover
       http:
         method: post
         url:
@@ -78,4 +78,12 @@ spec:
           - /cover
         body: @cover.data
       as: latest
-
+    - title: When I get that event cover
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/events/
+          - @event.id
+          - /cover
+      as: latest

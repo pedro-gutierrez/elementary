@@ -89,19 +89,6 @@ defmodule Elementary.Effect do
      }}
   end
 
-  def apply("store", %{"store" => store, "upload" => data, "as" => name}) do
-    {:ok, store} = Elementary.Index.get("store", store)
-    stream = Kit.stream_from_data(data)
-
-    case store.upload(name, stream) do
-      {:ok, _} ->
-        {:ok, %{"status" => "uploaded"}}
-
-      {:error, e} ->
-        {:ok, %{"status" => "error", "reason" => e}}
-    end
-  end
-
   def apply("test", %{"run" => test, "settings" => settings}) do
     with {:ok, _pid} <- Elementary.Test.run(test, settings) do
       {:ok, %{"status" => "started"}}

@@ -292,10 +292,10 @@ defmodule Elementary.Compiler do
          end
 
          def reset() do
-           Enum.reduce_while(@collections, :ok, fn %{"name" => col, "indices" => indices}, _ ->
+           Enum.reduce_while(@collections, :ok, fn {col, spec}, _ ->
              with :ok <- drop_collection(col),
                   :ok <- create_collection(col),
-                  :ok <- ensure_indices(col, indices) do
+                  :ok <- ensure_indexes(col, spec["indexes"] || []) do
                {:cont, :ok}
              else
                {:error, e} ->
@@ -323,29 +323,23 @@ defmodule Elementary.Compiler do
            end
          end
 
-         def ensure_indices(col, indices) do
-           Enum.reduce_while(indices, :ok, fn index, _ ->
-             case @indices[index] do
-               nil ->
-                 raise "Index \"#{index}\" in #{@name}.#{col} is not defined"
+         def ensure_indexes(col, indices) do
+           Enum.map(indices, fn
+             %{"unique" => field} when is_binary(field) ->
+               {field, [unique: true, key: [{field, 1}]]}
 
-               spec ->
-                 opts =
-                   case spec do
-                     "geo" ->
-                       [key: %{index => "2dsphere"}]
+             %{"geo" => field} ->
+               {field, [key: %{field => "2dsphere"}]}
+           end)
+           |> Enum.each(fn {name, opts} = spec ->
+             case ensure_index(col, name, opts) do
+               :ok ->
+                 :ok
 
-                     fields when is_list(fields) ->
-                       [unique: true, key: Enum.map(fields, fn f -> {f, 1} end)]
-                   end
-
-                 case ensure_index(col, index, opts) do
-                   :ok ->
-                     {:cont, :ok}
-
-                   other ->
-                     {:halt, other}
-                 end
+               other ->
+                 raise "Error creating index #{inspect(spec)} on collection #{col}: #{
+                         inspect(other)
+                       }"
              end
            end)
          end
@@ -402,33 +396,6 @@ defmodule Elementary.Compiler do
 
              doc ->
                {:ok, Elementary.Kit.without_mongo_id(doc)}
-           end
-         end
-
-         def upload(name, stream, meta \\ %{}) do
-           upload_stream =
-             @store
-             |> Mongo.GridFs.Bucket.new()
-             |> Mongo.GridFs.Upload.open_upload_stream(name, meta)
-
-           with :ok <-
-                  stream
-                  |> Stream.into(upload_stream)
-                  |> Stream.run() do
-             {:ok, name}
-           end
-         end
-
-         def download(name) do
-           bucket = Mongo.GridFs.Bucket.new(@store)
-
-           with %{"_id" => id} = info <-
-                  Mongo.GridFs.Download.find_one_file(bucket, name),
-                {:ok, stream} <- Mongo.GridFs.Download.open_download_stream(bucket, id) do
-             {:ok, Map.drop(info, ["_id"]), stream}
-           else
-             nil ->
-               {:error, :not_found}
            end
          end
 
@@ -523,7 +490,7 @@ defmodule Elementary.Compiler do
                  fn _ -> :ok end
              end
 
-           log.("Starting senario #{current["title"]}")
+           log.(current["title"])
 
            {:noreply,
             %{
@@ -567,8 +534,6 @@ defmodule Elementary.Compiler do
                  scenario: %{"title" => title, "steps" => [current | rest]} = scenario
                } = state
              ) do
-           log.("Running step \"#{current["title"]}")
-
            case Elementary.Encoder.encode(current["spec"], context) do
              {:ok, context2} ->
                context =
@@ -578,18 +543,19 @@ defmodule Elementary.Compiler do
                  end
 
                scenario = Map.put(scenario, "steps", rest)
-               log.("Step #{current["title"]} successful")
-               log.("Context: #{inspect(context)}")
+               log.(current["title"])
 
                {:noreply, %{state | context: context, step: nil, scenario: scenario},
                 {:continue, :step}}
 
-             {:error, e} ->
+             {:error, %{context: context, error: e}} ->
                scenario = Map.put(scenario, "steps", [])
                report = %{report | failed: report.failed + 1}
 
                Logger.error(
-                 "Step \"#{current["title"]}\" in scenario \"#{title}\" failed: #{inspect(e)}"
+                 "Step \n\n   \"#{current["title"]}\"\n\nin\n\n   \"#{title}\"\n\nfailed.\n\nError:\n\n   #{
+                   inspect(e)
+                 }\n\nContext:\n\n   #{inspect(context)}"
                )
 
                {:noreply, %{state | report: report, step: nil, scenario: scenario},

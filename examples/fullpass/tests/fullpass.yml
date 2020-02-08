@@ -4,12 +4,28 @@ spec:
   include:
     - http
     - store
+    - users
+    - tokens
     - places
     - events
   init:
     baseUrl:
       url: @fullpass
   scenarios:
+    - title: Should register new users
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - When I register
+        - Then I should have a 409
+    - title: Should send password reset tokens
+      tags:
+        - debug
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - When I forgot my password
+        - Then I should have a 201
     - title: Should create places
       steps:
         - Given the store is empty
@@ -66,14 +82,12 @@ spec:
         - Given details for the Feeling Festival
         - Then that event should match that item
     - title: Should upload covers
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given the Amaragua
         - Given the Afrofestival
         - Given a cover
-        - When I add that cover to that event
+        - When I set that event cover
         - Then I should have a 201
-
-
+        - When I get that event cover
+        - Then I should have a 200

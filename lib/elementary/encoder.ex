@@ -58,6 +58,19 @@ defmodule Elementary.Encoder do
     {:ok, v}
   end
 
+  def encode(%{"object" => object} = spec, context, encoders) do
+    Enum.reduce_while(object, %{}, fn {key, spec}, acc ->
+      case encode(spec, context, encoders) do
+        {:ok, encoded} ->
+          {:cont, Map.put(acc, key, encoded)}
+
+        other ->
+          {:halt, other}
+      end
+    end)
+    |> result(spec, context)
+  end
+
   def encode(%{"map" => expr, "with" => encoder} = spec, context, encoders) do
     with {:ok, data} <- encode(expr, context, encoders) do
       case data do
@@ -102,19 +115,6 @@ defmodule Elementary.Encoder do
     with {:ok, encoded} <- encode_specs(exprs, context, encoders) do
       {:ok, all_equal?(encoded)}
     end
-    |> result(spec, context)
-  end
-
-  def encode(%{"object" => object} = spec, context, encoders) do
-    Enum.reduce_while(object, %{}, fn {key, spec}, acc ->
-      case encode(spec, context, encoders) do
-        {:ok, encoded} ->
-          {:cont, Map.put(acc, key, encoded)}
-
-        other ->
-          {:halt, other}
-      end
-    end)
     |> result(spec, context)
   end
 

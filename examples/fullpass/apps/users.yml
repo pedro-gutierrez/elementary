@@ -1,0 +1,8 @@
+kind: app
+name: users
+spec:
+  settings:
+    - fullpass
+  modules:
+    - users
+    - http
