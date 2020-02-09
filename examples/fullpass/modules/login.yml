@@ -82,7 +82,7 @@ spec:
       insert:
         id: @token
         user: @user
-        acl: access
+        acl: session
         expires:
           sum:
             - now: {}

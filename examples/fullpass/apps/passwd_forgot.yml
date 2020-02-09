@@ -1,11 +1,8 @@
 kind: app
-name: logout
+name: passwd_forgot
 spec:
   settings:
     - fullpass
-  filters:
-    - auth
   modules:
-    - logout
-    - session
+    - passwd_forgot
     - http

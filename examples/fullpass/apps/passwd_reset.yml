@@ -1,8 +1,10 @@
 kind: app
-name: passwd
+name: passwd_reset
 spec:
   settings:
     - fullpass
+  filters:
+    - auth
   modules:
-    - passwd
+    - passwd_reset
     - http

@@ -1,0 +1,66 @@
+kind: module
+name: passwd_reset
+spec:
+  init:
+    model:
+      acls:
+        - passwd:reset
+  decoders:
+    http:
+      reset:
+        method: POST
+        headers:
+          content-type: application/json
+        body:
+          password:
+            any: text
+          email:
+            any: text
+    store:
+      updated:
+        status: updated
+      deleted:
+        status: deleted
+    password:
+      hashed:
+        hash:
+          any: text
+  update:
+    reset:
+      model:
+        email: @body.email
+        password: @body.password
+      cmds:
+        store: delete_token
+    deleted:
+      cmds:
+        password: hash
+    hashed:
+      model:
+        hash: @hash
+      cmds:
+        store: update_password
+    updated:
+      cmds:
+        return: created
+  encoders:
+    delete_token:
+      store: @store
+      delete:
+        id: @token
+      from: tokens
+    hash:
+      hash: @password
+    update_password:
+      store: @store
+      update:
+        hash: @hash
+      where:
+        id: @user.id
+      into: passwords
+    token:
+      status: 201
+      headers:
+        content-type: application/json
+      body:
+        token: @token

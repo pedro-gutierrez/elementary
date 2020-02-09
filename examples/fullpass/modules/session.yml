@@ -1,7 +1,7 @@
 kind: module
-name: access
+name: session
 spec:
   init:
     model:
       acls:
-        - access
+        - session

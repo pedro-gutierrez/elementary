@@ -1,5 +1,5 @@
 kind: module
-name: passwd
+name: passwd_forgot
 spec:
   decoders:
     http:
@@ -7,22 +7,7 @@ spec:
         method: POST
         headers:
           content-type: application/json
-        params:
-          action: forgot
         body:
-          email:
-            any: text
-      reset:
-        method: POST
-        headers:
-          authorization:
-            any: text
-          content-type: application/json
-        params:
-          action: reset
-        body:
-          password:
-            any: text
           email:
             any: text
     store:
@@ -61,13 +46,6 @@ spec:
         email: @body.email
       cmds:
         store: find_user
-    reset:
-      model:
-        email: @body.email
-        password: @body.password
-        token: @headers.authorization
-      cmds:
-        store: find_token
     user:
       model:
         user: @user.id
@@ -75,35 +53,13 @@ spec:
           uuid: {}
       cmds:
         store: create_token
-    token:
-      model:
-        user: @token.user
-      cmds:
-        store: delete_token
     created:
       - when: @emails
         cmds:
           return: created
       - cmds:
           return: token
-    token_consumed:
-      cmds:
-        password: hash
-    hashed:
-      model:
-        hash: @hash
-      cmds:
-        store: update_password
-    updated:
-      cmds:
-        return: created
     not_found:
-      cmds:
-        return: unauthorized
-    expired:
-      cmds:
-        return: unauthorized
-    consumed:
       cmds:
         return: unauthorized
   encoders:
@@ -113,12 +69,6 @@ spec:
         email: @email
       from: users
       as: user
-    find_token:
-      store: @store
-      fetch:
-        id: @token
-      from: tokens
-      as: token
     create_token:
       store: @store
       insert:
@@ -130,20 +80,6 @@ spec:
             - 3600000
         acl: passwd:reset
       into: tokens
-    delete_token:
-      store: @store
-      delete:
-        id: @token
-      from: tokens
-    hash:
-      hash: @password
-    update_password:
-      store: @store
-      update:
-        hash: @hash
-      where:
-        id: @user
-      into: passwords
     token:
       status: 201
       headers:

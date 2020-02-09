@@ -7,8 +7,10 @@ spec:
       http: /api/health
     users:
       http: /api/users
-    passwd:
-      http: /api/passwd/:action
+    passwd_forgot:
+      http: /api/passwd/forgot
+    passwd_reset:
+      http: /api/passwd/reset
     login:
       http: /api/login
     logout:
