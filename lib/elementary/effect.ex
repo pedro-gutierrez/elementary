@@ -45,6 +45,33 @@ defmodule Elementary.Effect do
      end}
   end
 
+  def apply("store", %{"store" => store, "where" => query, "update" => doc, "into" => col})
+      when is_map(doc) do
+    {:ok, store} = Elementary.Index.get("store", store)
+
+    {:ok,
+     case store.update(col, query, doc) do
+       :ok ->
+         %{"status" => "updated"}
+
+       {:error, e} when is_atom(e) ->
+         %{"status" => "#{e}"}
+     end}
+  end
+
+  def apply("store", %{"store" => store, "delete" => doc, "from" => col}) do
+    {:ok, store} = Elementary.Index.get("store", store)
+
+    {:ok,
+     case store.delete(col, doc) do
+       :ok ->
+         %{"status" => "deleted"}
+
+       {:error, e} when is_atom(e) ->
+         %{"status" => "#{e}"}
+     end}
+  end
+
   def apply("store", %{"store" => store, "from" => col, "fetch" => query, "as" => as}) do
     {:ok, store} = Elementary.Index.get("store", store)
 

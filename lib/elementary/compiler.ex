@@ -135,13 +135,31 @@ defmodule Elementary.Compiler do
              specs when is_list(specs) ->
                Enum.reduce_while(specs, false, fn spec, _ ->
                  case do_update(spec, data, model) do
+                   {:ok, _, _} = result ->
+                     {:halt, result}
+
                    false ->
                      {:cont, false}
 
-                   {:ok, _, _} = result ->
-                     {:halt, result}
+                   {:error, _} = err ->
+                     {:halt, err}
                  end
                end)
+           end
+         end
+
+         defp do_update(%{"when" => condition} = spec, data, context) do
+           case Encoder.encode(condition, context, @encoders) do
+             {:ok, true} ->
+               spec
+               |> Map.drop(["when"])
+               |> do_update(data, context)
+
+             {:ok, false} ->
+               false
+
+             other ->
+               other
            end
          end
 
@@ -367,6 +385,41 @@ defmodule Elementary.Compiler do
            doc = Elementary.Kit.with_mongo_id(doc)
 
            case Mongo.insert_one(
+                  @store,
+                  col,
+                  doc
+                ) do
+             {:ok, _} ->
+               :ok
+
+             {:error, e} ->
+               {:error, mongo_error(e)}
+           end
+         end
+
+         def update(col, where, doc) when is_map(doc) do
+           where = Elementary.Kit.with_mongo_id(where)
+           doc = Elementary.Kit.with_mongo_id(doc)
+
+           case Mongo.update_one(
+                  @store,
+                  col,
+                  where,
+                  %{"$set" => doc},
+                  upsert: true
+                ) do
+             {:ok, _} ->
+               :ok
+
+             {:error, e} ->
+               {:error, mongo_error(e)}
+           end
+         end
+
+         def delete(col, doc) when is_map(doc) do
+           doc = Elementary.Kit.with_mongo_id(doc)
+
+           case Mongo.delete_one(
                   @store,
                   col,
                   doc

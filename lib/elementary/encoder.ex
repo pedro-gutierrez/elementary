@@ -140,6 +140,35 @@ defmodule Elementary.Encoder do
     end
   end
 
+  def encode(%{"uuid" => _}, _, _) do
+    {:ok, UUID.uuid4()}
+  end
+
+  def encode(%{"sum" => items} = spec, context, encoders) do
+    with {:ok, encoded} <- encode_specs(items, context, encoders) do
+      Enum.reduce_while(encoded, 0, fn
+        item, acc when is_number(item) ->
+          {:cont, acc + item}
+
+        other, _ ->
+          {:halt,
+           {:error, %{"error" => "not_a_number", "actual" => other, "expected" => "number"}}}
+      end)
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"date" => %{"in" => %{"hour" => hour}}} = spec, context, encoders) do
+    with {:ok, encoded} <- encode(hour, context, encoders) do
+      {:ok, DateTime.utc_now() |> DateTime.add(3600 * encoded, :second)}
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"now" => _}, _, _) do
+    {:ok, System.system_time(:millisecond)}
+  end
+
   def encode(%{"url" => url_spec} = spec, context, encoders) do
     with {:ok, map} <- encode(url_spec, context, encoders) do
       "#{map["scheme"] || "http"}://#{map["host"] || "localhost"}:#{map["port"] || 80}#{

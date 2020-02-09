@@ -16,9 +16,10 @@ defmodule Elementary.Http do
     app = mod.name()
     {:ok, settings} = mod.settings()
 
-    req =
-      with {:ok, req, body} <- body(req, headers),
-           {:ok, model} <- App.init(mod, settings),
+    {:ok, req, body} = body(req, headers)
+
+    {req, resp} =
+      with {:ok, model} <- App.init(mod, settings),
            {:ok, %{"status" => _, "body" => _} = resp} <-
              App.decode(
                mod,
@@ -56,6 +57,22 @@ defmodule Elementary.Http do
           reply(req, app, start, resp)
       end
 
+    if mod.debug() do
+      Logger.info(
+        "#{
+          inspect(%{
+            app: app,
+            req: %{
+              headers: headers,
+              body: body,
+              params: params
+            },
+            resp: resp
+          })
+        }"
+      )
+    end
+
     {:ok, req, state}
   end
 
@@ -74,7 +91,8 @@ defmodule Elementary.Http do
                 {:ok, req, data}
 
               {:error, e} ->
-                {:error, req, e}
+                Logger.warn("Invalid JSON request: #{inspect(e)}")
+                {:ok, req, data}
             end
 
           false ->
@@ -115,8 +133,7 @@ defmodule Elementary.Http do
     headers = encoded_headers(headers)
     elapsed = System.system_time(:microsecond) - started
 
-    :cowboy_req.reply(
-      status,
+    headers =
       Map.merge(
         %{
           "content-type" => "application/json",
@@ -124,10 +141,19 @@ defmodule Elementary.Http do
           "time" => "#{elapsed}"
         },
         headers
-      ),
-      body,
-      req
-    )
+      )
+
+    resp = %{status: status, headers: headers, body: body}
+
+    req =
+      :cowboy_req.reply(
+        status,
+        headers,
+        body,
+        req
+      )
+
+    {req, resp}
   end
 
   defp reply(req, app, started, %{"status" => status, "body" => body}) do
@@ -142,15 +168,22 @@ defmodule Elementary.Http do
           ""
       end
 
-    :cowboy_req.reply(
-      status,
-      %{
-        "app" => "#{app}",
-        "time" => "#{elapsed}"
-      },
-      body,
-      req
-    )
+    headers = %{
+      "app" => "#{app}",
+      "time" => "#{elapsed}"
+    }
+
+    resp = %{status: status, headers: headers, body: body}
+
+    req =
+      :cowboy_req.reply(
+        status,
+        headers,
+        body,
+        req
+      )
+
+    {req, resp}
   end
 
   defmodule Client do

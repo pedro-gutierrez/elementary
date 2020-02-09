@@ -5,6 +5,8 @@ spec:
   apps:
     users:
       http: /api/users
+    passwd:
+      http: /api/passwd/:action
     places:
       http: /api/places
     place:

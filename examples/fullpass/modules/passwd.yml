@@ -1,0 +1,141 @@
+kind: module
+name: passwd
+spec:
+  decoders:
+    http:
+      forgot:
+        method: POST
+        headers:
+          content-type: application/json
+        params:
+          action: forgot
+        body:
+          email:
+            any: text
+      reset:
+        method: POST
+        headers:
+          authorization:
+            any: text
+          content-type: application/json
+        params:
+          action: reset
+        body:
+          password:
+            any: text
+          email:
+            any: text
+    store:
+      user:
+        user:
+          id:
+            any: text
+      token:
+        token:
+          user:
+            any: text
+          acl: passwd:reset
+          expires:
+            greater_than:
+              now: {}
+      expired:
+        token:
+          expires:
+            less_than:
+              now: {}
+      not_found:
+        status: not_found
+      deleted:
+        status: deleted
+      created:
+        status: created
+      updated:
+        status: updated
+  update:
+    forgot:
+      model:
+        email: @body.email
+      cmds:
+        store: find_user
+    reset:
+      model:
+        email: @body.email
+        password: @body.password
+        token: @headers.authorization
+      cmds:
+        store: find_token
+    user:
+      model:
+        user: @user.id
+        token:
+          uuid: {}
+      cmds:
+        store: create_token
+    token:
+      model:
+        user: @token.user
+      cmds:
+        store: delete_token
+    created:
+      - when: @emails
+        cmds:
+          return: created
+      - cmds:
+          return: token
+    deleted:
+      cmds:
+        store: update_password
+    updated:
+      cmds:
+        return: created
+    not_found:
+      cmds:
+        return: unauthorized
+    expired:
+      cmds:
+        return: unauthorized
+    consumed:
+      cmds:
+        return: unauthorized
+  encoders:
+    find_user:
+      store: @store
+      fetch:
+        email: @email
+      from: users
+      as: user
+    find_token:
+      store: @store
+      fetch:
+        id: @token
+      from: tokens
+      as: token
+    create_token:
+      store: @store
+      insert:
+        id: @token
+        user: @user
+        expires:
+          sum:
+            - now: {}
+            - 3600000000
+        acl: passwd:reset
+      into: tokens
+    delete_token:
+      store: @store
+      delete:
+        id: @token
+      from: tokens
+    update_password:
+      store: @store
+      update:
+        hash: @password
+      where:
+        id: @user
+      into: passwords
+    token:
+      status: 201
+      headers:
+        content-type: application/json
+      body:
+        token: @token

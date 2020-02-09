@@ -53,6 +53,34 @@ defmodule Elementary.Decoder do
     end
   end
 
+  def decode(%{"less_than" => value} = spec, data, context) when is_number(data) do
+    with {:ok, encoded} when is_number(encoded) <-
+           Elementary.Encoder.encode(value, context) do
+      case data < encoded do
+        true ->
+          {:ok, data}
+
+        false ->
+          decode_error(spec, data)
+      end
+    end
+    |> result(spec)
+  end
+
+  def decode(%{"greater_than" => value} = spec, data, context) when is_number(data) do
+    with {:ok, encoded} when is_number(encoded) <-
+           Elementary.Encoder.encode(value, context) do
+      case data > encoded do
+        true ->
+          {:ok, data}
+
+        false ->
+          decode_error(spec, data)
+      end
+    end
+    |> result(spec)
+  end
+
   def decode(v, v, _) when is_literal(v) do
     {:ok, v}
   end

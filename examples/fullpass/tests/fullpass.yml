@@ -5,7 +5,7 @@ spec:
     - http
     - store
     - users
-    - tokens
+    - password
     - places
     - events
   init:
@@ -18,14 +18,18 @@ spec:
         - Given user Alice
         - When I register
         - Then I should have a 409
-    - title: Should send password reset tokens
+    - title: Should reset passwords
       tags:
         - debug
       steps:
         - Given the store is empty
         - Given user Alice
-        - When I forgot my password
+        - Given I forgot my password
+        - Given password foo
+        - When I reset my password
         - Then I should have a 201
+        - When I reset my password
+        - Then I should have a 401
     - title: Should create places
       steps:
         - Given the store is empty

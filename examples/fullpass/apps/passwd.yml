@@ -1,0 +1,9 @@
+kind: app
+name: passwd
+spec:
+  debug: true
+  settings:
+    - fullpass
+  modules:
+    - passwd
+    - http

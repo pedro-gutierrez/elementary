@@ -22,3 +22,8 @@ spec:
       headers:
         content-type: application/json
       body: {}
+    unauthorized:
+      status: 401
+      headers:
+        content-type: application/json
+      body: {}

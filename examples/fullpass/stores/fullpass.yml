@@ -13,3 +13,5 @@ spec:
       indexes:
         - unique: email
     covers: {}
+    tokens: {}
+    passwords: {}
