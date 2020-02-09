@@ -19,8 +19,6 @@ spec:
         - When I register
         - Then I should have a 409
     - title: Should reset passwords
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given user Alice

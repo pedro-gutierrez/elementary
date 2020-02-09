@@ -118,7 +118,7 @@ spec:
         expires:
           sum:
             - now: {}
-            - 3600000000
+            - 3600000
         acl: passwd:reset
       into: tokens
     delete_token:
