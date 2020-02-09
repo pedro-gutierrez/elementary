@@ -1,0 +1,11 @@
+kind: app
+name: logout
+spec:
+  settings:
+    - fullpass
+  filters:
+    - auth
+  modules:
+    - logout
+    - access
+    - http

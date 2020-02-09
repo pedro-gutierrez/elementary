@@ -1,0 +1,11 @@
+kind: test
+name: health
+spec:
+  steps:
+    - title: When I get the health
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/health
+      as: latest

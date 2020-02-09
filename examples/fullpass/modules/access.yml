@@ -1,0 +1,7 @@
+kind: module
+name: access
+spec:
+  init:
+    model:
+      acls:
+        - access

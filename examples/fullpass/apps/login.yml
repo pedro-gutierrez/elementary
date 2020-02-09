@@ -1,0 +1,8 @@
+kind: app
+name: login
+spec:
+  settings:
+    - fullpass
+  modules:
+    - login
+    - http

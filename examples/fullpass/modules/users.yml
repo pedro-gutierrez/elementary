@@ -8,15 +8,14 @@ spec:
         headers:
           content-type: application/json
         body:
-          object:
-            id:
-              any: text
-            first:
-              any: text
-            last:
-              any: text
-            email:
-              any: text
+          id:
+            any: text
+          first:
+            any: text
+          last:
+            any: text
+          email:
+            any: text
     store:
       created:
         status: created

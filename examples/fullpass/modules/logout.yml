@@ -1,0 +1,23 @@
+kind: module
+name: logout
+spec:
+  decoders:
+    http:
+      logout:
+        method: POST
+    store:
+      deleted:
+        status: deleted
+  update:
+    logout:
+      cmds:
+        store: delete
+    deleted:
+      cmds:
+        return: ok
+  encoders:
+    delete:
+      store: @store
+      delete:
+        id: @token
+      from: tokens

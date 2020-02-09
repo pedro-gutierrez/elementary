@@ -3,10 +3,16 @@ name: fullpass
 spec:
   port: 2100
   apps:
+    health:
+      http: /api/health
     users:
       http: /api/users
     passwd:
       http: /api/passwd/:action
+    login:
+      http: /api/login
+    logout:
+      http: /api/logout
     places:
       http: /api/places
     place:

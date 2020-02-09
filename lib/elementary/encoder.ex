@@ -274,6 +274,12 @@ defmodule Elementary.Encoder do
     {:ok, map, []}
   end
 
+  def encode_init(%{"model" => model}, context, encoders) do
+    with {:ok, encoded} <- encode(model, context, encoders) do
+      {:ok, encoded, []}
+    end
+  end
+
   defp maybe_encode(nil, default, _, _), do: {:ok, default}
 
   defp maybe_encode(spec, _, context, encoders) do

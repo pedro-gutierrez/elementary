@@ -1,0 +1,32 @@
+kind: test
+name: login
+spec:
+  steps:
+    - title: Given I am logged in
+      steps:
+        - When I log in
+        - Then I should have a 201
+        - Then I should have a token
+    - title: When I log in
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/login
+        headers:
+          content-type: application/json
+        body:
+          email: @user.email
+          password: @password
+      as: latest
+    - title: When I log out
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/logout
+        headers:
+          authorization: @token
+          content-type: application/json
+        body: {}
+      as: latest

@@ -70,32 +70,44 @@ defmodule Elementary.Compiler do
       )
   end
 
-  defp compile(_specs, %{"kind" => "app", "name" => name, "spec" => spec}) do
+  defp compile(_specs, %{"kind" => kind, "name" => name, "spec" => spec})
+       when kind == "app" or kind == "module" do
     init = spec["init"] || %{}
     settings = spec["settings"] || %{}
     encoders = spec["encoders"] || %{}
     decoders = spec["decoders"] || %{}
     update = spec["update"] || %{}
 
+    filters =
+      Enum.map(spec["filters"] || [], fn name ->
+        module_name(name, "module")
+      end)
+
     {:ok, _} = encoded = Encoder.encode(settings, %{}, encoders)
     debug = spec["debug"] == true
 
     [
-      {app_module_name(name),
+      {module_name(name, kind),
        quote do
          @name unquote(name)
+         @kind unquote(kind)
          @debug unquote(debug)
+         @filters unquote(filters)
          @decoders unquote(Macro.escape(decoders))
          @encoders unquote(Macro.escape(encoders))
          @update unquote(Macro.escape(update))
          @init %{"init" => unquote(Macro.escape(init))}
 
          def name(), do: @name
-         def kind(), do: "app"
+         def kind(), do: @kind
          def debug(), do: @debug
 
          def settings() do
            unquote(Macro.escape(encoded))
+         end
+
+         def filters() do
+           @filters
          end
 
          def init(settings) do
@@ -129,6 +141,9 @@ defmodule Elementary.Compiler do
 
          def update(event, data, model) do
            case @update[event] do
+             nil ->
+               {:error, "no_update"}
+
              spec when is_map(spec) ->
                do_update(spec, data, model)
 
@@ -167,6 +182,12 @@ defmodule Elementary.Compiler do
            with {:ok, encoded} <- Encoder.encode(model, data, @encoders),
                 {:ok, cmds} <- Encoder.encode(cmds, data, @encoders) do
              {:ok, encoded, cmds}
+           end
+         end
+
+         defp do_update(%{"model" => model}, data, _context) do
+           with {:ok, encoded} <- Encoder.encode(model, data, @encoders) do
+             {:ok, encoded, []}
            end
          end
 
@@ -320,6 +341,16 @@ defmodule Elementary.Compiler do
                  {:halt, mongo_error(e)}
              end
            end)
+         end
+
+         def ping() do
+           case Mongo.ping(@store) do
+             {:ok, _} ->
+               :ok
+
+             {:error, e} ->
+               {:error, mongo_error(e)}
+           end
          end
 
          def create_collection(col) do

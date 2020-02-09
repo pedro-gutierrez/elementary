@@ -18,7 +18,13 @@ defmodule Elementary.Effect do
   end
 
   def apply("password", %{"verify" => clear, "with" => hash}) do
-    case Argon2.verify_pass(clear, hash) do
+    try do
+      Argon2.verify_pass(clear, hash)
+    rescue
+      _ ->
+        false
+    end
+    |> case do
       true ->
         {:ok, %{"status" => "ok"}}
 
@@ -29,6 +35,19 @@ defmodule Elementary.Effect do
 
   def apply("password", %{"hash" => clear}) do
     {:ok, %{"status" => "ok", "hash" => Argon2.hash_pwd_salt(clear)}}
+  end
+
+  def apply("store", %{"store" => store, "ping" => _}) do
+    {:ok, store} = Elementary.Index.get("store", store)
+
+    {:ok,
+     case store.ping() do
+       :ok ->
+         %{"status" => "ok"}
+
+       {:error, e} when is_atom(e) ->
+         %{"status" => "#{e}"}
+     end}
   end
 
   def apply("store", %{"store" => store, "insert" => doc, "into" => col})

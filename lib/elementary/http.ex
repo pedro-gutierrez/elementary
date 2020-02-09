@@ -18,22 +18,28 @@ defmodule Elementary.Http do
 
     {:ok, req, body} = body(req, headers)
 
+    data = %{
+      "method" => method,
+      "headers" => headers,
+      "params" => encoded_params(params),
+      "body" => body
+    }
+
     {req, resp} =
       with {:ok, model} <- App.init(mod, settings),
+           {:ok, model} <- App.filter(mod, @effect, data, model),
            {:ok, %{"status" => _, "body" => _} = resp} <-
              App.decode(
                mod,
                @effect,
-               %{
-                 "method" => method,
-                 "headers" => headers,
-                 "params" => encoded_params(params),
-                 "body" => body
-               },
+               data,
                model
              ) do
         reply(req, app, start, resp)
       else
+        {:stop, %{"status" => _, "body" => _} = resp} ->
+          reply(req, app, start, resp)
+
         {:error, req, e} ->
           resp = encoded_error(e)
           reply(req, app, start, resp)

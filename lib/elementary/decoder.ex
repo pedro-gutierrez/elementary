@@ -11,6 +11,16 @@ defmodule Elementary.Decoder do
     decode_error(spec, data)
   end
 
+  def decode(spec, data, context) when is_binary(spec) do
+    case Elementary.Encoder.encode(spec, context) do
+      {:ok, ^data} ->
+        {:ok, data}
+
+      _ ->
+        decode_error(spec, data)
+    end
+  end
+
   def decode(%{"any" => "text"} = spec, data, _) when is_binary(data) do
     case String.valid?(data) do
       true ->
@@ -51,6 +61,32 @@ defmodule Elementary.Decoder do
       false ->
         {:ok, data}
     end
+  end
+
+  def decode(%{"not" => expr} = spec, data, context) do
+    case decode(expr, data, context) do
+      {:ok, _} ->
+        decode_error(spec, data)
+
+      {:error, %{error: :decode}} ->
+        {:ok, data}
+
+      {:error, _} = err ->
+        err
+    end
+  end
+
+  def decode(%{"in" => items} = spec, data, context) do
+    with {:ok, items} <- Elementary.Encoder.encode(items, context) do
+      case Enum.member?(items, data) do
+        true ->
+          {:ok, data}
+
+        false ->
+          decode_error(spec, data)
+      end
+    end
+    |> result(spec)
   end
 
   def decode(%{"less_than" => value} = spec, data, context) when is_number(data) do
@@ -111,8 +147,7 @@ defmodule Elementary.Decoder do
 
   defp decode_object(spec, data, context) when is_map(data) do
     Enum.reduce_while(spec, %{}, fn {key, spec}, acc ->
-      with {:ok, encoded} <- Elementary.Encoder.encode(spec, context),
-           {:ok, decoded} <- decode(encoded, data[key], context) do
+      with {:ok, decoded} <- decode(spec, data[key], context) do
         {:cont, Map.put(acc, key, decoded)}
       else
         {:error, _} = error ->

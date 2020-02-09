@@ -14,6 +14,13 @@ spec:
           first: Alice
           last: Cooper
           email: alice@mail.com
+    - title: Given details for Bob
+      user:
+        object:
+          id: e48329e4
+          first: Bob
+          last: Marley
+          email: bob@mail.com
     - title: When I register
       http:
         method: post

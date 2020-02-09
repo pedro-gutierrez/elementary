@@ -2,16 +2,22 @@ kind: test
 name: fullpass
 spec:
   include:
+    - health
     - http
     - store
     - users
     - password
     - places
     - events
+    - login
   init:
     baseUrl:
       url: @fullpass
   scenarios:
+    - title: Should have a healtcheck
+      steps:
+        - When I get the health
+        - Then I should have a 200
     - title: Should register new users
       steps:
         - Given the store is empty
@@ -22,11 +28,35 @@ spec:
       steps:
         - Given the store is empty
         - Given user Alice
-        - Given I forgot my password
-        - Given password foo
+        - Given I resetted my password
         - When I reset my password
-        - Then I should have a 201
-        - When I reset my password
+        - Then I should have a 401
+    - title: Should log in
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+    - title: Should reject wrong logins
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given password bar
+        - When I log in
+        - Then I should have a 401
+        - Given details for Bob
+        - When I log in
+        - Then I should have a 401
+    - title: Should log out
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - When I log out
+        - Then I should have a 200
+        - When I log out
         - Then I should have a 401
     - title: Should create places
       steps:

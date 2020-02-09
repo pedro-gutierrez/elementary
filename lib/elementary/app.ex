@@ -15,13 +15,46 @@ defmodule Elementary.App do
     end
   end
 
+  def filter(mod, effect, data, model) do
+    mod.filters
+    |> Enum.reduce_while(model, fn filter, model ->
+      case decode(filter, effect, data, model) do
+        {:ok, model} ->
+          {:cont, model}
+
+        other ->
+          {:halt, other}
+      end
+    end)
+    |> case do
+      {:stop, _} = err ->
+        err
+
+      {:error, _} = err ->
+        err
+
+      model ->
+        {:ok, model}
+    end
+  end
+
   def decode(mod, effect, data, model) do
     debug(mod, effect: effect, data: data, model: model)
 
     case mod.decode(effect, data, model) do
       {:ok, event, decoded} ->
         debug(mod, decoded: event, data: decoded)
-        update(mod, event, decoded, model)
+
+        case update(mod, event, decoded, model) do
+          {:ok, model2} ->
+            {:ok, Map.merge(model, model2)}
+
+          {:stop, _} = stop ->
+            stop
+
+          {:error, e} ->
+            error([app: mod, event: event, data: decoded, model: model], e)
+        end
 
       {:error, e} ->
         error([app: mod, effect: effect], e)
@@ -60,6 +93,9 @@ defmodule Elementary.App do
         case effect do
           "return" ->
             {:ok, encoded}
+
+          "stop" ->
+            {:stop, encoded}
 
           _ ->
             effect(mod, effect, encoded, model)
