@@ -43,6 +43,7 @@ spec:
           - /api/places
         headers:
           content-type: application/json
+          authorization: @token
         body: @place
       as: latest
     - title: When I get that place
@@ -52,6 +53,8 @@ spec:
           - @baseUrl
           - /api/places/
           - @place.id
+        headers:
+          authorization: @token
       as: latest
     - title: Then I should have that place
       expect:

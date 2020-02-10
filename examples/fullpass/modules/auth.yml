@@ -7,6 +7,10 @@ spec:
         headers:
           authorization:
             any: text
+      anonymous:
+        headers:
+          without:
+            - authorization
     store:
       granted:
         token:
@@ -58,6 +62,9 @@ spec:
       cmds:
         stop: unauthorized
     deleted:
+      cmds:
+        stop: unauthorized
+    anonymous:
       cmds:
         stop: unauthorized
   encoders:

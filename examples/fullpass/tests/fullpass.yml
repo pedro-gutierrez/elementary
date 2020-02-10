@@ -61,12 +61,18 @@ spec:
     - title: Should create places
       steps:
         - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
         - Given the Amaragua
         - When I create that place
         - Then I should have a 409
     - title: Should get places by id
       steps:
         - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
         - Given the Amaragua
         - When I get that place
         - Then I should have that place
@@ -76,6 +82,9 @@ spec:
     - title: Should create events
       steps:
         - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
         - Given the Amaragua
         - Given the Afrofestival
         - When I create that event
@@ -87,6 +96,9 @@ spec:
     - title: Should get events by id
       steps:
         - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
         - Given the Amaragua
         - Given the Afrofestival
         - When I get that event
@@ -97,6 +109,9 @@ spec:
     - title: Should find events nearby
       steps:
         - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
         - Given the Amaragua
         - Given the Afrofestival
         - Given the Auditorium
@@ -114,8 +129,13 @@ spec:
         - Given details for the Feeling Festival
         - Then that event should match that item
     - title: Should upload covers
+      tags:
+        - current
       steps:
         - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
         - Given the Amaragua
         - Given the Afrofestival
         - Given a cover

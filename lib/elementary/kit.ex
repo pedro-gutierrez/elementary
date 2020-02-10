@@ -130,4 +130,42 @@ defmodule Elementary.Kit do
     {:ok, pid} = StringIO.open(data)
     IO.binstream(pid, 256)
   end
+
+  def procs(limit \\ 5) do
+    :erlang.processes()
+    |> Enum.reject(fn pid ->
+      pid == self()
+    end)
+    |> Enum.map(fn pid ->
+      info =
+        :erlang.process_info(pid, [
+          :memory,
+          :registered_name,
+          :current_function,
+          :initial_call,
+          :dictionary
+        ])
+
+      %{
+        memory: info[:memory],
+        name: info[:registered_name],
+        current_fun: info[:current_function],
+        initial_call: info[:initial_call],
+        dictionary: info[:dictionary],
+        pid: pid
+      }
+    end)
+    |> Enum.sort(&(&1[:memory] >= &2[:memory]))
+    |> Enum.take(limit)
+  end
+
+  def gc(limit \\ 5) do
+    procs(limit)
+    |> Enum.map(fn info ->
+      info[:pid]
+    end)
+    |> Enum.each(fn pid ->
+      :erlang.garbage_collect(pid)
+    end)
+  end
 end

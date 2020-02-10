@@ -3,6 +3,9 @@ name: places
 spec:
   settings:
     - fullpass
+  filters:
+    - auth
   modules:
     - places
+    - session
     - http

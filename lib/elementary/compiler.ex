@@ -25,7 +25,10 @@ defmodule Elementary.Compiler do
 
   def compile() do
     index_specs(Spec.all())
-    compile_specs(Spec.all())
+    mods = compile_specs(Spec.all())
+    Code.purge_compiler_modules()
+    Kit.gc(100)
+    mods
   end
 
   defp compile_specs(specs) do
@@ -655,7 +658,7 @@ defmodule Elementary.Compiler do
                  scenario: %{"title" => title, "steps" => []} = scenario
                } = state
              ) do
-           log.("Scenario #{title} finished")
+           Logger.info("Scenario #{title} finished")
            report = %{report | passed: report.passed + 1}
            {:noreply, %{state | report: report}, {:continue, :scenario}}
          end

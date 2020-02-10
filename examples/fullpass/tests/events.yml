@@ -32,6 +32,7 @@ spec:
           - /api/events
         headers:
           content-type: application/json
+          authorization: @token
         body: @event
       as: latest
     - title: When I look for events nearby
@@ -42,6 +43,7 @@ spec:
           - /api/nearby
         headers:
           content-type: application/json
+          authorization: @token
         body: @location
       as: latest
     - title: Then that event should match that item
@@ -56,6 +58,9 @@ spec:
           - @baseUrl
           - /api/events/
           - @event.id
+        headers:
+          authorization: @token
+
       as: latest
     - title: Then I should have that event
       expect:
@@ -76,6 +81,8 @@ spec:
           - /api/events/
           - @event.id
           - /cover
+        headers:
+          authorization: @token
         body: @cover.data
       as: latest
     - title: When I get that event cover
@@ -86,4 +93,6 @@ spec:
           - /api/events/
           - @event.id
           - /cover
+        headers:
+          authorization: @token
       as: latest

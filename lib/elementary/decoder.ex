@@ -63,6 +63,28 @@ defmodule Elementary.Decoder do
     end
   end
 
+  def decode(%{"without" => keys} = spec, data, context) when is_map(data) do
+    with {:ok, keys} <- Elementary.Encoder.encode(keys, context) do
+      Enum.reduce_while(keys, :ok, fn key, _ ->
+        case data[key] do
+          nil ->
+            {:cont, :ok}
+
+          other ->
+            {:halt, {:error, %{"unexpected" => key, "value" => other, "in" => data}}}
+        end
+      end)
+      |> case do
+        :ok ->
+          {:ok, data}
+
+        _ ->
+          decode_error(spec, data)
+      end
+    end
+    |> result(spec)
+  end
+
   def decode(%{"not" => expr} = spec, data, context) do
     case decode(expr, data, context) do
       {:ok, _} ->

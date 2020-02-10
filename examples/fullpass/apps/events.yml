@@ -3,6 +3,9 @@ name: events
 spec:
   settings:
     - fullpass
+  filters:
+    - auth
   modules:
     - events
+    - session
     - http

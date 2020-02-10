@@ -3,6 +3,9 @@ name: cover
 spec:
   settings:
     - fullpass
+  filter:
+    - auth
   modules:
     - cover
+    - session
     - http
