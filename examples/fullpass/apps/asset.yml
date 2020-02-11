@@ -3,6 +3,9 @@ name: asset
 spec:
   settings:
     - fullpass
+  filters:
+    - client_id
   modules:
     - asset
+    - mobile
     - http

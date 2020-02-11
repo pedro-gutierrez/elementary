@@ -1,0 +1,6 @@
+kind: module
+name: mobile
+spec:
+  init:
+    clients:
+      mobile: @clients.mobile

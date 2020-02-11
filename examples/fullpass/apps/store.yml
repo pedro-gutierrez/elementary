@@ -1,6 +1,11 @@
 kind: app
 name: store
 spec:
+  settings:
+    - fullpass
+  filters:
+    - client_id
   modules:
     - store
+    - admin
     - http

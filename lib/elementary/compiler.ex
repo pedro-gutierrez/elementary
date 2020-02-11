@@ -28,6 +28,7 @@ defmodule Elementary.Compiler do
     mods = compile_specs(Spec.all())
     Code.purge_compiler_modules()
     Kit.gc(100)
+    Logger.info("Compiled #{length(mods)} modules")
     mods
   end
 
@@ -333,6 +334,18 @@ defmodule Elementary.Compiler do
            }
          end
 
+         def empty() do
+           Enum.reduce_while(@collections, :ok, fn {col, _}, _ ->
+             case empty_collection(col) do
+               :ok ->
+                 {:cont, :ok}
+
+               {:error, e} ->
+                 {:halt, mongo_error(e)}
+             end
+           end)
+         end
+
          def reset() do
            Enum.reduce_while(@collections, :ok, fn {col, spec}, _ ->
              with :ok <- drop_collection(col),
@@ -353,6 +366,16 @@ defmodule Elementary.Compiler do
 
              {:error, e} ->
                {:error, mongo_error(e)}
+           end
+         end
+
+         def empty_collection(col) do
+           case Mongo.delete_many(@store, col, %{}) do
+             {:ok, _} ->
+               :ok
+
+             {:error, e} ->
+               {:halt, mongo_error(e)}
            end
          end
 
@@ -539,7 +562,8 @@ defmodule Elementary.Compiler do
                  {:ok, facts}
 
                init_spec ->
-                 Elementary.Encoder.encode(init_spec, facts)
+                 {:ok, encoded} = Elementary.Encoder.encode(init_spec, facts)
+                 {:ok, Map.merge(facts, encoded)}
              end
 
            scenarios = scenarios(tag)
@@ -658,7 +682,7 @@ defmodule Elementary.Compiler do
                  scenario: %{"title" => title, "steps" => []} = scenario
                } = state
              ) do
-           Logger.info("Scenario #{title} finished")
+           Logger.info("Scenario \"#{title}\" finished")
            report = %{report | passed: report.passed + 1}
            {:noreply, %{state | report: report}, {:continue, :scenario}}
          end

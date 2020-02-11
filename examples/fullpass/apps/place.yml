@@ -3,6 +3,11 @@ name: place
 spec:
   settings:
     - fullpass
+  filters:
+    - client_id
+    - auth
   modules:
     - place
+    - mobile
+    - session
     - http

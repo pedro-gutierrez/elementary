@@ -32,6 +32,8 @@ spec:
           - /api/events
         headers:
           content-type: application/json
+          client-id: mobile
+          client-secret: @clients.mobile
           authorization: @token
         body: @event
       as: latest
@@ -43,6 +45,8 @@ spec:
           - /api/nearby
         headers:
           content-type: application/json
+          client-id: mobile
+          client-secret: @clients.mobile
           authorization: @token
         body: @location
       as: latest
@@ -60,6 +64,8 @@ spec:
           - @event.id
         headers:
           authorization: @token
+          client-id: mobile
+          client-secret: @clients.mobile
 
       as: latest
     - title: Then I should have that event
@@ -82,6 +88,8 @@ spec:
           - @event.id
           - /cover
         headers:
+          client-id: mobile
+          client-secret: @clients.mobile
           authorization: @token
         body: @cover.data
       as: latest
@@ -94,5 +102,7 @@ spec:
           - @event.id
           - /cover
         headers:
+          client-id: mobile
+          client-secret: @clients.mobile
           authorization: @token
       as: latest

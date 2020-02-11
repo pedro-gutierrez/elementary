@@ -3,24 +3,24 @@ name: store
 spec:
   decoders:
     http:
-      drop:
+      empty:
         method: DELETE
         params:
           name:
             any: text
     store:
-      init:
-        status: init
+      emptied:
+        status: empty
   update:
-    drop:
+    empty:
       model:
         name: @params.name
       cmds:
-        store: reset
-    init:
+        store: empty
+    emptied:
       cmds:
         return: ok
   encoders:
-    reset:
+    empty:
       store: @name
-      reset: {}
+      empty: {}

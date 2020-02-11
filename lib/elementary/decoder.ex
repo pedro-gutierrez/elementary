@@ -98,6 +98,23 @@ defmodule Elementary.Decoder do
     end
   end
 
+  def decode(%{"with_pair" => [key_spec, value_spec], "in" => target} = spec, data, context) do
+    with {:ok, target} <- Elementary.Encoder.encode(target, context),
+         {:ok, key} <- Elementary.Encoder.encode(key_spec, context),
+         {:ok, value} <- Elementary.Encoder.encode(value_spec, context),
+         {:ok, key} <- Elementary.Encoder.encode("@" <> key, data, context),
+         {:ok, value} <- Elementary.Encoder.encode("@" <> value, data, context) do
+      case target[key] do
+        ^value ->
+          {:ok, data}
+
+        _ ->
+          decode_error(spec, data)
+      end
+    end
+    |> result(spec)
+  end
+
   def decode(%{"in" => items} = spec, data, context) do
     with {:ok, items} <- Elementary.Encoder.encode(items, context) do
       case Enum.member?(items, data) do

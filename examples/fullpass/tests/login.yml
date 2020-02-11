@@ -14,6 +14,8 @@ spec:
           - @baseUrl
           - /api/login
         headers:
+          client-id: mobile
+          client-secret: @clients.mobile
           content-type: application/json
         body:
           email: @user.email
@@ -27,6 +29,8 @@ spec:
           - /api/logout
         headers:
           authorization: @token
+          client-id: mobile
+          client-secret: @clients.mobile
           content-type: application/json
         body: {}
       as: latest

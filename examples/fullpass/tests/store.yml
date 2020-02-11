@@ -12,4 +12,7 @@ spec:
         url:
           - @baseUrl
           - /api/stores/fullpass
+        headers:
+          client-id: admin
+          client-secret: @clients.admin
       as: latest

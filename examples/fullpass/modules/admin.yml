@@ -1,0 +1,6 @@
+kind: module
+name: admin
+spec:
+  init:
+    clients:
+      admin: @clients.admin

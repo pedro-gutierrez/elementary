@@ -44,6 +44,8 @@ spec:
         headers:
           content-type: application/json
           authorization: @token
+          client-id: mobile
+          client-secret: @clients.mobile
         body: @place
       as: latest
     - title: When I get that place
@@ -55,6 +57,8 @@ spec:
           - @place.id
         headers:
           authorization: @token
+          client-id: mobile
+          client-secret: @clients.mobile
       as: latest
     - title: Then I should have that place
       expect:

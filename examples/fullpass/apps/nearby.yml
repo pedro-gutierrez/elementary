@@ -3,6 +3,11 @@ name: nearby
 spec:
   settings:
     - fullpass
+  filters:
+    - client_id
+    - auth
   modules:
     - nearby
+    - mobile
+    - session
     - http

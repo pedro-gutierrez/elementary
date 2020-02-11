@@ -3,6 +3,9 @@ name: passwd_forgot
 spec:
   settings:
     - fullpass
+  filters:
+    - client_id
   modules:
     - passwd_forgot
+    - mobile
     - http

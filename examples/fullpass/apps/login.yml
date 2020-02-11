@@ -3,6 +3,9 @@ name: login
 spec:
   settings:
     - fullpass
+  filters:
+    - client_id
   modules:
     - login
+    - mobile
     - http

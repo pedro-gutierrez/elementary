@@ -3,6 +3,9 @@ name: users
 spec:
   settings:
     - fullpass
+  filters:
+    - client_id
   modules:
     - users
+    - mobile
     - http

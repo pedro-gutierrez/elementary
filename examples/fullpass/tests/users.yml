@@ -29,5 +29,7 @@ spec:
           - /api/users
         headers:
           content-type: application/json
+          client-id: mobile
+          client-secret: @clients.mobile
         body: @user
       as: latest

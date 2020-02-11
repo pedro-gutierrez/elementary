@@ -4,7 +4,9 @@ spec:
   settings:
     - fullpass
   filters:
+    - client_id
     - auth
   modules:
     - passwd_reset
+    - mobile
     - http

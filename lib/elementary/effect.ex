@@ -119,6 +119,22 @@ defmodule Elementary.Effect do
      end}
   end
 
+  def apply("store", %{"empty" => %{}, "store" => store}) do
+    {:ok, store} = Elementary.Index.get("store", store)
+
+    {:ok,
+     %{
+       "status" =>
+         case store.empty() do
+           :ok ->
+             "empty"
+
+           {:error, e} when is_atom(e) ->
+             Atom.to_string(e)
+         end
+     }}
+  end
+
   def apply("store", %{"reset" => %{}, "store" => store}) do
     {:ok, store} = Elementary.Index.get("store", store)
 
