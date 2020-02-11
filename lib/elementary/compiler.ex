@@ -522,6 +522,7 @@ defmodule Elementary.Compiler do
 
   defp compile(_, %{"kind" => "test", "name" => name, "spec" => spec}) do
     registered_name = String.to_atom("#{name}_test")
+    debug = spec["debug"] == true
 
     [
       {module_name(name, "test"),
@@ -533,6 +534,7 @@ defmodule Elementary.Compiler do
          @timeout 1000
          @scenarios unquote(Macro.escape(spec["scenarios"] || []))
          @init unquote(Macro.escape(spec["init"]))
+         @debug unquote(debug)
 
          def name(), do: @name
          def kind(), do: "test"
@@ -579,6 +581,7 @@ defmodule Elementary.Compiler do
               init: init,
               scenarios: scenarios,
               scenario: nil,
+              scenario_started: nil,
               step: nil,
               context: nil,
               report: %{
@@ -590,16 +593,7 @@ defmodule Elementary.Compiler do
          end
 
          def handle_continue(:scenario, %{init: init, scenarios: [current | rest]} = state) do
-           log =
-             case Enum.member?(current["tags"] || [], "debug") do
-               true ->
-                 fn msg ->
-                   Logger.info(msg)
-                 end
-
-               _ ->
-                 fn _ -> :ok end
-             end
+           log = debug_fun(current, @debug)
 
            log.(current["title"])
 
@@ -609,6 +603,7 @@ defmodule Elementary.Compiler do
               | log: log,
                 context: init,
                 scenario: current,
+                scenario_started: Elementary.Kit.now(),
                 scenarios: rest
             }, {:continue, :step}}
          end
@@ -645,8 +640,12 @@ defmodule Elementary.Compiler do
                  scenario: %{"title" => title, "steps" => [current | rest]} = scenario
                } = state
              ) do
+           started = Elementary.Kit.now()
+
            case Elementary.Encoder.encode(current["spec"], context) do
              {:ok, context2} ->
+               elapsed = Elementary.Kit.duration(started, :millisecond)
+
                context =
                  case is_map(context2) do
                    true -> Map.merge(context, context2)
@@ -654,7 +653,7 @@ defmodule Elementary.Compiler do
                  end
 
                scenario = Map.put(scenario, "steps", rest)
-               log.(current["title"])
+               log.("#{current["title"]} (#{elapsed}ms)")
 
                {:noreply, %{state | context: context, step: nil, scenario: scenario},
                 {:continue, :step}}
@@ -679,10 +678,12 @@ defmodule Elementary.Compiler do
                %{
                  report: report,
                  log: log,
+                 scenario_started: started,
                  scenario: %{"title" => title, "steps" => []} = scenario
                } = state
              ) do
-           Logger.info("Scenario \"#{title}\" finished")
+           elapsed = Elementary.Kit.duration(started, :millisecond)
+           Logger.info("Scenario \"#{title}\" (#{elapsed}ms)")
            report = %{report | passed: report.passed + 1}
            {:noreply, %{state | report: report}, {:continue, :scenario}}
          end
@@ -700,6 +701,22 @@ defmodule Elementary.Compiler do
            Enum.filter(@scenarios, fn scenario ->
              Enum.member?(scenario["tags"] || [], tag)
            end)
+         end
+
+         defp debug_fun(_, true) do
+           fn msg ->
+             Logger.info(msg)
+           end
+         end
+
+         defp debug_fun(spec, _) do
+           case Enum.member?(spec["tags"] || [], "debug") do
+             true ->
+               debug_fun(spec, true)
+
+             _ ->
+               fn _ -> :ok end
+           end
          end
        end}
     ]

@@ -33,8 +33,15 @@ defmodule Elementary.Effect do
     end
   end
 
-  def apply("password", %{"hash" => clear}) do
-    {:ok, %{"status" => "ok", "hash" => Argon2.hash_pwd_salt(clear)}}
+  def apply("password", %{
+        "hash" => clear,
+        "options" => %{"time" => t, "memory" => m, "length" => l}
+      }) do
+    {:ok,
+     %{
+       "status" => "ok",
+       "hash" => Argon2.hash_pwd_salt(clear, t_cost: t, m_cost: m, hashlen: l)
+     }}
   end
 
   def apply("store", %{"store" => store, "ping" => _}) do

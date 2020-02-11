@@ -137,7 +137,7 @@ defmodule Elementary.Http do
        }) do
     body = Jason.encode!(body)
     headers = encoded_headers(headers)
-    elapsed = System.system_time(:microsecond) - started
+    elapsed = Elementary.Kit.duration(started)
 
     headers =
       Map.merge(

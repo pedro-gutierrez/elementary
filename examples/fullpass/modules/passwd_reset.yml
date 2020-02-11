@@ -51,6 +51,7 @@ spec:
       from: tokens
     hash:
       hash: @password
+      options: @hash_options
     update_password:
       store: @store
       update:

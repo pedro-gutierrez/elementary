@@ -19,8 +19,6 @@ spec:
         - When I get the health
         - Then I should have a 200
     - title: Should register new users
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given user Alice

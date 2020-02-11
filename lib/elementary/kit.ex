@@ -72,12 +72,16 @@ defmodule Elementary.Kit do
     String.capitalize(str)
   end
 
+  def duration(since) do
+    ceil(now() - since)
+  end
+
   def duration(since, :millisecond) do
-    ceil((now() - since) / 1_000)
+    ceil(duration(since) / 1000)
   end
 
   def now() do
-    DateTime.to_unix(DateTime.utc_now(), :microsecond)
+    System.system_time(:microsecond)
   end
 
   def datetime_from_mongo_id(id) do
