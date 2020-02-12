@@ -17,12 +17,14 @@ defmodule Elementary.Http do
     {:ok, settings} = mod.settings()
 
     {:ok, req, body} = body(req, headers)
+    query = :cowboy_req.parse_qs(req) |> Enum.into(%{})
 
     data = %{
       "method" => method,
       "headers" => headers,
       "params" => encoded_params(params),
-      "body" => body
+      "body" => body,
+      "query" => query
     }
 
     {req, resp} =
@@ -68,11 +70,7 @@ defmodule Elementary.Http do
         "#{
           inspect(%{
             app: app,
-            req: %{
-              headers: headers,
-              body: body,
-              params: params
-            },
+            req: data,
             resp: resp
           })
         }"
@@ -198,7 +196,8 @@ defmodule Elementary.Http do
         %HTTPoison.Request{
           method: method(opts[:method] || "get"),
           url: opts[:url],
-          headers: opts[:headers] || []
+          headers: opts[:headers] || [],
+          params: opts[:query] || %{}
         }
         |> with_request_body(opts[:body], opts[:headers])
 

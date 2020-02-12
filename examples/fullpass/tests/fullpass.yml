@@ -106,6 +106,21 @@ spec:
         - Given a fake event
         - When I get that event
         - Then I should have a 404
+    - title: Should upload covers
+      tags:
+        - current
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a cover
+        - When I set that event cover
+        - Then I should have a 201
+        - When I get that event cover
+        - Then I should have a 200
     - title: Should find events nearby
       steps:
         - Given the store is empty
@@ -128,9 +143,7 @@ spec:
         - Then I should get one item
         - Given details for the Feeling Festival
         - Then that event should match that item
-    - title: Should upload covers
-      tags:
-        - current
+    - title: Should return events for a given month
       steps:
         - Given the store is empty
         - Given user Alice
@@ -138,8 +151,15 @@ spec:
         - Given I am logged in
         - Given the Amaragua
         - Given the Afrofestival
-        - Given a cover
-        - When I set that event cover
-        - Then I should have a 201
-        - When I get that event cover
-        - Then I should have a 200
+        - Given the Auditorium
+        - Given the Feeling Festival
+        - Given the month of may
+        - When I look for events for that month
+        - Then I should get one item
+        - Given details for the Feeling Festival
+        - Then that event should match that item
+        - Given the month of october
+        - When I look for events for that month
+        - Then I should get one item
+        - Given details for the Afrofestival
+        - Then that event should match that item

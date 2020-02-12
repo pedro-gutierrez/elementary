@@ -165,6 +165,20 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"date" => fields} = spec, context, encoders) do
+    with {:ok, fields} <- encode(fields, context, encoders) do
+      Elementary.Kit.date(fields)
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"format_date" => fields} = spec, context, encoders) do
+    with {:ok, fields} <- encode(fields, context, encoders) do
+      Elementary.Kit.format_date(fields)
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"now" => _}, _, _) do
     {:ok, System.system_time(:millisecond)}
   end
@@ -186,6 +200,7 @@ defmodule Elementary.Encoder do
     with {:ok, url} <- encode(%{"url" => url_spec}, context, encoders),
          {:ok, method} <- maybe_encode(http_spec["method"], "get", context, encoders),
          {:ok, headers} <- maybe_encode(http_spec["headers"], nil, context, encoders),
+         {:ok, query} <- maybe_encode(http_spec["query"], nil, context, encoders),
          {:ok, body} <- maybe_encode(http_spec["body"], nil, context, encoders),
          {:ok, resp} =
            Elementary.Http.Client.run(
@@ -193,7 +208,8 @@ defmodule Elementary.Encoder do
              method: method,
              url: url,
              body: body,
-             headers: headers
+             headers: headers,
+             query: query
            ) do
       case spec["as"] do
         nil ->

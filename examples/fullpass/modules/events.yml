@@ -3,8 +3,20 @@ name: events
 spec:
   decoders:
     http:
-      list:
+      nearby:
         method: GET
+        query:
+          lat:
+            any: float
+          lon:
+            any: float
+      monthly:
+        method: GET
+        query:
+          month:
+            any: int
+          year:
+            any: int
       create:
         method: POST
         headers:
@@ -16,7 +28,9 @@ spec:
             any: text
           place:
             any: text
-          date:
+          starts:
+            any: date
+          ends:
             any: date
     store:
       created:
@@ -28,13 +42,34 @@ spec:
       place:
         place:
           any: object
+      places:
+        places:
+          any: list
       events:
-        items:
+        events:
           any: list
   update:
-    list:
+    nearby:
+      model:
+        coordinates:
+          - @query.lon
+          - @query.lat
       cmds:
-        store: list
+        store: nearby_places
+    monthly:
+      model:
+        minStart:
+          date:
+            day: 1
+            month: @query.month
+            year: @query.year
+        maxEnd:
+          date:
+            day: 31
+            month: @query.month
+            year: @query.year
+      cmds:
+        store: monthly_events
     create:
       model:
         event: @body
@@ -43,6 +78,13 @@ spec:
     place:
       cmds:
         store: create
+    places:
+      model:
+        places:
+          map: @places
+          with: @id
+      cmds:
+        store: events_query
     conflict:
       cmds:
         return: conflict
@@ -51,13 +93,44 @@ spec:
         return: created
     events:
       model:
-        events: @items
+        events: @events
       cmds:
         return: events
     not_found:
       cmds:
         return: not_found
   encoders:
+    nearby_places:
+      store: @store
+      find:
+        location:
+          $near:
+            $geometry:
+              type: Point
+              coordinates: @coordinates
+            $minDistance: 0
+            $maxDistance: 100000
+      from: places
+      as: places
+    monthly_events:
+      store: @store
+      find:
+        $or:
+          - starts:
+              $gte: @minStart
+              $lte: @maxEnd
+          - ends:
+              $gte: @minStart
+              $lte: @maxEnd
+      from: events
+      as: events
+    events_query:
+      store: @store
+      find:
+        place:
+          $in: @places
+      from: events
+      as: events
     find_place:
       store: @store
       fetch:

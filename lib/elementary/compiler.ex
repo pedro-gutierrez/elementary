@@ -303,18 +303,41 @@ defmodule Elementary.Compiler do
 
     collections = spec["collections"]
     indices = spec["indices"]
+    debug = spec["debug"] == true
 
     [
       {store_module_name(name),
        quote do
+         require Logger
          @name unquote(name)
          @store unquote(registered_name)
          @url unquote(url)
          @pool unquote(pool)
          @indices unquote(Macro.escape(indices))
          @collections unquote(Macro.escape(collections))
+         @debug unquote(debug)
+
          def name(), do: @name
          def kind(), do: "store"
+         def debug(), do: @debug
+
+         defp log(msg, tag, debug \\ @debug)
+
+         defp log(data, _, false), do: data
+
+         defp log(data, meta, true) do
+           Logger.info(
+             "#{
+               inspect(
+                 store: @store,
+                 meta: meta,
+                 data: data
+               )
+             }"
+           )
+
+           data
+         end
 
          def child_spec(opts) do
            %{
@@ -344,6 +367,7 @@ defmodule Elementary.Compiler do
                  {:halt, mongo_error(e)}
              end
            end)
+           |> log(:empty)
          end
 
          def reset() do
@@ -357,6 +381,7 @@ defmodule Elementary.Compiler do
                  {:halt, mongo_error(e)}
              end
            end)
+           |> log(:reset)
          end
 
          def ping() do
@@ -367,6 +392,7 @@ defmodule Elementary.Compiler do
              {:error, e} ->
                {:error, mongo_error(e)}
            end
+           |> log(:ping)
          end
 
          def empty_collection(col) do
@@ -377,12 +403,14 @@ defmodule Elementary.Compiler do
              {:error, e} ->
                {:halt, mongo_error(e)}
            end
+           |> log(%{empty: col})
          end
 
          def create_collection(col) do
            with {:error, %Mongo.Error{code: 48}} <- Mongo.create(@store, col) do
              :ok
            end
+           |> log(%{create: col})
          end
 
          def drop_collection(col) do
@@ -396,6 +424,7 @@ defmodule Elementary.Compiler do
              {:error, e} ->
                {:halt, mongo_error(e)}
            end
+           |> log(%{drop: col})
          end
 
          def ensure_indexes(col, indices) do
@@ -417,6 +446,7 @@ defmodule Elementary.Compiler do
                        }"
              end
            end)
+           |> log(%{ensure_indices: col, indices: indices})
          end
 
          def ensure_index(col, name, opts) do
@@ -436,6 +466,7 @@ defmodule Elementary.Compiler do
              {:error, %{message: msg}} ->
                {:error, msg}
            end
+           |> log(%{ensure_index: col, index: name})
          end
 
          def insert(col, doc) when is_map(doc) do
@@ -452,6 +483,7 @@ defmodule Elementary.Compiler do
              {:error, e} ->
                {:error, mongo_error(e)}
            end
+           |> log(%{insert: col, doc: doc})
          end
 
          def update(col, where, doc) when is_map(doc) do
@@ -471,6 +503,7 @@ defmodule Elementary.Compiler do
              {:error, e} ->
                {:error, mongo_error(e)}
            end
+           |> log(%{update: col, where: where, doc: doc})
          end
 
          def delete(col, doc) when is_map(doc) do
@@ -487,6 +520,7 @@ defmodule Elementary.Compiler do
              {:error, e} ->
                {:error, mongo_error(e)}
            end
+           |> log(%{delete: col, doc: doc})
          end
 
          def find_all(col, query, opts \\ []) do
@@ -497,6 +531,7 @@ defmodule Elementary.Compiler do
             )
             |> Stream.map(&Elementary.Kit.without_mongo_id(&1))
             |> Enum.to_list()}
+           |> log(%{find_all: col, query: query, opts: opts})
          end
 
          def find_one(col, query) do
@@ -507,6 +542,7 @@ defmodule Elementary.Compiler do
              doc ->
                {:ok, Elementary.Kit.without_mongo_id(doc)}
            end
+           |> log(%{find_one: col, query: query})
          end
 
          defp mongo_error(%{write_errors: [error]}) do

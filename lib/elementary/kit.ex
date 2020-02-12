@@ -172,4 +172,26 @@ defmodule Elementary.Kit do
       :erlang.garbage_collect(pid)
     end)
   end
+
+  def date(%{"day" => day, "month" => month, "year" => year}) do
+    {:ok,
+     %DateTime{
+       year: year,
+       month: month,
+       day: day,
+       hour: 0,
+       minute: 0,
+       second: 0,
+       time_zone: "Europe/London",
+       zone_abbr: "UTC",
+       std_offset: 0,
+       utc_offset: 0
+     }}
+  end
+
+  def format_date(fields) do
+    with {:ok, date} <- date(fields) do
+      {:ok, DateTime.to_iso8601(date)}
+    end
+  end
 end

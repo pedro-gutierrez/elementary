@@ -4,11 +4,14 @@ spec:
   steps:
     - title: Given the Afrofestival
       steps:
+        - Given the month of october
         - Given details for the Afrofestival
         - When I create that event
         - Then I should have a 201
     - title: Given the Feeling Festival
       steps:
+        - Given the month of may
+        - Given details for the Afrofestival
         - Given details for the Feeling Festival
         - When I create that event
         - Then I should have a 201
@@ -17,13 +20,40 @@ spec:
         id: f538d736
         name: Afrofestival
         place: @place.id
-        date: 2020-10-01T00:00:07Z
+        starts:
+          format_date:
+            day: 1
+            month: @month
+            year: @year
+        ends:
+          format_date:
+            day: 4
+            month: @month
+            year: @year
     - title: Given details for the Feeling Festival
       event:
         id: e7295fcb
         name: Feeling Festival
         place: @place.id
-        date: 2020-10-01T00:00:07Z
+        starts:
+          format_date:
+            day: 30
+            month: @month
+            year: @year
+        ends:
+          format_date:
+            day: 2
+            month:
+              sum:
+                - 1
+                - @month
+            year: @year
+    - title: Given the month of may
+      month: 5
+      year: 2020
+    - title: Given the month of october
+      month: 10
+      year: 2020
     - title: When I create that event
       http:
         method: post
@@ -39,16 +69,31 @@ spec:
       as: latest
     - title: When I look for events nearby
       http:
-        method: post
+        method: get
         url:
           - @baseUrl
-          - /api/nearby
+          - /api/events
         headers:
           content-type: application/json
           client-id: mobile
           client-secret: @clients.mobile
           authorization: @token
-        body: @location
+        query: @location
+      as: latest
+    - title: When I look for events for that month
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/events
+        headers:
+          content-type: application/json
+          client-id: mobile
+          client-secret: @clients.mobile
+          authorization: @token
+        query:
+          month: @month
+          year: @year
       as: latest
     - title: Then that event should match that item
       assert:

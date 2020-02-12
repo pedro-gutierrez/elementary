@@ -31,6 +31,30 @@ defmodule Elementary.Decoder do
     end
   end
 
+  def decode(%{"any" => "float"}, data, _) when is_float(data) do
+    {:ok, data}
+  end
+
+  def decode(%{"any" => "float"} = spec, data, context) when is_binary(data) do
+    with {:ok, encoded} <- Elementary.Encoder.encode(data, context),
+         {decoded, ""} <- Float.parse(encoded) do
+      {:ok, decoded}
+    end
+    |> result(spec)
+  end
+
+  def decode(%{"any" => "int"}, data, _) when is_integer(data) do
+    {:ok, data}
+  end
+
+  def decode(%{"any" => "int"} = spec, data, context) when is_binary(data) do
+    with {:ok, encoded} <- Elementary.Encoder.encode(data, context),
+         {decoded, ""} <- Integer.parse(encoded) do
+      {:ok, decoded}
+    end
+    |> result(spec)
+  end
+
   def decode(%{"any" => "number"}, data, _) when is_number(data) do
     {:ok, data}
   end
@@ -44,13 +68,10 @@ defmodule Elementary.Decoder do
   end
 
   def decode(%{"any" => "date"} = spec, data, _) when is_binary(data) do
-    case DateTime.from_iso8601(data) do
-      {:error, _} ->
-        decode_error(spec, data)
-
-      {:ok, datetime, _offset} ->
-        {:ok, datetime}
+    with {:ok, date, _} <- DateTime.from_iso8601(data) do
+      {:ok, date}
     end
+    |> result(spec)
   end
 
   def decode(%{"any" => "data"} = spec, data, _) when is_binary(data) do
@@ -174,6 +195,10 @@ defmodule Elementary.Decoder do
 
   defp result({:error, _} = other, _) do
     other
+  end
+
+  defp result({:ok, _} = decoded, _) do
+    decoded
   end
 
   defp result(decoded, _) do
