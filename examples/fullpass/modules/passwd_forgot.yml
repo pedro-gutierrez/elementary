@@ -43,18 +43,18 @@ spec:
   update:
     forgot:
       model:
-        email: @body.email
+        email: @data.body.email
       cmds:
         store: find_user
     user:
       model:
-        user: @user.id
+        user: @data.user.id
         token:
           uuid: {}
       cmds:
         store: create_token
     created:
-      - when: @emails
+      - when: @model.emails
         cmds:
           return: created
       - cmds:

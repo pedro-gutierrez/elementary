@@ -173,6 +173,8 @@ defmodule Elementary.Kit do
     end)
   end
 
+  def date(%DateTime{} = date), do: {:ok, date}
+
   def date(%{"day" => day, "month" => month, "year" => year}) do
     {:ok,
      %DateTime{

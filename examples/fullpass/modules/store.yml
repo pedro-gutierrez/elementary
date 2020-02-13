@@ -14,7 +14,7 @@ spec:
   update:
     empty:
       model:
-        name: @params.name
+        name: @data.params.name
       cmds:
         store: empty
     emptied:

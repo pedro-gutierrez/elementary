@@ -3,7 +3,7 @@ name: event
 spec:
   settings:
     - fullpass
-  filter:
+  filters:
     - client_id
     - auth
   modules:

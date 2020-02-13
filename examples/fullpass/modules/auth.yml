@@ -41,17 +41,17 @@ spec:
   update:
     auth:
       model:
-        token: @headers.authorization
+        token: @data.headers.authorization
       cmds:
         store: find_token
     granted:
       model:
-        user: @token.user
+        user: @data.token.user
       cmds:
         store: find_user
     user_found:
       model:
-        user: @user
+        user: @data.user
     invalid:
       cmds:
         stop: unauthorized

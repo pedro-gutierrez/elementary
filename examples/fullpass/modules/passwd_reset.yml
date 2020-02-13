@@ -28,8 +28,8 @@ spec:
   update:
     reset:
       model:
-        email: @body.email
-        password: @body.password
+        email: @data.body.email
+        password: @data.body.password
       cmds:
         store: delete_token
     deleted:
@@ -37,7 +37,7 @@ spec:
         password: hash
     hashed:
       model:
-        hash: @hash
+        hash: @data.hash
       cmds:
         store: update_password
     updated:

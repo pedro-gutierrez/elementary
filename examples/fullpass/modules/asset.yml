@@ -18,12 +18,12 @@ spec:
   update:
     get:
       model:
-        asset: @params.id
+        asset: @data.params.id
       cmds:
         asset: named
     data:
       model:
-        data: @data
+        data: @data.data
       cmds:
         return: asset
     not_found:

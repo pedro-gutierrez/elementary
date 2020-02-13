@@ -149,11 +149,14 @@ defmodule Elementary.Compiler do
                {:error, "no_update"}
 
              spec when is_map(spec) ->
-               do_update(spec, data, model)
+               context = %{"data" => data, "model" => model}
+               do_update(spec, context)
 
              specs when is_list(specs) ->
+               context = %{"data" => data, "model" => model}
+
                Enum.reduce_while(specs, false, fn spec, _ ->
-                 case do_update(spec, data, model) do
+                 case do_update(spec, context) do
                    {:ok, _, _} = result ->
                      {:halt, result}
 
@@ -167,12 +170,12 @@ defmodule Elementary.Compiler do
            end
          end
 
-         defp do_update(%{"when" => condition} = spec, data, context) do
+         defp do_update(%{"when" => condition} = spec, context) do
            case Encoder.encode(condition, context, @encoders) do
              {:ok, true} ->
                spec
                |> Map.drop(["when"])
-               |> do_update(data, context)
+               |> do_update(context)
 
              {:ok, false} ->
                false
@@ -182,21 +185,21 @@ defmodule Elementary.Compiler do
            end
          end
 
-         defp do_update(%{"model" => model, "cmds" => cmds}, data, _context) do
-           with {:ok, encoded} <- Encoder.encode(model, data, @encoders),
-                {:ok, cmds} <- Encoder.encode(cmds, data, @encoders) do
+         defp do_update(%{"model" => model, "cmds" => cmds}, context) do
+           with {:ok, encoded} <- Encoder.encode(model, context, @encoders),
+                {:ok, cmds} <- Encoder.encode(cmds, context, @encoders) do
              {:ok, encoded, cmds}
            end
          end
 
-         defp do_update(%{"model" => model}, data, _context) do
-           with {:ok, encoded} <- Encoder.encode(model, data, @encoders) do
+         defp do_update(%{"model" => model}, context) do
+           with {:ok, encoded} <- Encoder.encode(model, context, @encoders) do
              {:ok, encoded, []}
            end
          end
 
-         defp do_update(%{"cmds" => cmds}, data, _context) do
-           with {:ok, cmds} <- Encoder.encode(cmds, data, @encoders) do
+         defp do_update(%{"cmds" => cmds}, context) do
+           with {:ok, cmds} <- Encoder.encode(cmds, context, @encoders) do
              {:ok, %{}, cmds}
            end
          end

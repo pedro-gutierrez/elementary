@@ -17,18 +17,21 @@ spec:
   update:
     fetch:
       model:
-        id: @params.id
+        id: @data.params.id
       cmds:
         store: fetch
     found:
       model:
-        place:
-          id: @place.id
-          name: @place.name
-          lat:
-            first: @place.location.coordinates
-          lon:
-            last: @place.location.coordinates
+        let:
+          place: @data.place
+        in:
+          place:
+            id: @place.id
+            name: @place.name
+            lat:
+              first: @place.location.coordinates
+            lon:
+              last: @place.location.coordinates
       cmds:
         return: place
     not_found:

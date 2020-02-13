@@ -24,7 +24,7 @@ spec:
   update:
     create:
       model:
-        user: @body
+        user: @data.body
       cmds:
         store: create
     conflict:

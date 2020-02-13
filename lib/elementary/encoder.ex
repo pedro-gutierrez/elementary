@@ -84,6 +84,33 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"let" => vars, "in" => expr} = spec, context, encoders) do
+    with {:ok, vars} <- encode(vars, context, encoders) do
+      encode(expr, Map.merge(context, vars), encoders)
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"merge" => items} = spec, context, encoders) do
+    case encode(items, context, encoders) do
+      {:ok, [first | _] = items} when is_map(first) ->
+        {:ok,
+         Enum.reduce(items, %{}, fn item, acc ->
+           Map.merge(acc, item)
+         end)}
+
+      {:ok, [first | _] = items} when is_list(first) ->
+        {:ok,
+         Enum.reduce(items, [], fn item, acc ->
+           acc ++ item
+         end)}
+
+      {:ok, other} ->
+        {:error, %{"error" => "unexpected", "data" => other, "expected" => "all_maps|all_lists"}}
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"first" => expr} = spec, context, encoders) do
     with {:ok, encoded} <- encode(expr, context, encoders) do
       case encoded do
@@ -161,6 +188,13 @@ defmodule Elementary.Encoder do
   def encode(%{"date" => %{"in" => %{"hour" => hour}}} = spec, context, encoders) do
     with {:ok, encoded} <- encode(hour, context, encoders) do
       {:ok, DateTime.utc_now() |> DateTime.add(3600 * encoded, :second)}
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"date" => %{"in" => %{"month" => amount}}} = spec, context, encoders) do
+    with {:ok, encoded} <- encode(amount, context, encoders) do
+      {:ok, DateTime.utc_now() |> DateTime.add(3600 * 24 * 30 * encoded, :second)}
     end
     |> result(spec, context)
   end

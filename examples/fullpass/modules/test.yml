@@ -19,7 +19,7 @@ spec:
         status: not_found
   update:
     run:
-      model: @params
+      model: @data.params
       cmds:
         test: run
     started:

@@ -163,3 +163,29 @@ spec:
         - Then I should get one item
         - Given details for the Afrofestival
         - Then that event should match that item
+    - title: Should update an event date
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given next month
+        - When I reschedule that event
+        - Then I should have a 200
+    - title: Only the owner should update events
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given next month
+        - Given user Bob
+        - Given I resetted my password
+        - Given I am logged in
+        - When I reschedule that event
+        - Then I should have a 401
+

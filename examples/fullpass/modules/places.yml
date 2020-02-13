@@ -24,14 +24,17 @@ spec:
   update:
     create:
       model:
-        place:
-          id: @body.id
-          name: @body.name
-          location:
-            type: Point
-            coordinates:
-              - @body.lon
-              - @body.lat
+        let:
+          body: @data.body
+        in:
+          place:
+            id: @body.id
+            name: @body.name
+            location:
+              type: Point
+              coordinates:
+                - @body.lon
+                - @body.lat
       cmds:
         store: create
     conflict:

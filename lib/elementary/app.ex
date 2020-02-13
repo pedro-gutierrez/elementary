@@ -16,30 +16,34 @@ defmodule Elementary.App do
   end
 
   def filter(mod, effect, data, model) do
-    mod.filters
-    |> Enum.reduce_while(model, fn filter, model ->
-      case decode(filter, effect, data, model) do
-        {:ok, model} ->
-          {:cont, model}
+    res =
+      mod.filters
+      |> Enum.reduce_while(model, fn filter, model ->
+        case decode(filter, effect, data, model) do
+          {:ok, model} ->
+            {:cont, model}
 
-        other ->
-          {:halt, other}
+          other ->
+            {:halt, other}
+        end
+      end)
+      |> case do
+        {:stop, _} = err ->
+          err
+
+        {:error, _} = err ->
+          err
+
+        model ->
+          {:ok, model}
       end
-    end)
-    |> case do
-      {:stop, _} = err ->
-        err
 
-      {:error, _} = err ->
-        err
-
-      model ->
-        {:ok, model}
-    end
+    debug(mod, filter: effect, filters: mod.filters, data: data, model: model, result: res)
+    res
   end
 
   def decode(mod, effect, data, model) do
-    debug(mod, effect: effect, data: data, model: model)
+    debug(mod, decode: effect, data: data, model: model)
 
     case mod.decode(effect, data, model) do
       {:ok, event, decoded} ->
@@ -124,7 +128,7 @@ defmodule Elementary.App do
   defp debug(mod, info) do
     case mod.debug() do
       true ->
-        Logger.info("#{inspect(info)}")
+        Logger.info("#{inspect(Keyword.put(info, :app, mod.name()))}")
 
       false ->
         :ok

@@ -32,18 +32,18 @@ spec:
   update:
     login:
       model:
-        email: @body.email
-        password: @body.password
+        email: @data.body.email
+        password: @data.body.password
       cmds:
         store: find_user
     user_found:
       model:
-        user: @user.id
+        user: @data.user.id
       cmds:
         store: find_password
     password_found:
       model:
-        hash: @password.hash
+        hash: @data.password.hash
       cmds:
         password: verify
     verified:

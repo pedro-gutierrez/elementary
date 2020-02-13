@@ -51,6 +51,16 @@ spec:
     - title: Given the month of may
       month: 5
       year: 2020
+    - title: Given next month
+      let:
+        in_one_month:
+          format_date:
+            date:
+              in:
+                month: 1
+      in:
+        starts: @in_one_month
+        ends: @in_one_month
     - title: Given the month of october
       month: 10
       year: 2020
@@ -111,7 +121,6 @@ spec:
           authorization: @token
           client-id: mobile
           client-secret: @clients.mobile
-
       as: latest
     - title: Then I should have that event
       expect:
@@ -150,4 +159,20 @@ spec:
           client-id: mobile
           client-secret: @clients.mobile
           authorization: @token
+      as: latest
+    - title: When I reschedule that event
+      http:
+        method: put
+        url:
+          - @baseUrl
+          - /api/events/
+          - @event.id
+        headers:
+          client-id: mobile
+          client-secret: @clients.mobile
+          authorization: @token
+          content-type: application/json
+        body:
+          starts: @starts
+          ends: @ends
       as: latest

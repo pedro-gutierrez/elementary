@@ -52,8 +52,8 @@ spec:
     nearby:
       model:
         coordinates:
-          - @query.lon
-          - @query.lat
+          - @data.query.lon
+          - @data.query.lat
       cmds:
         store: nearby_places
     monthly:
@@ -61,18 +61,21 @@ spec:
         minStart:
           date:
             day: 1
-            month: @query.month
-            year: @query.year
+            month: @data.query.month
+            year: @data.query.year
         maxEnd:
           date:
             day: 31
-            month: @query.month
-            year: @query.year
+            month: @data.query.month
+            year: @data.query.year
       cmds:
         store: monthly_events
     create:
       model:
-        event: @body
+        event:
+          merge:
+            - @data.body
+            - owner: @model.user.id
       cmds:
         store: find_place
     place:
@@ -81,7 +84,7 @@ spec:
     places:
       model:
         places:
-          map: @places
+          map: @data.places
           with: @id
       cmds:
         store: events_query
@@ -93,7 +96,7 @@ spec:
         return: created
     events:
       model:
-        events: @events
+        events: @data.events
       cmds:
         return: events
     not_found:

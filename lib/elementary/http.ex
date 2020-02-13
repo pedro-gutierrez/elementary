@@ -29,13 +29,13 @@ defmodule Elementary.Http do
 
     {req, resp} =
       with {:ok, model} <- App.init(mod, settings),
-           {:ok, model} <- App.filter(mod, @effect, data, model),
+           {:ok, model2} <- App.filter(mod, @effect, data, model),
            {:ok, %{"status" => _, "body" => _} = resp} <-
              App.decode(
                mod,
                @effect,
                data,
-               model
+               Map.merge(model, model2)
              ) do
         reply(req, app, start, resp)
       else

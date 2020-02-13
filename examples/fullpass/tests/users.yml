@@ -14,6 +14,11 @@ spec:
           first: Alice
           last: Cooper
           email: alice@mail.com
+    - title: Given user Bob
+      steps:
+        - Given details for Bob
+        - When I register
+        - Then I should have a 201
     - title: Given details for Bob
       user:
         object:

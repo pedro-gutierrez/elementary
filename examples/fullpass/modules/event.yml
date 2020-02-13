@@ -8,26 +8,53 @@ spec:
         params:
           id:
             any: text
+      reschedule:
+        method: PUT
+        params:
+          id:
+            any: text
+        body:
+          starts:
+            any: date
+          ends:
+            any: date
     store:
       not_found:
         status: not_found
       found:
         event:
           any: object
+      updated:
+        status: updated
+      conflict:
+        status: conflict
   update:
     fetch:
       model:
-        id: @params.id
+        id: @data.params.id
       cmds:
         store: fetch
+    reschedule:
+      model:
+        id: @data.params.id
+        starts: @data.body.starts
+        ends: @data.body.ends
+      cmds:
+        store: reschedule
     found:
       model:
-        event: @event
+        event: @data.event
       cmds:
         return: event
+    updated:
+      cmds:
+        store: fetch
     not_found:
       cmds:
         return: not_found
+    conflict:
+      cmds:
+        return: unauthorized
   encoders:
     fetch:
       store: @store
@@ -35,6 +62,15 @@ spec:
         id: @id
       from: events
       as: event
+    reschedule:
+      store: @store
+      where:
+        id: @id
+        owner: @user.id
+      update:
+        starts: @starts
+        ends: @ends
+      into: events
     event:
       status: 200
       headers:
