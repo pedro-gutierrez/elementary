@@ -1,6 +1,8 @@
 defmodule Elementary.Decoder do
   @moduledoc false
 
+  import Elementary.Encoder, only: [encode: 2]
+
   defguard is_literal(v) when is_binary(v) or is_number(v) or is_atom(v)
 
   def decode(nil, nil, _) do
@@ -82,6 +84,19 @@ defmodule Elementary.Decoder do
       false ->
         {:ok, data}
     end
+  end
+
+  def decode(%{"one_of" => options} = spec, data, context) do
+    with {:ok, options} when is_list(options) <- encode(options, context) do
+      case Enum.member?(options, data) do
+        true ->
+          {:ok, data}
+
+        false ->
+          {:error, %{"allowed_values" => options, "unexpected" => data}}
+      end
+    end
+    |> result(spec)
   end
 
   def decode(%{"without" => keys} = spec, data, context) when is_map(data) do

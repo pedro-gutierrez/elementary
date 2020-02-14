@@ -25,6 +25,8 @@ spec:
       http: /api/events/:id
     cover:
       http: /api/events/:id/cover
+    passes:
+      http: /api/passes
     asset:
       http: /api/assets/:id
     store:

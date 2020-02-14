@@ -1,0 +1,68 @@
+kind: module
+name: passes
+spec:
+  decoders:
+    http:
+      create:
+        method: POST
+        body:
+          id:
+            any: text
+          event:
+            any: text
+          kind:
+            one_of:
+              - full
+              - party
+              - day
+          genre:
+            one_of:
+              - men
+              - women
+              - couple
+    store:
+      created:
+        status: created
+      conflict:
+        status: conflict
+      not_found:
+        status: not_found
+      event:
+        event:
+          id:
+            any: text
+  update:
+    create:
+      model:
+        pass:
+          merge:
+            - @data.body
+            - owner: @model.user.id
+      cmds:
+        store: find_event
+    event:
+      cmds:
+        store: create
+    conflict:
+      cmds:
+        return: conflict
+    created:
+      cmds:
+        return: created
+    not_found:
+      cmds:
+        return: not_found
+    invalid:
+      cmds:
+        return: invalid
+  encoders:
+    find_event:
+      store: @store
+      fetch:
+        id: @pass.event
+      from: events
+      as: event
+    create:
+      store: @store
+      insert: @pass
+      into: passes

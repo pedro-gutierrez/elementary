@@ -1,0 +1,13 @@
+kind: app
+name: passes
+spec:
+  settings:
+    - fullpass
+  filters:
+    - client_id
+    - auth
+  modules:
+    - passes
+    - mobile
+    - session
+    - http

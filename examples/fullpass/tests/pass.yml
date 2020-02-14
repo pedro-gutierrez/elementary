@@ -10,10 +10,9 @@ spec:
     - title: Given details for a lady full pass
       pass:
         id: 65460eb4
-        tags:
-          - full
-          - lady
         event: @event.id
+        kind: full
+        genre: women
     - title: When I create that pass
       http:
         method: post
