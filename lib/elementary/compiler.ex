@@ -27,7 +27,6 @@ defmodule Elementary.Compiler do
     index_specs(Spec.all())
     mods = compile_specs(Spec.all())
     Code.purge_compiler_modules()
-    Kit.gc(100)
     Logger.info("Compiled #{length(mods)} modules")
     mods
   end
@@ -693,6 +692,7 @@ defmodule Elementary.Compiler do
 
                scenario = Map.put(scenario, "steps", rest)
                log.("#{current["title"]} (#{elapsed}ms)")
+               log.("    #{inspect(context2)}")
 
                {:noreply, %{state | context: context, step: nil, scenario: scenario},
                 {:continue, :step}}

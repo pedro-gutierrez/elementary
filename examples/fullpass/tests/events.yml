@@ -1,16 +1,25 @@
 kind: test
 name: events
 spec:
+  init:
+    in_one_month:
+      date:
+        in:
+          month: 1
+    in_two_months:
+      date:
+        in:
+          month: 2
   steps:
     - title: Given the Afrofestival
       steps:
-        - Given the month of october
+        - Given next month
         - Given details for the Afrofestival
         - When I create that event
         - Then I should have a 201
     - title: Given the Feeling Festival
       steps:
-        - Given the month of may
+        - Given in two months
         - Given details for the Afrofestival
         - Given details for the Feeling Festival
         - When I create that event
@@ -21,49 +30,39 @@ spec:
         name: Afrofestival
         place: @place.id
         starts:
-          format_date:
-            day: 1
-            month: @month
-            year: @year
+          format_date: @in_one_month
         ends:
-          format_date:
-            day: 4
-            month: @month
-            year: @year
+          format_date: @in_one_month
     - title: Given details for the Feeling Festival
       event:
         id: e7295fcb
         name: Feeling Festival
         place: @place.id
         starts:
-          format_date:
-            day: 30
-            month: @month
-            year: @year
+          format_date: @in_two_months
         ends:
-          format_date:
-            day: 2
-            month:
-              sum:
-                - 1
-                - @month
-            year: @year
-    - title: Given the month of may
-      month: 5
-      year: 2020
-    - title: Given next month
+          format_date: @in_two_months
+    - title: Given new, invalid dates for that event
       let:
-        in_one_month:
+        invalid_date:
           format_date:
             date:
-              in:
-                month: 1
+              day: 30
+              month: 2
+              year: 2020
       in:
-        starts: @in_one_month
-        ends: @in_one_month
-    - title: Given the month of october
-      month: 10
-      year: 2020
+        event:
+          merge:
+            - starts: @invalid_date
+              ends: @invalid_date
+            - @event
+      debug: true
+    - title: Given next month
+      object:
+        date: @in_one_month
+    - title: Given in two months
+      object:
+        date: @in_two_months
     - title: When I create that event
       http:
         method: post
@@ -102,8 +101,10 @@ spec:
           client-secret: @clients.mobile
           authorization: @token
         query:
-          month: @month
-          year: @year
+          month:
+            month_from: @date
+          year:
+            year_from: @date
       as: latest
     - title: Then that event should match that item
       assert:
@@ -173,6 +174,6 @@ spec:
           authorization: @token
           content-type: application/json
         body:
-          starts: @starts
-          ends: @ends
+          starts: @date
+          ends: @date
       as: latest

@@ -10,6 +10,7 @@ spec:
     - places
     - events
     - login
+    - passes
   init:
     baseUrl:
       url: @fullpass
@@ -93,6 +94,17 @@ spec:
         - Given details for the Afrofestival
         - When I create that event
         - Then I should have a 404
+    - title: Should not accept events with an invalid date
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given details for the Afrofestival
+        - Given new, invalid dates for that event
+        - When I create that event
+        - Then I should have a 400
     - title: Should get events by id
       steps:
         - Given the store is empty
@@ -107,8 +119,6 @@ spec:
         - When I get that event
         - Then I should have a 404
     - title: Should upload covers
-      tags:
-        - current
       steps:
         - Given the store is empty
         - Given user Alice
@@ -153,15 +163,15 @@ spec:
         - Given the Afrofestival
         - Given the Auditorium
         - Given the Feeling Festival
-        - Given the month of may
-        - When I look for events for that month
-        - Then I should get one item
-        - Given details for the Feeling Festival
-        - Then that event should match that item
-        - Given the month of october
+        - Given next month
         - When I look for events for that month
         - Then I should get one item
         - Given details for the Afrofestival
+        - Then that event should match that item
+        - Given in two months
+        - When I look for events for that month
+        - Then I should get one item
+        - Given details for the Feeling Festival
         - Then that event should match that item
     - title: Should update an event date
       steps:
@@ -188,4 +198,12 @@ spec:
         - Given I am logged in
         - When I reschedule that event
         - Then I should have a 401
-
+    - title: Should create a fullpass
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a lady full pass

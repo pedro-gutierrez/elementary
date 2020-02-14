@@ -7,6 +7,21 @@ spec:
       headers:
         content-type: application/json
       body: {}
+    created:
+      status: 201
+      headers:
+        content-type: application/json
+      body: {}
+    invalid:
+      status: 400
+      headers:
+        content-type: application/json
+      body: {}
+    unauthorized:
+      status: 401
+      headers:
+        content-type: application/json
+      body: {}
     not_found:
       status: 404
       headers:
@@ -14,16 +29,6 @@ spec:
       body: {}
     conflict:
       status: 409
-      headers:
-        content-type: application/json
-      body: {}
-    created:
-      status: 201
-      headers:
-        content-type: application/json
-      body: {}
-    unauthorized:
-      status: 401
       headers:
         content-type: application/json
       body: {}

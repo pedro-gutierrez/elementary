@@ -16,15 +16,18 @@ defmodule Elementary.Encoder do
   end
 
   def encode(specs, context, encoders) when is_list(specs) do
-    Enum.reduce_while(specs, [], fn spec, acc ->
-      case encode(spec, context, encoders) do
-        {:ok, encoded} ->
-          {:cont, [encoded | acc]}
+    with {:ok, encoded} <-
+           Enum.reduce_while(specs, [], fn spec, acc ->
+             case encode(spec, context, encoders) do
+               {:ok, encoded} ->
+                 {:cont, [encoded | acc]}
 
-        {:error, _} = error ->
-          {:halt, error}
-      end
-    end)
+               {:error, _} = error ->
+                 {:halt, error}
+             end
+           end) do
+      {:ok, Enum.reverse(encoded)}
+    end
     |> result(specs, context)
   end
 
@@ -185,30 +188,58 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"first_day" => date} = spec, context, encoders) do
+    with {:ok, date} <- encode(date, context, encoders) do
+      Elementary.Calendar.first_dom(date)
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"last_day" => date} = spec, context, encoders) do
+    with {:ok, date} <- encode(date, context, encoders) do
+      Elementary.Calendar.last_dom(date)
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"date" => %{"in" => %{"hour" => hour}}} = spec, context, encoders) do
     with {:ok, encoded} <- encode(hour, context, encoders) do
-      {:ok, DateTime.utc_now() |> DateTime.add(3600 * encoded, :second)}
+      {:ok, Elementary.Calendar.time_in(encoded, :hour)}
     end
     |> result(spec, context)
   end
 
   def encode(%{"date" => %{"in" => %{"month" => amount}}} = spec, context, encoders) do
     with {:ok, encoded} <- encode(amount, context, encoders) do
-      {:ok, DateTime.utc_now() |> DateTime.add(3600 * 24 * 30 * encoded, :second)}
+      {:ok, Elementary.Calendar.time_in(encoded, :month)}
     end
     |> result(spec, context)
   end
 
   def encode(%{"date" => fields} = spec, context, encoders) do
     with {:ok, fields} <- encode(fields, context, encoders) do
-      Elementary.Kit.date(fields)
+      Elementary.Calendar.date(fields)
     end
     |> result(spec, context)
   end
 
   def encode(%{"format_date" => fields} = spec, context, encoders) do
     with {:ok, fields} <- encode(fields, context, encoders) do
-      Elementary.Kit.format_date(fields)
+      Elementary.Calendar.format_date(fields)
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"month_from" => date} = spec, context, encoders) do
+    with {:ok, date} <- encode(date, context, encoders) do
+      Elementary.Calendar.month(date)
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"year_from" => date} = spec, context, encoders) do
+    with {:ok, date} <- encode(date, context, encoders) do
+      Elementary.Calendar.year(date)
     end
     |> result(spec, context)
   end

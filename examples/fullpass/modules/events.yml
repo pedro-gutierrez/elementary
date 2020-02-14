@@ -32,6 +32,12 @@ spec:
             any: date
           ends:
             any: date
+      invalid:
+        method: POST
+        headers:
+          content-type: application/json
+        body:
+          any: object
     store:
       created:
         status: created
@@ -59,15 +65,15 @@ spec:
     monthly:
       model:
         minStart:
-          date:
-            day: 1
-            month: @data.query.month
-            year: @data.query.year
+          first_day:
+            date:
+              month: @data.query.month
+              year: @data.query.year
         maxEnd:
-          date:
-            day: 31
-            month: @data.query.month
-            year: @data.query.year
+          last_day:
+            date:
+              month: @data.query.month
+              year: @data.query.year
       cmds:
         store: monthly_events
     create:
@@ -102,6 +108,9 @@ spec:
     not_found:
       cmds:
         return: not_found
+    invalid:
+      cmds:
+        return: invalid
   encoders:
     nearby_places:
       store: @store

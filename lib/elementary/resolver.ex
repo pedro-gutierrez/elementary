@@ -40,12 +40,14 @@ defmodule Elementary.Resolver do
   end
 
   defp resolve(specs, %{"kind" => "test", "spec" => spec0} = spec) do
+    init = spec0["init"] || %{}
     steps = index_steps(spec, %{})
 
-    steps =
-      Enum.reduce(spec0["include"] || [], steps, fn name, index ->
-        included_test = Spec.find!(specs, "test", name)
-        index_steps(included_test, index)
+    {init, steps} =
+      Enum.reduce(spec0["include"] || [], {init, steps}, fn name, {init, steps} ->
+        test_spec = Spec.find!(specs, "test", name)
+        init_spec = test_spec["spec"]["init"] || %{}
+        {Spec.merge(init, init_spec), index_steps(test_spec, steps)}
       end)
 
     scenarios =
@@ -59,7 +61,10 @@ defmodule Elementary.Resolver do
         Map.put(scenario, "steps", resolved)
       end)
 
-    spec0 = Map.put(spec0, "scenarios", scenarios)
+    spec0 =
+      spec0
+      |> Map.put("scenarios", scenarios)
+      |> Map.put("init", init)
 
     Map.put(spec, "spec", spec0)
   end

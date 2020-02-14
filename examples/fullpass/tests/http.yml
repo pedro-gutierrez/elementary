@@ -22,6 +22,10 @@ spec:
       expect:
         status: 401
       in: @latest
+    - title: Then I should have a 400
+      expect:
+        status: 400
+      in: @latest
     - title: Then I should get one item
       item:
         first: @latest.body
