@@ -26,3 +26,18 @@ spec:
           authorization: @token
         body: @pass
       as: latest
+    - title: When I get all passes for that event
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/passes
+        headers:
+          client-id: mobile
+          client-secret: @clients.mobile
+          authorization: @token
+        query:
+          event: @event.id
+      as: latest
+
+

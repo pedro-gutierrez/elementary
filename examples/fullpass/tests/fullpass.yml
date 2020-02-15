@@ -207,3 +207,15 @@ spec:
         - Given the Amaragua
         - Given the Afrofestival
         - Given a lady full pass
+    - title: Should find all passes for a single event
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a lady full pass
+        - When I get all passes for that event
+        - Then I should have a 200
+        - Then I should get one item

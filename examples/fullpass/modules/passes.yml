@@ -3,6 +3,11 @@ name: passes
 spec:
   decoders:
     http:
+      list:
+        method: GET
+        query:
+          event:
+            any: text
       create:
         method: POST
         body:
@@ -31,6 +36,9 @@ spec:
         event:
           id:
             any: text
+      passes:
+        passes:
+          any: list
   update:
     create:
       model:
@@ -40,9 +48,19 @@ spec:
             - owner: @model.user.id
       cmds:
         store: find_event
+    list:
+      model:
+        event: @data.query.event
+      cmds:
+        store: find_passes
     event:
       cmds:
         store: create
+    passes:
+      model:
+        passes: @data.passes
+      cmds:
+        return: passes
     conflict:
       cmds:
         return: conflict
@@ -62,7 +80,19 @@ spec:
         id: @pass.event
       from: events
       as: event
+    find_passes:
+      store: @store
+      find:
+        event: @event
+      from: passes
+      as: passes
     create:
       store: @store
       insert: @pass
       into: passes
+    passes:
+      status: 200
+      headers:
+        content-type: application/json
+      body: @passes
+
