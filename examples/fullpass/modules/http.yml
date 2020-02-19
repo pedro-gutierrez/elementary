@@ -7,6 +7,11 @@ spec:
       headers:
         content-type: application/json
       body: {}
+    data:
+      status: 200
+      headers:
+        content-type: application/json
+      body: @data
     created:
       status: 201
       headers:

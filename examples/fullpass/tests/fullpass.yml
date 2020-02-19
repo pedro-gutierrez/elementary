@@ -173,7 +173,7 @@ spec:
         - Then I should get one item
         - Given details for the Feeling Festival
         - Then that event should match that item
-    - title: Should update an event date
+    - title: Should reschedule events
       steps:
         - Given the store is empty
         - Given user Alice
@@ -219,3 +219,95 @@ spec:
         - When I get all passes for that event
         - Then I should have a 200
         - Then I should get one item
+    - title: Should offer passes
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a lady full pass
+        - Given 50 euros
+        - Given next month
+        - Given I offered that pass
+        - Given 65 euros
+        - Given in two months
+        - Given I offered that pass
+        - Given user Bob
+        - Given I resetted my password
+        - Given I am logged in
+        - When I offer that pass
+        - Then I should have a 401
+    - title: Should withdraw offers
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a lady full pass
+        - Given 50 euros
+        - Given next month
+        - Given I offered that pass
+        - When I withdraw that offer
+        - Then I should have a 200
+    - title: Should not withdraw others offers
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a lady full pass
+        - Given 50 euros
+        - Given next month
+        - Given I offered that pass
+        - Given user Bob
+        - Given I resetted my password
+        - Given I am logged in
+        - When I withdraw that offer
+        - Then I should have a 401
+    - title: Should demand passes
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a lady full pass
+        - Given I demand that pass
+        - When I demand that pass
+        - Then I should have a 200
+    - title: Should withdraw demands
+      tags:
+        - debug
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a lady full pass
+        - Given I demand that pass
+        - When I withdraw that demand
+        - Then I should have a 200
+    - title: Should not withdraw others demands
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a lady full pass
+        - Given I demand that pass
+        - Given user Bob
+        - Given I resetted my password
+        - Given I am logged in
+        - When I withdraw that demand
+        - Then I should have a 401

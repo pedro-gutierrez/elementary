@@ -1,0 +1,13 @@
+kind: app
+name: offers
+spec:
+  settings:
+    - fullpass
+  filters:
+    - client_id
+    - auth
+  modules:
+    - offers
+    - mobile
+    - session
+    - http

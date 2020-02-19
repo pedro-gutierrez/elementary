@@ -27,6 +27,14 @@ spec:
       http: /api/events/:id/cover
     passes:
       http: /api/passes
+    offers:
+      http: /api/offers
+    offer:
+      http: /api/offers/:id
+    demands:
+      http: /api/demands
+    demand:
+      http: /api/demands/:id
     asset:
       http: /api/assets/:id
     store:

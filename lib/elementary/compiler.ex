@@ -310,6 +310,7 @@ defmodule Elementary.Compiler do
     [
       {store_module_name(name),
        quote do
+         alias Mongo.Session
          require Logger
          @name unquote(name)
          @store unquote(registered_name)

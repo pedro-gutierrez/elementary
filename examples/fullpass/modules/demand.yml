@@ -1,0 +1,58 @@
+kind: module
+name: demand
+spec:
+  decoders:
+    http:
+      find:
+        method: DELETE
+        params:
+          id:
+            any: text
+    store:
+      updated:
+        status: updated
+      conflict:
+        status: conflict
+      not_found:
+        status: not_found
+      demand:
+        demand:
+          any: object
+  update:
+    find:
+      model:
+        demand: @data.params.id
+      cmds:
+        store: find
+    demand:
+      model:
+        demand: @data.demand
+      cmds:
+        store: withdraw
+    updated:
+      cmds:
+        return: ok
+    conflict:
+      cmds:
+        return: unauthorized
+    not_found:
+      cmds:
+        return: not_found
+  encoders:
+    find:
+      store: @store
+      fetch:
+        id: @demand
+      from: demands
+      as: demand
+    withdraw:
+      store: @store
+      update:
+        status: withdrawn
+        expires: 0
+        modified:
+          now: {}
+      where:
+        id: @demand.id
+        owner: @user.id
+      into: demands

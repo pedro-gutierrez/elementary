@@ -1,0 +1,65 @@
+kind: module
+name: demands
+spec:
+  decoders:
+    http:
+      find:
+        method: POST
+        body:
+          id:
+            any: text
+          event:
+            any: text
+          kind:
+            any: text
+          genre:
+            any: text
+          expires:
+            any: date
+    store:
+      updated:
+        status: updated
+      conflict:
+        status: conflict
+      not_found:
+        status: not_found
+      event:
+        event:
+          id:
+            any: text
+  update:
+    find:
+      model:
+        demand: @data.body
+      cmds:
+        store: find_event
+    event:
+      cmds:
+        store: update
+    updated:
+      cmds:
+        return: ok
+    not_found:
+      cmds:
+        return: not_found
+  encoders:
+    find_event:
+      store: @store
+      fetch:
+        id: @demand.event
+      from: events
+      as: event
+    update:
+      store: @store
+      update:
+        status: active
+        expires: @demand.expires
+        modified:
+          now: {}
+      where:
+        id: @demand.id
+        owner: @user.id
+        event: @demand.event
+        kind: @demand.kind
+        genre: @demand.genre
+      into: demands

@@ -1,0 +1,81 @@
+kind: module
+name: offers
+spec:
+  decoders:
+    http:
+      find:
+        method: POST
+        body:
+          id:
+            any: text
+          pass:
+            any: text
+          price:
+            any: number
+          currency:
+            one_of:
+              - EUR
+          expires:
+            any: date
+    store:
+      updated:
+        status: updated
+      conflict:
+        status: conflict
+      not_found:
+        status: not_found
+      event:
+        event:
+          id:
+            any: text
+      pass:
+        pass:
+          any: object
+  update:
+    find:
+      model:
+        offer: @data.body
+      cmds:
+        store: find_pass
+    pass:
+      model:
+        pass: @data.pass
+      cmds:
+        store: update
+    updated:
+      cmds:
+        return: ok
+    conflict:
+      cmds:
+        return: unauthorized
+    not_found:
+      cmds:
+        return: not_found
+  encoders:
+    find_pass:
+      store: @store
+      fetch:
+        id: @offer.pass
+      from: passes
+      as: pass
+    update:
+      store: @store
+      update:
+        price: @offer.price
+        currency: @offer.currency
+        expires: @offer.expires
+        status: active
+        modified:
+          now: {}
+      where:
+        id: @offer.id
+        owner: @user.id
+        pass: @pass.id
+        event: @pass.event
+      into: offers
+    passes:
+      status: 200
+      headers:
+        content-type: application/json
+      body: @passes
+

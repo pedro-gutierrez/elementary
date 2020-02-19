@@ -1,6 +1,7 @@
 kind: store
 name: fullpass
 spec:
+  debug: true
   collections:
     places:
       indexes:
@@ -16,3 +17,5 @@ spec:
     tokens: {}
     passwords: {}
     passes: {}
+    offers: {}
+    demands: {}

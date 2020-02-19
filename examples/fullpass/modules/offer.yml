@@ -1,0 +1,58 @@
+kind: module
+name: offer
+spec:
+  decoders:
+    http:
+      find:
+        method: DELETE
+        params:
+          id:
+            any: text
+    store:
+      updated:
+        status: updated
+      conflict:
+        status: conflict
+      not_found:
+        status: not_found
+      offer:
+        offer:
+          any: object
+  update:
+    find:
+      model:
+        offer: @data.params.id
+      cmds:
+        store: find
+    offer:
+      model:
+        offer: @data.offer
+      cmds:
+        store: withdraw
+    updated:
+      cmds:
+        return: ok
+    conflict:
+      cmds:
+        return: unauthorized
+    not_found:
+      cmds:
+        return: not_found
+  encoders:
+    find:
+      store: @store
+      fetch:
+        id: @offer
+      from: offers
+      as: offer
+    withdraw:
+      store: @store
+      update:
+        status: withdrawn
+        expires: 0
+        modified:
+          now: {}
+      where:
+        id: @offer.id
+        owner: @user.id
+      into: offers
