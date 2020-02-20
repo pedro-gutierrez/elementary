@@ -4,6 +4,8 @@ spec:
   decoders:
     http:
       find:
+        method: GET
+      create:
         method: POST
         body:
           id:
@@ -31,8 +33,14 @@ spec:
       pass:
         pass:
           any: object
+      offers:
+        offers:
+          any: list
   update:
     find:
+      cmds:
+        store: find_offers
+    create:
       model:
         offer: @data.body
       cmds:
@@ -42,6 +50,11 @@ spec:
         pass: @data.pass
       cmds:
         store: update
+    offers:
+      model:
+        offers: @data.offers
+      cmds:
+        return: offers
     updated:
       cmds:
         return: ok
@@ -52,6 +65,12 @@ spec:
       cmds:
         return: not_found
   encoders:
+    find_offers:
+      store: @store
+      find:
+        owner: @user.id
+      from: offers
+      as: offers
     find_pass:
       store: @store
       fetch:
@@ -73,9 +92,9 @@ spec:
         pass: @pass.id
         event: @pass.event
       into: offers
-    passes:
+    offers:
       status: 200
       headers:
         content-type: application/json
-      body: @passes
+      body: @offers
 

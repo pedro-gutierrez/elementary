@@ -11,6 +11,8 @@ spec:
     - events
     - login
     - passes
+    - offers
+    - demands
   init:
     baseUrl:
       url: @fullpass
@@ -144,13 +146,13 @@ spec:
         - Given I am in Torremolinos
         - When I look for events nearby
         - Then I should have a 200
-        - Then I should get one item
+        - Then I should have one item
         - Given details for the Afrofestival
         - Then that event should match that item
         - Given I am in Madrid
         - When I look for events nearby
         - Then I should have a 200
-        - Then I should get one item
+        - Then I should have one item
         - Given details for the Feeling Festival
         - Then that event should match that item
     - title: Should return events for a given month
@@ -165,12 +167,12 @@ spec:
         - Given the Feeling Festival
         - Given next month
         - When I look for events for that month
-        - Then I should get one item
+        - Then I should have one item
         - Given details for the Afrofestival
         - Then that event should match that item
         - Given in two months
         - When I look for events for that month
-        - Then I should get one item
+        - Then I should have one item
         - Given details for the Feeling Festival
         - Then that event should match that item
     - title: Should reschedule events
@@ -218,7 +220,7 @@ spec:
         - Given a lady full pass
         - When I get all passes for that event
         - Then I should have a 200
-        - Then I should get one item
+        - Then I should have one item
     - title: Should offer passes
       steps:
         - Given the store is empty
@@ -270,6 +272,27 @@ spec:
         - Given I am logged in
         - When I withdraw that offer
         - Then I should have a 401
+    - title: Should return owned offers
+      tags:
+        - debug
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a lady full pass
+        - Given 50 euros
+        - Given next month
+        - Given I offered that pass
+        - Given a men full pass
+        - Given 40 euros
+        - Given next month
+        - Given I offered that pass
+        - When I get my offers
+        - Then I should have a 200
+        - Then I should have two items
     - title: Should demand passes
       steps:
         - Given the store is empty
@@ -283,8 +306,6 @@ spec:
         - When I demand that pass
         - Then I should have a 200
     - title: Should withdraw demands
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given user Alice

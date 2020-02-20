@@ -1,0 +1,53 @@
+kind: test
+name: demands
+spec:
+  steps:
+    - title: Given I demand that pass
+      steps:
+        - Given a demand for that pass
+        - When I demand that pass
+        - Then I should have a 200
+    - title: Given a demand for that pass
+      demand:
+        id:
+          uuid: {}
+        event: @event.id
+        kind: @pass.kind
+        genre: @pass.genre
+        expires: @date
+    - title: When I demand that pass
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/demands
+        headers:
+          content-type: application/json
+          client-id: mobile
+          client-secret: @clients.mobile
+          authorization: @token
+        body: @demand
+      as: latest
+    - title: When I get my demands
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/demands
+        headers:
+          client-id: mobile
+          client-secret: @clients.mobile
+          authorization: @token
+      as: latest
+    - title: When I withdraw that demand
+      http:
+        method: delete
+        url:
+          - @baseUrl
+          - /api/demands/
+          - @demand.id
+        headers:
+          client-id: mobile
+          client-secret: @clients.mobile
+          authorization: @token
+      as: latest

@@ -6,6 +6,8 @@ spec:
   steps:
     - title: Given 50 euros
       price: 50
+    - title: Given 40 euros
+      price: 40
     - title: Given 65 euros
       price: 65
     - title: Given a lady full pass
@@ -13,38 +15,25 @@ spec:
         - Given details for a lady full pass
         - When I create that pass
         - Then I should have a 201
-    - title: Given I offered that pass
+    - title: Given a men full pass
       steps:
-        - Given an offer for that pass
-        - When I offer that pass
-        - Then I should have a 200
-    - title: Given I demand that pass
-      steps:
-        - Given a demand for that pass
-        - When I demand that pass
-        - Then I should have a 200
+        - Given details for a men full pass
+        - When I create that pass
+        - Then I should have a 201
     - title: Given details for a lady full pass
       pass:
-        id: 65460eb4
+        id:
+          uuid: {}
         event: @event.id
         kind: full
         genre: women
-    - title: Given an offer for that pass
-      offer:
-        id:
-          uuid: {}
-        pass: @pass.id
-        currency: @currency
-        price: @price
-        expires: @date
-    - title: Given a demand for that pass
-      demand:
+    - title: Given details for a men full pass
+      pass:
         id:
           uuid: {}
         event: @event.id
-        kind: @pass.kind
-        genre: @pass.genre
-        expires: @date
+        kind: full
+        genre: men
     - title: When I create that pass
       http:
         method: post
@@ -70,54 +59,4 @@ spec:
           authorization: @token
         query:
           event: @event.id
-      as: latest
-    - title: When I offer that pass
-      http:
-        method: post
-        url:
-          - @baseUrl
-          - /api/offers
-        headers:
-          content-type: application/json
-          client-id: mobile
-          client-secret: @clients.mobile
-          authorization: @token
-        body: @offer
-      as: latest
-    - title: When I withdraw that offer
-      http:
-        method: delete
-        url:
-          - @baseUrl
-          - /api/offers/
-          - @offer.id
-        headers:
-          client-id: mobile
-          client-secret: @clients.mobile
-          authorization: @token
-      as: latest
-    - title: When I demand that pass
-      http:
-        method: post
-        url:
-          - @baseUrl
-          - /api/demands
-        headers:
-          content-type: application/json
-          client-id: mobile
-          client-secret: @clients.mobile
-          authorization: @token
-        body: @demand
-      as: latest
-    - title: When I withdraw that demand
-      http:
-        method: delete
-        url:
-          - @baseUrl
-          - /api/demands/
-          - @demand.id
-        headers:
-          client-id: mobile
-          client-secret: @clients.mobile
-          authorization: @token
       as: latest

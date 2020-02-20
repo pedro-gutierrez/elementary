@@ -1,0 +1,53 @@
+kind: test
+name: offers
+spec:
+  steps:
+    - title: Given I offered that pass
+      steps:
+        - Given an offer for that pass
+        - When I offer that pass
+        - Then I should have a 200
+    - title: Given an offer for that pass
+      offer:
+        id:
+          uuid: {}
+        pass: @pass.id
+        currency: @currency
+        price: @price
+        expires: @date
+    - title: When I offer that pass
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/offers
+        headers:
+          content-type: application/json
+          client-id: mobile
+          client-secret: @clients.mobile
+          authorization: @token
+        body: @offer
+      as: latest
+    - title: When I get my offers
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/offers
+        headers:
+          client-id: mobile
+          client-secret: @clients.mobile
+          authorization: @token
+      as: latest
+    - title: When I withdraw that offer
+      http:
+        method: delete
+        url:
+          - @baseUrl
+          - /api/offers/
+          - @offer.id
+        headers:
+          client-id: mobile
+          client-secret: @clients.mobile
+          authorization: @token
+      as: latest

@@ -141,6 +141,14 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"item" => index, "in" => items} = spec, context, encoders) do
+    with {:ok, index} <- encode(index, context, encoders),
+         {:ok, items} <- encode(items, context, encoders) do
+      Enum.fetch(items, index)
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"equal" => exprs} = spec, context, encoders) do
     with {:ok, encoded} <- encode_specs(exprs, context, encoders) do
       {:ok, all_equal?(encoded)}
@@ -311,8 +319,14 @@ defmodule Elementary.Encoder do
   def encode(%{"expect" => expr, "in" => key} = spec, context, encoders) do
     with {:ok, encoded} <- encode(key, context, encoders) do
       case Elementary.Decoder.decode(expr, encoded, context) do
-        {:ok, _} ->
-          {:ok, true}
+        {:ok, decoded} ->
+          case Map.get(spec, "where", nil) do
+            nil ->
+              {:ok, true}
+
+            where ->
+              encode(where, decoded, encoders)
+          end
 
         other ->
           {:error, %{"error" => "expect", "actual" => other, "expected" => expr}}

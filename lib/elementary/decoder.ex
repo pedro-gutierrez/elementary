@@ -86,6 +86,19 @@ defmodule Elementary.Decoder do
     end
   end
 
+  def decode(%{"list" => %{"size" => size}} = spec, data, context) when is_list(data) do
+    with {:ok, size} <- encode(size, context) do
+      case length(data) == size do
+        true ->
+          {:ok, data}
+
+        false ->
+          decode_error(spec, data)
+      end
+    end
+    |> result(spec)
+  end
+
   def decode(%{"one_of" => options} = spec, data, context) do
     with {:ok, options} when is_list(options) <- encode(options, context) do
       case Enum.member?(options, data) do

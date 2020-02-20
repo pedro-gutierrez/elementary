@@ -26,6 +26,23 @@ spec:
       expect:
         status: 400
       in: @latest
-    - title: Then I should get one item
-      item:
-        first: @latest.body
+    - title: Then I should have one item
+      expect:
+        list:
+          size: 1
+      in: @latest.body
+      where:
+        item:
+          first: @
+    - title: Then I should have two items
+      expect:
+        list:
+          size: 2
+      in: @latest.body
+      where:
+        items:
+
+          - item: 0
+            in: @
+          - item: 1
+            in: @
