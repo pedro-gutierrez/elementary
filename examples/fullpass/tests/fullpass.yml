@@ -332,3 +332,20 @@ spec:
         - Given I am logged in
         - When I withdraw that demand
         - Then I should have a 401
+    - title: Should return owned demands
+      tags:
+        - debug
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a lady full pass
+        - Given I demand that pass
+        - Given a men full pass
+        - Given I demand that pass
+        - When I get my demands
+        - Then I should have a 200
+        - Then I should have two items

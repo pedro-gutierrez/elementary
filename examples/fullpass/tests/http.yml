@@ -41,7 +41,6 @@ spec:
       in: @latest.body
       where:
         items:
-
           - item: 0
             in: @
           - item: 1

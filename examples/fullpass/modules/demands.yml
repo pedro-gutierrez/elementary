@@ -4,6 +4,8 @@ spec:
   decoders:
     http:
       find:
+        method: GET
+      create:
         method: POST
         body:
           id:
@@ -27,8 +29,14 @@ spec:
         event:
           id:
             any: text
+      demands:
+        demands:
+          any: list
   update:
     find:
+      cmds:
+        store: find_demands
+    create:
       model:
         demand: @data.body
       cmds:
@@ -42,7 +50,18 @@ spec:
     not_found:
       cmds:
         return: not_found
+    demands:
+      model:
+        demands: @data.demands
+      cmds:
+        return: demands
   encoders:
+    find_demands:
+      store: @store
+      find:
+        owner: @user.id
+      from: demands
+      as: demands
     find_event:
       store: @store
       fetch:
@@ -63,3 +82,8 @@ spec:
         kind: @demand.kind
         genre: @demand.genre
       into: demands
+    demands:
+      status: 200
+      headers:
+        content-type: application/json
+      body: @demands
