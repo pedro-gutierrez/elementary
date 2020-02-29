@@ -628,7 +628,8 @@ defmodule Elementary.Compiler do
               report: %{
                 total: length(scenarios),
                 passed: 0,
-                failed: 0
+                failed: 0,
+                failures: []
               }
             }, {:continue, :scenario}}
          end
@@ -662,7 +663,7 @@ defmodule Elementary.Compiler do
                report
              )
 
-           msg = "Finished: #{inspect(report)}"
+           msg = "#{inspect(report, pretty: true)}"
 
            case report.failed do
              0 -> Logger.info(msg)
@@ -702,12 +703,21 @@ defmodule Elementary.Compiler do
 
              {:error, %{context: context, error: e}} ->
                scenario = Map.put(scenario, "steps", [])
-               report = %{report | failed: report.failed + 1}
+               failures = report.failures
+               report = %{report | failures: [title | failures], failed: report.failed + 1}
 
                Logger.error(
-                 "Step \n\n   \"#{current["title"]}\"\n\nin\n\n   \"#{title}\"\n\nfailed.\n\nError:\n\n   #{
-                   inspect(e)
-                 }\n\nContext:\n\n   #{inspect(context)}"
+                 "#{
+                   inspect(
+                     %{
+                       step: current["title"],
+                       scenario: title,
+                       error: e,
+                       context: context
+                     },
+                     pretty: true
+                   )
+                 }"
                )
 
                {:noreply, %{state | report: report, step: nil, scenario: scenario},

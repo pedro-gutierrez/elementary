@@ -133,7 +133,7 @@ spec:
         id: "unknown"
     - title: Given a cover
       cover:
-        asset: cover.jpg
+        file: cover.jpg
     - title: When I set that event cover
       http:
         method: post

@@ -1,5 +1,5 @@
 kind: module
-name: asset
+name: file
 spec:
   decoders:
     http:
@@ -18,9 +18,9 @@ spec:
   update:
     get:
       model:
-        asset: @data.params.id
+        file: @data.params.id
       cmds:
-        asset: named
+        file: named
     data:
       model:
         data: @data.data
@@ -31,7 +31,7 @@ spec:
         return: not_found
   encoders:
     named:
-      named: @asset
+      named: @file
     asset:
       status: 200
       body: @data

@@ -1,11 +1,13 @@
 kind: app
-name: asset
+name: assets
 spec:
   settings:
     - fullpass
   filters:
     - client_id
+    - auth
   modules:
-    - asset
+    - assets
     - mobile
+    - session
     - http

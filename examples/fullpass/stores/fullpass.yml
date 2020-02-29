@@ -1,6 +1,7 @@
 kind: store
 name: fullpass
 spec:
+  debug: true
   collections:
     places:
       indexes:
@@ -15,18 +16,11 @@ spec:
     covers: {}
     tokens: {}
     passwords: {}
-    passes: {}
+    assets: {}
     offers: {}
     demands: {}
-    alerts:
-      indexes:
-        - unique:
-            - pass
-            - owner
     transactions:
       indexes:
         - unique:
             - offer
             - demand
-            - owner
-            - peer

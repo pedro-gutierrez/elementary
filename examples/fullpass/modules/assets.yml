@@ -1,5 +1,5 @@
 kind: module
-name: passes
+name: assets
 spec:
   decoders:
     http:
@@ -24,7 +24,6 @@ spec:
             one_of:
               - men
               - women
-              - couple
     store:
       created:
         status: created
@@ -36,13 +35,13 @@ spec:
         event:
           id:
             any: text
-      passes:
-        passes:
+      assets:
+        assets:
           any: list
   update:
     create:
       model:
-        pass:
+        asset:
           merge:
             - @data.body
             - owner: @model.user.id
@@ -52,15 +51,15 @@ spec:
       model:
         event: @data.query.event
       cmds:
-        store: find_passes
+        store: find_assets
     event:
       cmds:
         store: create
-    passes:
+    assets:
       model:
-        passes: @data.passes
+        assets: @data.assets
       cmds:
-        return: passes
+        return: assets
     conflict:
       cmds:
         return: conflict
@@ -77,22 +76,22 @@ spec:
     find_event:
       store: @store
       fetch:
-        id: @pass.event
+        id: @asset.event
       from: events
       as: event
-    find_passes:
+    find_assets:
       store: @store
       find:
         event: @event
-      from: passes
-      as: passes
+      from: assets
+      as: assets
     create:
       store: @store
-      insert: @pass
-      into: passes
-    passes:
+      insert: @asset
+      into: assets
+    assets:
       status: 200
       headers:
         content-type: application/json
-      body: @passes
+      body: @assets
 

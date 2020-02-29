@@ -10,7 +10,7 @@ spec:
         body:
           id:
             any: text
-          pass:
+          asset:
             any: text
           price:
             any: number
@@ -30,8 +30,8 @@ spec:
         event:
           id:
             any: text
-      pass:
-        pass:
+      asset:
+        asset:
           any: object
       offers:
         offers:
@@ -44,10 +44,10 @@ spec:
       model:
         offer: @data.body
       cmds:
-        store: find_pass
-    pass:
+        store: find_asset
+    asset:
       model:
-        pass: @data.pass
+        asset: @data.asset
       cmds:
         store: update
     offers:
@@ -71,12 +71,12 @@ spec:
         owner: @user.id
       from: offers
       as: offers
-    find_pass:
+    find_asset:
       store: @store
       fetch:
-        id: @offer.pass
-      from: passes
-      as: pass
+        id: @offer.asset
+      from: assets
+      as: asset
     update:
       store: @store
       update:
@@ -89,14 +89,13 @@ spec:
       where:
         id: @offer.id
         owner: @user.id
-        kind: @pass.kind
-        genre: @pass.genre
-        pass: @pass.id
-        event: @pass.event
+        kind: @asset.kind
+        genre: @asset.genre
+        asset: @asset.id
+        event: @asset.event
       into: offers
     offers:
       status: 200
       headers:
         content-type: application/json
       body: @offers
-

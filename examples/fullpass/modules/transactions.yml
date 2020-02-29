@@ -61,6 +61,9 @@ spec:
         id: @demand
         expires:
           $gt: @minExpire
+        genre: @offer.genre
+        kind: @offer.kind
+        event: @offer.event
       from: demands
       as: demand
     find_offer:
@@ -77,6 +80,8 @@ spec:
         id: @id
         demand: @demand.id
         offer: @offer.id
+        created:
+          now: {}
         owner: @user.id
         peer:
           either:

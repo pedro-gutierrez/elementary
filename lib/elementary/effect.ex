@@ -7,7 +7,7 @@ defmodule Elementary.Effect do
     {:ok, %{"uuid" => UUID.uuid4()}}
   end
 
-  def apply("asset", %{"named" => name}) do
+  def apply("file", %{"named" => name}) do
     case Elementary.Encoder.encode(name) do
       {:ok, file} ->
         {:ok, Map.put(file, "status", "ok")}

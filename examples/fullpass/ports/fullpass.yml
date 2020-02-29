@@ -25,8 +25,8 @@ spec:
       http: /api/events/:id
     cover:
       http: /api/events/:id/cover
-    passes:
-      http: /api/passes
+    assets:
+      http: /api/assets
     offers:
       http: /api/offers
     offer:
@@ -39,8 +39,8 @@ spec:
       http: /api/alerts
     transactions:
       http: /api/transactions
-    asset:
-      http: /api/assets/:id
+    file:
+      http: /api/files/:id
     store:
       http: /api/stores/:name
     test:

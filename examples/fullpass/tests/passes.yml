@@ -39,7 +39,7 @@ spec:
         method: post
         url:
           - @baseUrl
-          - /api/passes
+          - /api/assets
         headers:
           content-type: application/json
           client-id: mobile
@@ -52,7 +52,7 @@ spec:
         method: get
         url:
           - @baseUrl
-          - /api/passes
+          - /api/assets
         headers:
           client-id: mobile
           client-secret: @clients.mobile

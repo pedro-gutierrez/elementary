@@ -2,7 +2,7 @@ kind: test
 name: demands
 spec:
   steps:
-    - title: Given I demand that pass
+    - title: Given I demanded that pass
       steps:
         - Given a demand for that pass
         - When I demand that pass

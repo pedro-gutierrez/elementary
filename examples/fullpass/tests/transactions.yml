@@ -4,17 +4,16 @@ spec:
   steps:
     - title: Given a transaction
       steps:
-        - Given a transaction details
-        - When I create a transaction
+        - Given a new transaction details
+        - When I create that transaction
         - Then I should have a 201
-    - title: Given a transaction details
+    - title: Given a new transaction details
       transaction:
         id:
           uuid: {}
         offer: @offer.id
         demand: @demand.id
-
-    - title: When I create a transaction
+    - title: When I create that transaction
       http:
         method: post
         url:

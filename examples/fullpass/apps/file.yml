@@ -1,13 +1,11 @@
 kind: app
-name: passes
+name: file
 spec:
   settings:
     - fullpass
   filters:
     - client_id
-    - auth
   modules:
-    - passes
+    - file
     - mobile
-    - session
     - http

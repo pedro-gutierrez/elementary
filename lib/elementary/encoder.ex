@@ -371,7 +371,7 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
-  def encode(%{"asset" => path} = spec, context, encoders) do
+  def encode(%{"file" => path} = spec, context, encoders) do
     with {:ok, encoded} <- encode(path, context, encoders) do
       path = "#{Elementary.Kit.assets()}/#{encoded}"
 

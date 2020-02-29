@@ -15,7 +15,7 @@ spec:
       offer:
         id:
           uuid: {}
-        pass: @pass.id
+        asset: @pass.id
         currency: @currency
         price: @price
         expires: @date
