@@ -1,0 +1,121 @@
+kind: module
+name: alerts
+spec:
+  decoders:
+    http:
+      find:
+        method: GET
+    store:
+      alerts:
+        alerts:
+          any: list
+      no_demands:
+        demands:
+          empty: list
+      demands:
+        demands:
+          non_empty: list
+      no_offers:
+        offers:
+          empty: list
+      offers:
+        offers:
+          any: list
+      matching_offers:
+        matching_offers:
+          any: list
+      matching_demands:
+        matching_demands:
+          any: list
+  update:
+    find:
+      model:
+        minExpire:
+          today: {}
+      cmds:
+        store: find_my_demands
+    no_demands:
+      model:
+        matching_offers: []
+      cmds:
+        store: find_my_offers
+    demands:
+      model:
+        demands: @data.demands
+      cmds:
+        store: find_matching_offers
+    matching_offers:
+      model:
+        matching_offers: @data.matching_offers
+      cmds:
+        store: find_my_offers
+    no_offers:
+      model:
+        matching_demands: []
+      cmds:
+        return: alerts
+    offers:
+      model:
+        offers: @data.offers
+      cmds:
+        store: find_matching_demands
+    matching_demands:
+      model:
+        matching_demands: @data.matching_demands
+      cmds:
+        return: alerts
+  encoders:
+    find_my_demands:
+      store: @store
+      find:
+        owner: @user.id
+        status: active
+        expires:
+          $gt: @minExpire
+      from: demands
+      as: demands
+    find_my_offers:
+      store: @store
+      find:
+        owner: @user.id
+        status: active
+        expires:
+          $gt: @minExpire
+      from: offers
+      as: offers
+    find_matching_offers:
+      store: @store
+      find:
+        status: active
+        expires:
+          $gt: @minExpire
+        $or:
+          map: @demands
+          with:
+            event: @event
+            kind: @kind
+            genre: @genre
+      from: offers
+      as: matching_offers
+    find_matching_demands:
+      store: @store
+      find:
+        status: active
+        expires:
+          $gt: @minExpire
+        $or:
+          map: @offers
+          with:
+            event: @event
+            kind: @kind
+            genre: @genre
+      from: demands
+      as: matching_demands
+    alerts:
+      status: 200
+      headers:
+        content-type: application/json
+      body:
+        merge:
+          - @matching_demands
+          - @matching_offers

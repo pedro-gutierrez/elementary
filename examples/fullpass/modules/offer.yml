@@ -3,11 +3,19 @@ name: offer
 spec:
   decoders:
     http:
-      find:
+      find_to_withdraw:
         method: DELETE
         params:
           id:
             any: text
+      find_to_expire:
+        method: PUT
+        params:
+          id:
+            any: text
+        body:
+          expires:
+            any: number
     store:
       updated:
         status: updated
@@ -19,16 +27,24 @@ spec:
         offer:
           any: object
   update:
-    find:
+    find_to_withdraw:
       model:
+        context: withdraw
         offer: @data.params.id
+      cmds:
+        store: find
+    find_to_expire:
+      model:
+        context: expire
+        offer: @data.params.id
+        expires: @data.body.expires
       cmds:
         store: find
     offer:
       model:
         offer: @data.offer
       cmds:
-        store: withdraw
+        store: @model.context
     updated:
       cmds:
         return: ok
@@ -50,6 +66,16 @@ spec:
       update:
         status: withdrawn
         expires: 0
+        modified:
+          now: {}
+      where:
+        id: @offer.id
+        owner: @user.id
+      into: offers
+    expire:
+      store: @store
+      update:
+        expires: @expires
         modified:
           now: {}
       where:

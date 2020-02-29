@@ -7,6 +7,10 @@ spec:
         - Given a demand for that pass
         - When I demand that pass
         - Then I should have a 200
+    - title: Given I expired that demand
+      steps:
+        - When I expire that demand
+        - Then I should have a 200
     - title: Given a demand for that pass
       demand:
         id:
@@ -50,4 +54,19 @@ spec:
           client-id: mobile
           client-secret: @clients.mobile
           authorization: @token
+      as: latest
+    - title: When I expire that demand
+      http:
+        method: put
+        url:
+          - @baseUrl
+          - /api/demands/
+          - @demand.id
+        headers:
+          client-id: mobile
+          client-secret: @clients.mobile
+          authorization: @token
+          content-type: application/json
+        body:
+          expires: 0
       as: latest

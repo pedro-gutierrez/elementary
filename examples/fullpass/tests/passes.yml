@@ -25,14 +25,14 @@ spec:
         id:
           uuid: {}
         event: @event.id
-        kind: full
+        kind: fullpass
         genre: women
     - title: Given details for a men full pass
       pass:
         id:
           uuid: {}
         event: @event.id
-        kind: full
+        kind: fullpass
         genre: men
     - title: When I create that pass
       http:

@@ -10,9 +10,14 @@ defmodule Elementary.Spec do
   def all() do
     files()
     |> Enum.map(fn yaml ->
-      {:ok, content} = Kit.read_yaml(yaml)
-      content = Map.put(content, "source", yaml)
-      Map.put_new(content, "version", "1")
+      case Kit.read_yaml(yaml) do
+        {:ok, content} ->
+          content = Map.put(content, "source", yaml)
+          Map.put_new(content, "version", "1")
+
+        {:error, e} ->
+          raise "Error reading YAML: #{yaml}: #{inspect(e)}"
+      end
     end)
     |> Enum.reduce(%{}, fn spec, index ->
       put(index, spec)

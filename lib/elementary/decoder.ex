@@ -86,6 +86,14 @@ defmodule Elementary.Decoder do
     end
   end
 
+  def decode(%{"empty" => "list"}, [], _) do
+    {:ok, []}
+  end
+
+  def decode(%{"non_empty" => "list"}, [_ | _] = data, _) do
+    {:ok, data}
+  end
+
   def decode(%{"list" => %{"size" => size}} = spec, data, context) when is_list(data) do
     with {:ok, size} <- encode(size, context) do
       case length(data) == size do

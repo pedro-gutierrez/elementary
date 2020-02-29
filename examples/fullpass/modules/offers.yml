@@ -89,6 +89,8 @@ spec:
       where:
         id: @offer.id
         owner: @user.id
+        kind: @pass.kind
+        genre: @pass.genre
         pass: @pass.id
         event: @pass.event
       into: offers

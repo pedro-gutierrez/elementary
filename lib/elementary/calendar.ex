@@ -1,22 +1,27 @@
 defmodule Elementary.Calendar do
   @moduledoc false
 
+  def today() do
+    date = DateTime.utc_now()
+
+    {:ok,
+     %{
+       date
+       | hour: 0,
+         minute: 0,
+         second: 0,
+         time_zone: "Europe/London",
+         zone_abbr: "UTC",
+         std_offset: 0,
+         utc_offset: 0
+     }}
+  end
+
   def date(%DateTime{} = date), do: {:ok, date}
 
   def date(%{"day" => day, "month" => month, "year" => year}) do
-    {:ok,
-     %DateTime{
-       year: year,
-       month: month,
-       day: day,
-       hour: 0,
-       minute: 0,
-       second: 0,
-       time_zone: "Europe/London",
-       zone_abbr: "UTC",
-       std_offset: 0,
-       utc_offset: 0
-     }}
+    {:ok, date} = today()
+    {:ok, %{date | year: year, month: month, day: day}}
   end
 
   def date(%{"month" => _, "year" => _} = spec) do

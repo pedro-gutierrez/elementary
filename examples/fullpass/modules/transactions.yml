@@ -1,0 +1,89 @@
+kind: module
+name: transactions
+spec:
+  decoders:
+    http:
+      create:
+        method: POST
+        body:
+          id:
+            any: text
+          offer:
+            any: text
+          demand:
+            any: text
+    store:
+      not_found:
+        status: not_found
+      conflict:
+        status: conflict
+      created:
+        status: created
+      offer:
+        offer:
+          any: object
+      demand:
+        demand:
+          any: object
+  update:
+    create:
+      model:
+        id: @data.body.id
+        minExpire:
+          today: {}
+        offer: @data.body.offer
+        demand: @data.body.demand
+      cmds:
+        store: find_offer
+    offer:
+      model:
+        offer: @data.offer
+      cmds:
+        store: find_demand
+    demand:
+      model:
+        demand: @data.demand
+      cmds:
+        store: create
+    not_found:
+      cmds:
+        return: not_found
+    conflict:
+      cmds:
+        return: conflict
+    created:
+      cmds:
+        return: created
+  encoders:
+    find_demand:
+      store: @store
+      fetch:
+        id: @demand
+        expires:
+          $gt: @minExpire
+      from: demands
+      as: demand
+    find_offer:
+      store: @store
+      fetch:
+        id: @offer
+        expires:
+          $gt: @minExpire
+      from: offers
+      as: offer
+    create:
+      store: @store
+      insert:
+        id: @id
+        demand: @demand.id
+        offer: @offer.id
+        owner: @user.id
+        peer:
+          either:
+            - when:
+                equal:
+                  - @demand.owner
+                  - @user.id
+              then: @offer.owner
+            - @demand.owner
+      into: transactions

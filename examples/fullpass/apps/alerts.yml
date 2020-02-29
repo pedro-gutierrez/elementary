@@ -1,0 +1,13 @@
+kind: app
+name: alerts
+spec:
+  settings:
+    - fullpass
+  filters:
+    - client_id
+    - auth
+  modules:
+    - alerts
+    - mobile
+    - session
+    - http

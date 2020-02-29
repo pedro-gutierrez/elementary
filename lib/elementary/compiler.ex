@@ -304,7 +304,6 @@ defmodule Elementary.Compiler do
     url = Elementary.Kit.mongo_url(Map.merge(%{"db" => name}, spec))
 
     collections = spec["collections"]
-    indices = spec["indices"]
     debug = spec["debug"] == true
 
     [
@@ -316,7 +315,6 @@ defmodule Elementary.Compiler do
          @store unquote(registered_name)
          @url unquote(url)
          @pool unquote(pool)
-         @indices unquote(Macro.escape(indices))
          @collections unquote(Macro.escape(collections))
          @debug unquote(debug)
 
@@ -433,10 +431,14 @@ defmodule Elementary.Compiler do
          def ensure_indexes(col, indices) do
            Enum.map(indices, fn
              %{"unique" => field} when is_binary(field) ->
-               {field, [unique: true, key: [{field, 1}]]}
+               {"_#{field}_", [unique: true, key: [{field, 1}]]}
+
+             %{"unique" => fields} when is_list(fields) ->
+               {Enum.join([""] ++ fields ++ [""], "_"),
+                [unique: true, key: Enum.map(fields, fn f -> {f, 1} end)]}
 
              %{"geo" => field} ->
-               {field, [key: %{field => "2dsphere"}]}
+               {"_#{field}_", [key: %{field => "2dsphere"}]}
            end)
            |> Enum.each(fn {name, opts} = spec ->
              case ensure_index(col, name, opts) do

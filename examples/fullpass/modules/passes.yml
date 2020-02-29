@@ -17,9 +17,9 @@ spec:
             any: text
           kind:
             one_of:
-              - full
-              - party
-              - day
+              - fullpass
+              - partypass
+              - daypass
           genre:
             one_of:
               - men

@@ -74,9 +74,38 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"either" => clauses} = spec, context, encoders) do
+    with nil <-
+           Enum.reduce_while(clauses, nil, fn clause, _ ->
+             case encode(clause, context, encoders) do
+               {:ok, _} = res ->
+                 {:halt, res}
+
+               {:error, _} ->
+                 {:cont, nil}
+             end
+           end) do
+      {:error, %{"error" => "no_clause_applies", "spec" => spec}}
+    end
+  end
+
+  def encode(%{"when" => condition, "then" => then} = spec, context, encoders) do
+    case encode(condition, context, encoders) do
+      {:ok, true} ->
+        encode(then, context, encoders)
+
+      {:ok, false} ->
+        {:error, :failed_condition}
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"map" => expr, "with" => encoder} = spec, context, encoders) do
     with {:ok, data} <- encode(expr, context, encoders) do
       case data do
+        [] ->
+          {:ok, []}
+
         [_ | _] ->
           encode_items(encoder, data, encoders)
 
@@ -96,6 +125,9 @@ defmodule Elementary.Encoder do
 
   def encode(%{"merge" => items} = spec, context, encoders) do
     case encode(items, context, encoders) do
+      {:ok, []} ->
+        {:ok, []}
+
       {:ok, [first | _] = items} when is_map(first) ->
         {:ok,
          Enum.reduce(items, %{}, fn item, acc ->
@@ -208,6 +240,10 @@ defmodule Elementary.Encoder do
       Elementary.Calendar.last_dom(date)
     end
     |> result(spec, context)
+  end
+
+  def encode(%{"today" => _}, _, _) do
+    {:ok, Elementary.Calendar.today()}
   end
 
   def encode(%{"date" => %{"in" => %{"hour" => hour}}} = spec, context, encoders) do

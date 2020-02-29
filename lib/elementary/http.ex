@@ -56,7 +56,8 @@ defmodule Elementary.Http do
           resp = encoded_error(e)
           reply(req, app, start, resp)
 
-        {:ok, _} ->
+        {:ok, other} ->
+          Logger.error("invalid http response: #{inspect(other)}")
           resp = encoded_error("invalid_response")
           reply(req, app, start, resp)
 

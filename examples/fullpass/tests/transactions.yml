@@ -1,0 +1,29 @@
+kind: test
+name: transactions
+spec:
+  steps:
+    - title: Given a transaction
+      steps:
+        - Given a transaction details
+        - When I create a transaction
+        - Then I should have a 201
+    - title: Given a transaction details
+      transaction:
+        id:
+          uuid: {}
+        offer: @offer.id
+        demand: @demand.id
+
+    - title: When I create a transaction
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/transactions
+        headers:
+          client-id: mobile
+          client-secret: @clients.mobile
+          authorization: @token
+          content-type: application/json
+        body: @transaction
+      as: latest

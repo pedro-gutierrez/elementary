@@ -35,6 +35,10 @@ spec:
       http: /api/demands
     demand:
       http: /api/demands/:id
+    alerts:
+      http: /api/alerts
+    transactions:
+      http: /api/transactions
     asset:
       http: /api/assets/:id
     store:

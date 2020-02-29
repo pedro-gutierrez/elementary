@@ -7,6 +7,10 @@ spec:
         - Given an offer for that pass
         - When I offer that pass
         - Then I should have a 200
+    - title: Given I expired that offer
+      steps:
+        - When I expire that offer
+        - Then I should have a 200
     - title: Given an offer for that pass
       offer:
         id:
@@ -50,4 +54,19 @@ spec:
           client-id: mobile
           client-secret: @clients.mobile
           authorization: @token
+      as: latest
+    - title: When I expire that offer
+      http:
+        method: put
+        url:
+          - @baseUrl
+          - /api/offers/
+          - @offer.id
+        headers:
+          client-id: mobile
+          client-secret: @clients.mobile
+          authorization: @token
+          content-type: application/json
+        body:
+          expires: 0
       as: latest

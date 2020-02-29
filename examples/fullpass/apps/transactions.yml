@@ -1,0 +1,13 @@
+kind: app
+name: transactions
+spec:
+  settings:
+    - fullpass
+  filters:
+    - client_id
+    - auth
+  modules:
+    - transactions
+    - mobile
+    - session
+    - http

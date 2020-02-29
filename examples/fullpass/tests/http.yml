@@ -26,6 +26,11 @@ spec:
       expect:
         status: 400
       in: @latest
+    - title: Then I should not have any items
+      expect:
+        list:
+          size: 0
+      in: @latest.body
     - title: Then I should have one item
       expect:
         list:
