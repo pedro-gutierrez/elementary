@@ -4,12 +4,20 @@ spec:
   init:
     in_one_month:
       date:
-        in:
-          month: 1
+        in: 1
+        unit: month
     in_two_months:
       date:
-        in:
-          month: 2
+        in: 2
+        unit: month
+    one_month_ago:
+      date:
+        ago: 1
+        unit: month
+    two_months_ago:
+      date:
+        ago: 1
+        unit: month
   steps:
     - title: Given the Afrofestival
       steps:
@@ -24,6 +32,11 @@ spec:
         - Given details for the Feeling Festival
         - When I create that event
         - Then I should have a 201
+    - title: Given that event is now in the past
+      steps:
+        - Given one month ago
+        - When I reschedule that event
+        - Then I should have a 200
     - title: Given details for the Afrofestival
       event:
         id: f538d736
@@ -56,13 +69,15 @@ spec:
             - starts: @invalid_date
               ends: @invalid_date
             - @event
-      debug: true
     - title: Given next month
       object:
         date: @in_one_month
     - title: Given in two months
       object:
         date: @in_two_months
+    - title: Given one month ago
+      object:
+        date: @one_month_ago
     - title: When I create that event
       http:
         method: post

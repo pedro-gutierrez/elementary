@@ -86,6 +86,8 @@ spec:
     find_matching_offers:
       store: @store
       find:
+        owner:
+          $ne: @user.id
         status: active
         expires:
           $gt: @minExpire
@@ -100,6 +102,8 @@ spec:
     find_matching_demands:
       store: @store
       find:
+        owner:
+          $ne: @user.id
         status: active
         expires:
           $gt: @minExpire

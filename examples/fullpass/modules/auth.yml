@@ -19,12 +19,12 @@ spec:
           acl:
             in: @acls
           expires:
-            greater_than:
+            after:
               now: {}
       expired:
         token:
           expires:
-            less_than:
+            before:
               now: {}
       invalid:
         token:

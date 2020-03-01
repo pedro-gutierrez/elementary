@@ -76,6 +76,10 @@ defmodule Elementary.Decoder do
     |> result(spec)
   end
 
+  def decode(%{"any" => "date"}, %DateTime{} = data, _) do
+    {:ok, data}
+  end
+
   def decode(%{"any" => "data"} = spec, data, _) when is_binary(data) do
     case String.valid?(data) do
       true ->
@@ -103,6 +107,13 @@ defmodule Elementary.Decoder do
         false ->
           decode_error(spec, data)
       end
+    end
+    |> result(spec)
+  end
+
+  def decode(%{"other_than" => value} = spec, data, context) do
+    with {:ok, ^data} <- encode(value, context) do
+      decode_error(spec, data)
     end
     |> result(spec)
   end
@@ -207,6 +218,34 @@ defmodule Elementary.Decoder do
           {:ok, data}
 
         false ->
+          decode_error(spec, data)
+      end
+    end
+    |> result(spec)
+  end
+
+  def decode(%{"before" => value} = spec, data, context) do
+    with {:ok, d2} <- encode(value, context),
+         {:ok, d1} <- decode(%{"any" => "date"}, data, context) do
+      case DateTime.compare(d1, d2) do
+        :lt ->
+          {:ok, d1}
+
+        _ ->
+          decode_error(spec, data)
+      end
+    end
+    |> result(spec)
+  end
+
+  def decode(%{"after" => value} = spec, data, context) do
+    with {:ok, d2} <- encode(value, context),
+         {:ok, d1} <- decode(%{"any" => "date"}, data, context) do
+      case DateTime.compare(d1, d2) do
+        :gt ->
+          {:ok, d1}
+
+        _ ->
           decode_error(spec, data)
       end
     end

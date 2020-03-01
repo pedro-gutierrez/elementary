@@ -1,6 +1,10 @@
 defmodule Elementary.Calendar do
   @moduledoc false
 
+  def now() do
+    {:ok, DateTime.utc_now()}
+  end
+
   def today() do
     date = DateTime.utc_now()
 
@@ -58,5 +62,13 @@ defmodule Elementary.Calendar do
 
   def time_in(amount, :month) do
     {:ok, DateTime.utc_now() |> DateTime.add(3600 * 24 * 30 * amount, :second)}
+  end
+
+  def time_ago(amount, :hour) do
+    {:ok, DateTime.utc_now() |> DateTime.add(-3600 * amount, :second)}
+  end
+
+  def time_ago(amount, :month) do
+    {:ok, DateTime.utc_now() |> DateTime.add(-3600 * 24 * 30 * amount, :second)}
   end
 end

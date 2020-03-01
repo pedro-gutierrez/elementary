@@ -15,7 +15,7 @@ spec:
             any: text
         body:
           expires:
-            any: number
+            any: date
     store:
       updated:
         status: updated
@@ -65,7 +65,8 @@ spec:
       store: @store
       update:
         status: withdrawn
-        expires: 0
+        expires:
+          now: {}
         modified:
           now: {}
       where:

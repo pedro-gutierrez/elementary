@@ -11,6 +11,10 @@ spec:
       steps:
         - When I expire that demand
         - Then I should have a 200
+    - title: Given I withdrew that demand
+      steps:
+        - When I withdraw that demand
+        - Then I should have a 200
     - title: Given a demand for that pass
       demand:
         id:
@@ -68,5 +72,6 @@ spec:
           authorization: @token
           content-type: application/json
         body:
-          expires: 0
+          expires:
+            format_date: @one_month_ago
       as: latest

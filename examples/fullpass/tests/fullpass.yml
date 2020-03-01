@@ -224,8 +224,6 @@ spec:
         - Then I should have a 200
         - Then I should have one item
     - title: Should offer passes
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given user Alice
@@ -417,6 +415,21 @@ spec:
         - When I get my alerts
         - Then I should have a 200
         - Then I should have one item
+    - title: Should not return alerts for self offers or demands
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a lady full pass
+        - Given 50 euros
+        - Given next month
+        - Given I offered that pass
+        - Given I demanded that pass
+        - When I get my alerts
+        - Then I should not have any items
     - title: Should expire offers
       steps:
         - Given the store is empty
@@ -497,7 +510,15 @@ spec:
         - Given a new transaction details
         - When I create that transaction
         - Then I should have a 409
-    - title: Should not allow invalid transactions
+        - When I get my transactions
+        - Then I should have a 200
+        - Then I should have one item
+        - Given details for Bob
+        - Given I am logged in
+        - When I get my transactions
+        - Then I should have a 200
+        - Then I should have one item
+    - title: Should not transactions on different assets
       steps:
         - Given the store is empty
         - Given user Alice
@@ -518,4 +539,127 @@ spec:
         - Given a new transaction details
         - When I create that transaction
         - Then I should have a 404
-
+    - title: Should not allow transactions on expired offers
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a lady full pass
+        - Given 50 euros
+        - Given next month
+        - Given I offered that pass
+        - Given user Bob
+        - Given I resetted my password
+        - Given I am logged in
+        - Given I demanded that pass
+        - Given details for Alice
+        - Given I am logged in
+        - Given I expired that offer
+        - Given a new transaction details
+        - When I create that transaction
+        - Then I should have a 401
+    - title: Should not allow transactions on withdrawn offers
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a lady full pass
+        - Given 50 euros
+        - Given next month
+        - Given I offered that pass
+        - Given user Bob
+        - Given I resetted my password
+        - Given I am logged in
+        - Given I demanded that pass
+        - Given details for Alice
+        - Given I am logged in
+        - Given I withdrew that offer
+        - Given a new transaction details
+        - When I create that transaction
+        - Then I should have a 401
+    - title: Should not allow transactions on expired demands
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a lady full pass
+        - Given 50 euros
+        - Given next month
+        - Given I offered that pass
+        - Given user Bob
+        - Given I resetted my password
+        - Given I am logged in
+        - Given I demanded that pass
+        - Given I expired that demand
+        - Given a new transaction details
+        - When I create that transaction
+        - Then I should have a 401
+    - title: Should not allow transactions on withdrawn demands
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a lady full pass
+        - Given 50 euros
+        - Given next month
+        - Given I offered that pass
+        - Given user Bob
+        - Given I resetted my password
+        - Given I am logged in
+        - Given I demanded that pass
+        - Given I withdrew that demand
+        - Given details for Alice
+        - Given I am logged in
+        - Given a new transaction details
+        - When I create that transaction
+        - Then I should have a 401
+    - title: Should not allow transactions on the same user
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a lady full pass
+        - Given 50 euros
+        - Given next month
+        - Given I offered that pass
+        - Given I demanded that pass
+        - Given a new transaction details
+        - When I create that transaction
+        - Then I should have a 401
+    - title: Should not allow transactions on past events
+      steps:
+        - Given the store is empty
+        - Given user Alice
+        - Given I resetted my password
+        - Given I am logged in
+        - Given the Amaragua
+        - Given the Afrofestival
+        - Given a lady full pass
+        - Given 50 euros
+        - Given next month
+        - Given I offered that pass
+        - Given user Bob
+        - Given I resetted my password
+        - Given I am logged in
+        - Given I demanded that pass
+        - Given details for Alice
+        - Given I am logged in
+        - Given that event is now in the past
+        - Given a new transaction details
+        - When I create that transaction
+        - Then I should have a 401

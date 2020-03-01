@@ -11,6 +11,10 @@ spec:
       steps:
         - When I expire that offer
         - Then I should have a 200
+    - title: Given I withdrew that offer
+      steps:
+        - When I withdraw that offer
+        - Then I should have a 200
     - title: Given an offer for that pass
       offer:
         id:
@@ -68,5 +72,6 @@ spec:
           authorization: @token
           content-type: application/json
         body:
-          expires: 0
+          expires:
+            format_date: @one_month_ago
       as: latest

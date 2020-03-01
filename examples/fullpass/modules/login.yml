@@ -84,9 +84,9 @@ spec:
         user: @user
         acl: session
         expires:
-          sum:
-            - now: {}
-            - 36000000
+          date:
+            in: 1
+            unit: hour
       into: tokens
     token:
       status: 201

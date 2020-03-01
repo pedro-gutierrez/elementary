@@ -21,12 +21,12 @@ spec:
             any: text
           acl: passwd:reset
           expires:
-            greater_than:
+            after:
               now: {}
       expired:
         token:
           expires:
-            less_than:
+            before:
               now: {}
       not_found:
         status: not_found
@@ -75,9 +75,9 @@ spec:
         id: @token
         user: @user
         expires:
-          sum:
-            - now: {}
-            - 3600000
+          date:
+            in: 1
+            unit: hour
         acl: passwd:reset
       into: tokens
     token:

@@ -1,7 +1,6 @@
 kind: store
 name: fullpass
 spec:
-  debug: true
   collections:
     places:
       indexes:

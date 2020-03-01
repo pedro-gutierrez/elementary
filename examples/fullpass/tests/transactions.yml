@@ -26,3 +26,14 @@ spec:
           content-type: application/json
         body: @transaction
       as: latest
+    - title: When I get my transactions
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/transactions
+        headers:
+          client-id: mobile
+          client-secret: @clients.mobile
+          authorization: @token
+      as: latest

@@ -243,19 +243,23 @@ defmodule Elementary.Encoder do
   end
 
   def encode(%{"today" => _}, _, _) do
-    {:ok, Elementary.Calendar.today()}
+    Elementary.Calendar.today()
   end
 
-  def encode(%{"date" => %{"in" => %{"hour" => hour}}} = spec, context, encoders) do
-    with {:ok, encoded} <- encode(hour, context, encoders) do
-      {:ok, Elementary.Calendar.time_in(encoded, :hour)}
+  def encode(%{"now" => _}, _, _) do
+    Elementary.Calendar.now()
+  end
+
+  def encode(%{"date" => %{"in" => amount, "unit" => unit}} = spec, context, encoders) do
+    with {:ok, amount} <- encode(amount, context, encoders) do
+      Elementary.Calendar.time_in(amount, String.to_existing_atom(unit))
     end
     |> result(spec, context)
   end
 
-  def encode(%{"date" => %{"in" => %{"month" => amount}}} = spec, context, encoders) do
-    with {:ok, encoded} <- encode(amount, context, encoders) do
-      {:ok, Elementary.Calendar.time_in(encoded, :month)}
+  def encode(%{"date" => %{"ago" => amount, "unit" => unit}} = spec, context, encoders) do
+    with {:ok, amount} <- encode(amount, context, encoders) do
+      Elementary.Calendar.time_ago(amount, String.to_existing_atom(unit))
     end
     |> result(spec, context)
   end
@@ -286,10 +290,6 @@ defmodule Elementary.Encoder do
       Elementary.Calendar.year(date)
     end
     |> result(spec, context)
-  end
-
-  def encode(%{"now" => _}, _, _) do
-    {:ok, System.system_time(:millisecond)}
   end
 
   def encode(%{"url" => url_spec} = spec, context, encoders) do
