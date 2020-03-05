@@ -1,0 +1,11 @@
+kind: app
+name: store
+spec:
+  settings:
+    - hours
+  filters:
+    - role
+  modules:
+    - store
+    - role_admin
+    - http

@@ -100,10 +100,12 @@ defmodule Elementary.Compiler do
          @encoders unquote(Macro.escape(encoders))
          @update unquote(Macro.escape(update))
          @init %{"init" => unquote(Macro.escape(init))}
+         @resolved_spec unquote(Macro.escape(spec))
 
          def name(), do: @name
          def kind(), do: @kind
          def debug(), do: @debug
+         def spec(), do: @resolved_spec
 
          def settings() do
            unquote(Macro.escape(encoded))

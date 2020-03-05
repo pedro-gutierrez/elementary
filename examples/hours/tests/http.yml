@@ -1,0 +1,52 @@
+kind: test
+name: http
+spec:
+  steps:
+    - title: Then I should have a 200
+      expect:
+        status: 200
+      in: @latest
+    - title: Then I should have a 409
+      expect:
+        status: 409
+      in: @latest
+    - title: Then I should have a 201
+      expect:
+        status: 201
+      in: @latest
+    - title: Then I should have a 404
+      expect:
+        status: 404
+      in: @latest
+    - title: Then I should have a 401
+      expect:
+        status: 401
+      in: @latest
+    - title: Then I should have a 400
+      expect:
+        status: 400
+      in: @latest
+    - title: Then I should not have any items
+      expect:
+        list:
+          size: 0
+      in: @latest.body
+    - title: Then I should have one item
+      expect:
+        list:
+          size: 1
+      in: @latest.body
+      where:
+        item:
+          first: @
+    - title: Then I should have two items
+      expect:
+        list:
+          size: 2
+      in: @latest.body
+      where:
+        items:
+          - item: 0
+            in: @
+          - item: 1
+            in: @

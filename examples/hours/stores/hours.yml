@@ -1,0 +1,10 @@
+kind: store
+name: hours
+spec:
+  collections:
+    packages:
+      indexes:
+        - unique: name
+    users: {}
+    employees: {}
+    projects: {}

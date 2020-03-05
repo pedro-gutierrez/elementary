@@ -1,0 +1,29 @@
+kind: test
+name: hours
+spec:
+  include:
+    - http
+    - store
+    - health
+    - roles
+    - packages
+  init:
+    baseUrl:
+      url: @hours
+  scenarios:
+    - title: Should have a healtcheck
+      steps:
+        - When I get the health
+        - Then I should have a 200
+    - title: Shoud create packages
+      tags:
+        - debug
+      steps:
+        - Given the store is empty
+        - Given I am an employer
+        - Given package p1
+        - When I create that package
+        - Then I should have a 409
+        - When I get all packages
+        - Then I should have a 200
+        - Then I should have one item

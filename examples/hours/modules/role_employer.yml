@@ -1,0 +1,6 @@
+kind: module
+name: role_employer
+spec:
+  init:
+    roles:
+      employer: @roles.employer

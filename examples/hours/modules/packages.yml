@@ -1,0 +1,47 @@
+kind: module
+name: packages
+spec:
+  decoders:
+    http:
+      create:
+        method: POST
+        body:
+          id:
+            any: text
+          name:
+            any: text
+      get:
+        method: GET
+    store:
+      packages:
+        packages:
+          any: list
+  update:
+    create:
+      model:
+        package: @data.body
+      cmds:
+        store: create
+    get:
+      cmds:
+        store: list
+    packages:
+      model:
+        data: @data.packages
+      cmds:
+        return: data
+  encoders:
+    create:
+      store: @store
+      insert:
+        merge:
+          - @package
+          - created:
+              now: {}
+      into: packages
+    list:
+      store: @store
+      find_all: {}
+      from: packages
+      as: packages
+

@@ -1,0 +1,8 @@
+kind: test
+name: roles
+spec:
+  steps:
+    - title: Given I am an employer
+      client:
+        key: employer
+        secret: @roles.employer

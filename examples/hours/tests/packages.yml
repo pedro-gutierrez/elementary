@@ -1,0 +1,36 @@
+kind: test
+name: packages
+spec:
+  steps:
+    - title: Given details for package p1
+      package:
+        id:
+          uuid: {}
+        name: p1
+    - title: Given package p1
+      steps:
+        - Given details for package p1
+        - When I create that package
+        - Then I should have a 201
+    - title: When I create that package
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/packages
+        headers:
+          content-type: application/json
+          api-key: @client.key
+          api-secret: @client.secret
+        body: @package
+      as: latest
+    - title: When I get all packages
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/packages
+        headers:
+          api-key: @client.key
+          api-secret: @client.secret
+      as: latest

@@ -1,0 +1,11 @@
+kind: port
+name: default
+spec:
+  port: 8080
+  apps:
+    health:
+      http: /api/health
+    store:
+      http: /api/stores/:name
+    packages:
+      http: /api/packages

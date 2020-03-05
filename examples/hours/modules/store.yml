@@ -1,0 +1,26 @@
+kind: module
+name: store
+spec:
+  decoders:
+    http:
+      empty:
+        method: DELETE
+        params:
+          name:
+            any: text
+    store:
+      emptied:
+        status: empty
+  update:
+    empty:
+      model:
+        name: @data.params.name
+      cmds:
+        store: empty
+    emptied:
+      cmds:
+        return: ok
+  encoders:
+    empty:
+      store: @name
+      empty: {}
