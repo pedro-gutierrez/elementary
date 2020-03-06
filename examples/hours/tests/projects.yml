@@ -1,37 +1,37 @@
 kind: test
-name: packages
+name: projects
 spec:
   steps:
-    - title: Given details for package 50h
-      package:
-        id:
-          uuid: {}
-        name: 50h
-        hours: 50
-        rate: 36
-    - title: Given package 50h
+    - title: Given details for iot
+      project:
+        object:
+          id:
+            uuid: {}
+          name: iot
+          customer: none
+    - title: Given project iot
       steps:
-        - Given details for package 50h
-        - When I create that package
+        - Given details for iot
+        - When I create that project
         - Then I should have a 201
-    - title: When I create that package
+    - title: When I create that project
       http:
         method: post
         url:
           - @baseUrl
-          - /api/packages
+          - /api/projects
         headers:
           content-type: application/json
           api-key: @client.key
           api-secret: @client.secret
-        body: @package
+        body: @project
       as: latest
-    - title: When I get all packages
+    - title: When I get all projects
       http:
         method: get
         url:
           - @baseUrl
-          - /api/packages
+          - /api/projects
         headers:
           api-key: @client.key
           api-secret: @client.secret

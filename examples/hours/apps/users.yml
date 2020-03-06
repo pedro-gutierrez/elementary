@@ -1,0 +1,14 @@
+kind: app
+name: users
+spec:
+  debug: true
+  settings:
+    - hours
+  filters:
+    - role
+  modules:
+    - users
+    - common_store
+    - role_employer
+    - http
+

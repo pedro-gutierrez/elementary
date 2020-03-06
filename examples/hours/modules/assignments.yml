@@ -1,0 +1,54 @@
+kind: module
+name: assignments
+spec:
+  decoders:
+    http:
+      create:
+        method: POST
+        body:
+          id:
+            any: text
+          project:
+            any: text
+          package:
+            any: text
+    store:
+      project:
+        project:
+          any: object
+      package:
+        package:
+          any: object
+  update:
+    create:
+      model:
+        data: @data.body
+      cmds:
+        store: find_package
+    package:
+      cmds:
+        store: find_project
+    project:
+      cmds:
+        store: create
+  encoders:
+    find_package:
+      store: @store
+      fetch:
+        id: @data.package
+      from: packages
+      as: package
+    find_project:
+      store: @store
+      fetch:
+        id: @data.project
+      from: projects
+      as: project
+    create:
+      store: @store
+      insert:
+        merge:
+          - @data
+          - created:
+              now: {}
+      into: assignments

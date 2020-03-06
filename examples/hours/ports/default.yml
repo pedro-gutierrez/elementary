@@ -9,3 +9,9 @@ spec:
       http: /api/stores/:name
     packages:
       http: /api/packages
+    projects:
+      http: /api/projects
+    assignments:
+      http: /api/assignments
+    users:
+      http: /api/users

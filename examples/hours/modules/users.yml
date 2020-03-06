@@ -1,0 +1,50 @@
+kind: module
+name: users
+spec:
+  decoders:
+    http:
+      create:
+        method: POST
+        body:
+          id:
+            any: text
+          first:
+            any: text
+          last:
+            any: text
+          email:
+            any: text
+      get:
+        method: GET
+    store:
+      users:
+        users:
+          any: list
+  update:
+    create:
+      model:
+        data: @data.body
+      cmds:
+        store: create
+    get:
+      cmds:
+        store: list
+    users:
+      model:
+        data: @data.users
+      cmds:
+        return: data
+  encoders:
+    create:
+      store: @store
+      insert:
+        merge:
+          - @data
+          - created:
+              now: {}
+      into: users
+    list:
+      store: @store
+      find_all: {}
+      from: users
+      as: users

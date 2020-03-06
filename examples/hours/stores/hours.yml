@@ -6,5 +6,9 @@ spec:
       indexes:
         - unique: name
     users: {}
-    employees: {}
     projects: {}
+    assignments:
+      indexes:
+        - unique:
+            - project
+            - package

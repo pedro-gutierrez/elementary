@@ -1,0 +1,24 @@
+kind: test
+name: assignments
+spec:
+  steps:
+    - title: Given that package is assigned to that project
+      steps:
+        - When I assign that package to that project
+        - Then I should have a 201
+    - title: When I assign that package to that project
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/assignments
+        headers:
+          content-type: application/json
+          api-key: @client.key
+          api-secret: @client.secret
+        body:
+          id:
+            uuid: {}
+          project: @project.id
+          package: @package.id
+      as: latest

@@ -1,37 +1,38 @@
 kind: test
-name: packages
+name: users
 spec:
   steps:
-    - title: Given details for package 50h
-      package:
-        id:
-          uuid: {}
-        name: 50h
-        hours: 50
-        rate: 36
-    - title: Given package 50h
+    - title: Given details for alice
+      user:
+        object:
+          id:
+            uuid: {}
+          first: Alice
+          last: Cooper
+          email: alice@foo.bar
+    - title: Given user alice
       steps:
-        - Given details for package 50h
-        - When I create that package
+        - Given details for alice
+        - When I create that user
         - Then I should have a 201
-    - title: When I create that package
+    - title: When I create that user
       http:
         method: post
         url:
           - @baseUrl
-          - /api/packages
+          - /api/users
         headers:
           content-type: application/json
           api-key: @client.key
           api-secret: @client.secret
-        body: @package
+        body: @user
       as: latest
-    - title: When I get all packages
+    - title: When I get all users
       http:
         method: get
         url:
           - @baseUrl
-          - /api/packages
+          - /api/users
         headers:
           api-key: @client.key
           api-secret: @client.secret
