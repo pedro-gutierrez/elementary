@@ -217,6 +217,9 @@ defmodule Elementary.Compiler do
          "name" => name,
          "spec" => %{"port" => port, "apps" => apps}
        }) do
+    {:ok, port} = Encoder.encode(port)
+    {port, ""} = Integer.parse(port)
+
     [
       {port_module_name(name),
        quote do

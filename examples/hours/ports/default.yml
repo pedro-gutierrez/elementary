@@ -1,7 +1,9 @@
 kind: port
 name: default
 spec:
-  port: 8080
+  port:
+    env: PORT
+    default: 8080
   apps:
     health:
       http: /api/health

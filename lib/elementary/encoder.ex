@@ -393,6 +393,14 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"env" => var, "default" => default} = spec, context, encoders) do
+    with {:ok, var} <- encode(var, context, encoders),
+         {:ok, default} <- encode(default, context, encoders) do
+      {:ok, System.get_env(var, "#{default}")}
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"init" => init}, context, encoders) do
     encode_init(init, context, encoders)
   end
