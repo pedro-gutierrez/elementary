@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  images:
+  build:
     docker:
       - image: circleci/elixir:1.10.1
     steps:
