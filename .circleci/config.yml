@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build:
+  images:
     docker:
       - image: circleci/elixir:1.10.1
     steps:
@@ -8,8 +8,10 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
       - run:
-          name: Build application Docker image
+          name: Build images
           command: |
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker build -t pedrogutierrez/elementary:latest .
+            docker build -t pedrogutierrez/hours:latest -f Dockerfile.hours .
             docker push pedrogutierrez/elementary:latest
+            docker push pedrogutierrez/hours:latest

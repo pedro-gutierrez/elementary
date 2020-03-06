@@ -1,0 +1,12 @@
+kind: settings
+name: fullpass
+spec:
+  emails: false
+  store: fullpass
+  clients:
+    admin: 22ae449ad80e
+    mobile: 482a2a5e6c77
+  hash_options:
+    time: 1
+    memory: 5
+    length: 8

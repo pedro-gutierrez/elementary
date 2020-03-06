@@ -1,0 +1,7 @@
+kind: settings
+name: hours
+spec:
+  store: hours
+  roles:
+    admin: 22ae449ad80e
+    employer: 63a0a5c122e5
