@@ -41,7 +41,7 @@ spec:
       into: packages
     list:
       store: @store
-      find_all: {}
+      find: {}
       from: packages
       as: packages
 

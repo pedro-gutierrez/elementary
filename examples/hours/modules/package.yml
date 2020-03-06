@@ -1,0 +1,32 @@
+kind: module
+name: package
+spec:
+  decoders:
+    http:
+      get:
+        method: GET
+        params:
+          id:
+            any: text
+    store:
+      package:
+        package:
+          any: object
+  update:
+    get:
+      model:
+        id: @data.params.id
+      cmds:
+        store: fetch
+    package:
+      model:
+        data: @data.package
+      cmds:
+        return: data
+  encoders:
+    fetch:
+      store: @store
+      fetch:
+        id: @id
+      from: packages
+      as: package

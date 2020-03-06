@@ -9,9 +9,15 @@ spec:
       http: /api/stores/:name
     packages:
       http: /api/packages
+    package:
+      http: /api/packages/:id
     projects:
       http: /api/projects
-    assignments:
-      http: /api/assignments
+    project:
+      http: /api/projects/:id
     users:
       http: /api/users
+    user:
+      http: /api/users/:id
+    assignments:
+      http: /api/assignments

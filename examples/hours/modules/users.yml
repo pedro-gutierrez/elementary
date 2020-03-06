@@ -45,6 +45,6 @@ spec:
       into: users
     list:
       store: @store
-      find_all: {}
+      find: {}
       from: users
       as: users

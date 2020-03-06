@@ -43,7 +43,7 @@ spec:
       into: projects
     list:
       store: @store
-      find_all: {}
+      find: {}
       from: projects
       as: projects
 

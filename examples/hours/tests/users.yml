@@ -37,3 +37,14 @@ spec:
           api-key: @client.key
           api-secret: @client.secret
       as: latest
+    - title: When I get that user
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/users/
+          - @user.id
+        headers:
+          api-key: @client.key
+          api-secret: @client.secret
+      as: latest

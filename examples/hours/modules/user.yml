@@ -1,0 +1,32 @@
+kind: module
+name: user
+spec:
+  decoders:
+    http:
+      get:
+        method: GET
+        params:
+          id:
+            any: text
+    store:
+      user:
+        user:
+          any: object
+  update:
+    get:
+      model:
+        id: @data.params.id
+      cmds:
+        store: fetch
+    user:
+      model:
+        data: @data.user
+      cmds:
+        return: data
+  encoders:
+    fetch:
+      store: @store
+      fetch:
+        id: @id
+      from: users
+      as: user

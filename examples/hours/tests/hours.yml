@@ -28,6 +28,8 @@ spec:
         - When I get all packages
         - Then I should have a 200
         - Then I should have one item
+        - When I get that package
+        - Then I should have a 200
     - title: Employer should create users
       steps:
         - Given the store is empty
@@ -38,6 +40,8 @@ spec:
         - When I get all users
         - Then I should have a 200
         - Then I should have one item
+        - When I get that user
+        - Then I should have a 200
     - title: Employer should create projects
       steps:
         - Given the store is empty
@@ -48,6 +52,8 @@ spec:
         - When I get all projects
         - Then I should have a 200
         - Then I should have one item
+        - When I get that project
+        - Then I should have a 200
     - title: Employer should assign packages to projects
       tags:
         - debug
@@ -59,3 +65,6 @@ spec:
         - Given that package is assigned to that project
         - When I assign that package to that project
         - Then I should have a 409
+        - When I get all packages for that project
+        - Then I should have a 200
+        - Then I should have one item

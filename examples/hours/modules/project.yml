@@ -1,0 +1,32 @@
+kind: module
+name: project
+spec:
+  decoders:
+    http:
+      get:
+        method: GET
+        params:
+          id:
+            any: text
+    store:
+      project:
+        project:
+          any: object
+  update:
+    get:
+      model:
+        id: @data.params.id
+      cmds:
+        store: fetch
+    project:
+      model:
+        data: @data.project
+      cmds:
+        return: data
+  encoders:
+    fetch:
+      store: @store
+      fetch:
+        id: @id
+      from: projects
+      as: project

@@ -36,3 +36,14 @@ spec:
           api-key: @client.key
           api-secret: @client.secret
       as: latest
+    - title: When I get that package
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/packages/
+          - @package.id
+        headers:
+          api-key: @client.key
+          api-secret: @client.secret
+      as: latest

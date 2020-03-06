@@ -12,6 +12,11 @@ spec:
             any: text
           package:
             any: text
+      get_by_project:
+        method: GET
+        query:
+          project:
+            any: text
     store:
       project:
         project:
@@ -19,7 +24,20 @@ spec:
       package:
         package:
           any: object
+      assignments:
+        assignments:
+          any: list
   update:
+    get_by_project:
+      model:
+        project: @data.query.project
+      cmds:
+        store: find_by_project
+    assignments:
+      model:
+        data: @data.assignments
+      cmds:
+        return: data
     create:
       model:
         data: @data.body
@@ -44,6 +62,12 @@ spec:
         id: @data.project
       from: projects
       as: project
+    find_by_project:
+      store: @store
+      find:
+        project: @project
+      from: assignments
+      as: assignments
     create:
       store: @store
       insert:

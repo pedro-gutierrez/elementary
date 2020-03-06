@@ -22,3 +22,15 @@ spec:
           project: @project.id
           package: @package.id
       as: latest
+    - title: When I get all packages for that project
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/assignments
+        headers:
+          api-key: @client.key
+          api-secret: @client.secret
+        query:
+          project: @project.id
+      as: latest
