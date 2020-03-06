@@ -22,7 +22,7 @@ spec:
           project: @project.id
           package: @package.id
       as: latest
-    - title: When I get all packages for that project
+    - title: When I get all assignments for that project
       http:
         method: get
         url:
@@ -33,4 +33,25 @@ spec:
           api-secret: @client.secret
         query:
           project: @project.id
+          kind: package
+      as: latest
+    - title: Given that user is assigned to that project
+      steps:
+        - When I assign that user to that project
+        - Then I should have a 201
+    - title: When I assign that user to that project
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/assignments
+        headers:
+          content-type: application/json
+          api-key: @client.key
+          api-secret: @client.secret
+        body:
+          id:
+            uuid: {}
+          project: @project.id
+          user: @user.id
       as: latest

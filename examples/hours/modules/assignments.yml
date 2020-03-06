@@ -3,7 +3,7 @@ name: assignments
 spec:
   decoders:
     http:
-      create:
+      assign_package:
         method: POST
         body:
           id:
@@ -12,7 +12,16 @@ spec:
             any: text
           package:
             any: text
-      get_by_project:
+      assign_user:
+        method: POST
+        body:
+          id:
+            any: text
+          project:
+            any: text
+          user:
+            any: text
+      find:
         method: GET
         query:
           project:
@@ -24,25 +33,36 @@ spec:
       package:
         package:
           any: object
+      user:
+        user:
+          any: object
       assignments:
         assignments:
           any: list
   update:
-    get_by_project:
+    find:
       model:
         project: @data.query.project
       cmds:
-        store: find_by_project
+        store: find_assignments
     assignments:
       model:
         data: @data.assignments
       cmds:
         return: data
-    create:
+    assign_package:
       model:
         data: @data.body
       cmds:
         store: find_package
+    assign_user:
+      model:
+        data: @data.body
+      cmds:
+        store: find_user
+    user:
+      cmds:
+        store: find_project
     package:
       cmds:
         store: find_project
@@ -62,7 +82,13 @@ spec:
         id: @data.project
       from: projects
       as: project
-    find_by_project:
+    find_user:
+      store: @store
+      fetch:
+        id: @data.user
+      from: users
+      as: user
+    find_assignments:
       store: @store
       find:
         project: @project
