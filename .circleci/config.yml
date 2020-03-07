@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  heroku: betterdoc/deploy-to-heroku@4.1.0
+  deploy-to-heroku: betterdoc/deploy-to-heroku@4.1.0
 jobs:
   build:
     docker:
@@ -18,6 +18,6 @@ jobs:
             docker push pedrogutierrez/elementary:latest
             docker push pedrogutierrez/hours:latest
             docker tag pedrogutierrez/hours:latest registry.heroku.com/floohours/web
-      - heroku/docker-build-release:
+      - deploy-to-heroku/docker-build-release:
           app-name: floohours
           app-type: web
