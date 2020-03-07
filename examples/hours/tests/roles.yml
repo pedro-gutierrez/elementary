@@ -2,7 +2,15 @@ kind: test
 name: roles
 spec:
   steps:
+    - title: Given I am an admin
+      client:
+        key: admin
+        secret: @roles.admin
     - title: Given I am an employer
       client:
         key: employer
         secret: @roles.employer
+    - title: Given I am an employee
+      client:
+        key: employee
+        secret: @roles.employee

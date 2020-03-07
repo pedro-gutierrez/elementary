@@ -1,5 +1,4 @@
 FROM pedrogutierrez/elementary:latest
 ADD examples/hours /etc/hours
-RUN ls -l /etc/hours
 ENV ELEMENTARY_HOME=/etc/hours
 

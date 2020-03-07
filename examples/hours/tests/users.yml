@@ -2,30 +2,136 @@ kind: test
 name: users
 spec:
   steps:
-    - title: Given details for alice
-      user:
+    - title: Given Alice is an employer
+      steps:
+        - Given I am an employer
+        - Given details for Alice
+        - Given a password for Alice
+        - Given Alice is the current user
+        - Given that user is registered and logged in
+    - title: Given Bob is an employee
+      steps:
+        - Given I am an employee
+        - Given details for Bob
+        - Given a password for Bob
+        - Given Bob is the current user
+        - Given that user is registered and logged in
+    - title: Given that user is registered and logged in
+      steps:
+        - Given that user is registered
+        - Given I forgot my password
+        - Given I resetted my password
+        - Given I am logged in
+    - title: Given that user is registered
+      steps:
+        - When I register
+        - Then I should have a 201
+    - title: Given I forgot my password
+      steps:
+        - When I forget my password
+        - Then I should have a 201
+        - Then I should have a token
+    - title: Given I resetted my password
+      steps:
+        - When I reset my password
+        - Then I should have a 201
+    - title: Given details for Alice
+      alice:
         object:
           id:
             uuid: {}
           first: Alice
           last: Cooper
           email: alice@foo.bar
-    - title: Given user alice
-      steps:
-        - Given details for alice
-        - When I create that user
-        - Then I should have a 201
-    - title: When I create that user
+    - title: Given Alice is the current user
+      user: @alice
+    - title: Given details for Bob
+      bob:
+        object:
+          id:
+            uuid: {}
+          first: Bob
+          last: Marley
+          email: bob@foo.bar
+    - title: Given Bob is the current user
+      user: @bob
+    - title: When I register
       http:
         method: post
         url:
           - @baseUrl
-          - /api/users
+          - /api/register
         headers:
           content-type: application/json
           api-key: @client.key
           api-secret: @client.secret
         body: @user
+      as: latest
+    - title: When I forget my password
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/passwd/forgot
+        headers:
+          content-type: application/json
+          api-key: @client.key
+          api-secret: @client.secret
+        body:
+          email: @user.email
+      as: latest
+    - title: When I reset my password
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/passwd/reset
+        headers:
+          content-type: application/json
+          authorization: @token
+          api-key: @client.key
+          api-secret: @client.secret
+        body:
+          email: @user.email
+          password: @password
+      as: latest
+    - title: Then I should have a token
+      token: @latest.body.token
+    - title: Given a password for Alice
+      password: alice123
+    - title: Given a password for Bob
+      password: bob123
+    - title: Given I am logged in
+      steps:
+        - When I log in
+        - Then I should have a 201
+        - Then I should have a token
+    - title: When I log in
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/login
+        headers:
+          content-type: application/json
+          api-key: @client.key
+          api-secret: @client.secret
+        body:
+          email: @user.email
+          password: @password
+      as: latest
+    - title: When I log out
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/logout
+        headers:
+          api-key: @client.key
+          api-secret: @client.secret
+          authorization: @token
+          content-type: application/json
+        body: {}
       as: latest
     - title: When I get all users
       http:

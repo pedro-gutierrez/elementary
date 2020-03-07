@@ -6,8 +6,8 @@ spec:
     - store
     - health
     - roles
-    - packages
     - users
+    - packages
     - projects
     - assignments
   init:
@@ -18,10 +18,26 @@ spec:
       steps:
         - When I get the health
         - Then I should have a 200
+    - title: Should register as employer or employee
+      tags:
+        - debug
+      steps:
+        - Given the store is empty
+        - Given Bob is an employee
+        - Given Alice is an employer
+        - When I get all users
+        - Then I should have a 200
+        - Then I should have one item
+    - title: Employees should not list users
+      steps:
+        - Given the store is empty
+        - Given Bob is an employee
+        - When I get all users
+        - Then I should have a 401
     - title: Employer shoud create packages
       steps:
         - Given the store is empty
-        - Given I am an employer
+        - Given Alice is an employer
         - Given package 50h
         - When I create that package
         - Then I should have a 409
@@ -30,22 +46,10 @@ spec:
         - Then I should have one item
         - When I get that package
         - Then I should have a 200
-    - title: Employer should create users
-      steps:
-        - Given the store is empty
-        - Given I am an employer
-        - Given user alice
-        - When I create that user
-        - Then I should have a 409
-        - When I get all users
-        - Then I should have a 200
-        - Then I should have one item
-        - When I get that user
-        - Then I should have a 200
     - title: Employer should create projects
       steps:
         - Given the store is empty
-        - Given I am an employer
+        - Given Alice is an employer
         - Given project iot
         - When I create that project
         - Then I should have a 409
@@ -57,7 +61,7 @@ spec:
     - title: Employer should assign packages to projects
       steps:
         - Given the store is empty
-        - Given I am an employer
+        - Given Alice is an employer
         - Given project iot
         - Given package 50h
         - Given that package is assigned to that project
@@ -71,9 +75,10 @@ spec:
         - debug
       steps:
         - Given the store is empty
-        - Given I am an employer
+        - Given Bob is an employee
+        - Given Alice is an employer
         - Given project iot
-        - Given user alice
+        - Given Bob is the current user
         - Given that user is assigned to that project
         - When I assign that user to that project
         - Then I should have a 409
