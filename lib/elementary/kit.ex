@@ -114,6 +114,10 @@ defmodule Elementary.Kit do
     "mongodb://localhost/#{db}"
   end
 
+  def mongo_url(url) when is_binary(url) do
+    url
+  end
+
   def with_mongo_id(%{"id" => id} = doc) do
     doc
     |> Map.put("_id", id)

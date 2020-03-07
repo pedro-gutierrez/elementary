@@ -3,7 +3,7 @@ name: default
 spec:
   port:
     env: PORT
-    default: 8080
+    default: 4000
   apps:
     health:
       http: /api/health

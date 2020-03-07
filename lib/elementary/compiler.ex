@@ -306,7 +306,9 @@ defmodule Elementary.Compiler do
        }) do
     registered_name = String.to_atom("#{name}_store")
     pool = spec["pool"] || 1
-    url = Elementary.Kit.mongo_url(Map.merge(%{"db" => name}, spec))
+
+    {:ok, url_spec} = Encoder.encode(spec["url"] || %{"db" => name})
+    url = Elementary.Kit.mongo_url(url_spec)
 
     collections = spec["collections"]
     debug = spec["debug"] == true

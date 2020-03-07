@@ -1,6 +1,8 @@
 kind: store
 name: hours
 spec:
+  url:
+    env: MONGO_URL
   collections:
     packages:
       indexes:
