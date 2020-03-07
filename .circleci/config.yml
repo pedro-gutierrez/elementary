@@ -18,6 +18,11 @@ jobs:
             docker push pedrogutierrez/elementary:latest
             docker push pedrogutierrez/hours:latest
             docker tag pedrogutierrez/hours:latest registry.heroku.com/floohours/web
+workflows:
+  build:
+    jobs:
+      - build
       - deploy-to-heroku/docker-build-release:
           app-name: floohours
           app-type: web
+
