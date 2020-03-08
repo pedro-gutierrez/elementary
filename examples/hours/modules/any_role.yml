@@ -1,0 +1,8 @@
+kind: module
+name: any_role
+spec:
+  init:
+    model:
+      roles:
+        - employee
+        - employer

@@ -1,0 +1,105 @@
+kind: module
+name: auth
+spec:
+  decoders:
+    http:
+      auth:
+        headers:
+          authorization:
+            any: text
+      anonymous:
+        headers:
+          without:
+            - authorization
+    store:
+      granted:
+        token:
+          user:
+            any: text
+          acl:
+            in: @acls
+          expires:
+            after:
+              now: {}
+      expired:
+        token:
+          expires:
+            before:
+              now: {}
+      invalid:
+        token:
+          acl:
+            not:
+              in: @acls
+      deleted:
+        status: deleted
+      user_in_role:
+        user:
+          id:
+            any: text
+          role:
+            in: @roles
+      user_not_in_role:
+        user:
+          id:
+            any: text
+          role:
+            not:
+              in: @roles
+      not_found:
+        status: not_found
+  update:
+    auth:
+      model:
+        token: @data.headers.authorization
+      cmds:
+        store: find_token
+    granted:
+      model:
+        user: @data.token.user
+      cmds:
+        store: find_user
+    user_in_role:
+      model:
+        user: @data.user
+    user_not_in_role:
+      cmds:
+        stop: unauthorized
+    invalid:
+      cmds:
+        stop: unauthorized
+    expired:
+      cmds:
+        store: delete_token
+    not_found:
+      cmds:
+        stop: unauthorized
+    deleted:
+      cmds:
+        stop: unauthorized
+    anonymous:
+      cmds:
+        stop: unauthorized
+  encoders:
+    find_token:
+      store: @store
+      fetch:
+        id: @token
+      from: tokens
+      as: token
+    delete_token:
+      store: @store
+      delete:
+        id: @token
+      from: tokens
+    find_user:
+      store: @store
+      fetch:
+        id: @user
+      from: users
+      as: user
+    unauthorized:
+      status: 401
+      headers:
+        content-type: application/json
+      body: {}

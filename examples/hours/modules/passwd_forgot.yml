@@ -1,0 +1,88 @@
+kind: module
+name: passwd_forgot
+spec:
+  decoders:
+    http:
+      forgot:
+        method: POST
+        headers:
+          content-type: application/json
+        body:
+          email:
+            any: text
+    store:
+      user:
+        user:
+          id:
+            any: text
+      token:
+        token:
+          user:
+            any: text
+          acl: passwd:reset
+          expires:
+            after:
+              now: {}
+      expired:
+        token:
+          expires:
+            before:
+              now: {}
+      not_found:
+        status: not_found
+      token_consumed:
+        status: deleted
+      created:
+        status: created
+      updated:
+        status: updated
+    password:
+      hashed:
+        hash:
+          any: text
+  update:
+    forgot:
+      model:
+        email: @data.body.email
+      cmds:
+        store: find_user
+    user:
+      model:
+        user: @data.user.id
+        token:
+          uuid: {}
+      cmds:
+        store: create_token
+    created:
+      - when: @model.emails
+        cmds:
+          return: created
+      - cmds:
+          return: token
+    not_found:
+      cmds:
+        return: unauthorized
+  encoders:
+    find_user:
+      store: @store
+      fetch:
+        email: @email
+      from: users
+      as: user
+    create_token:
+      store: @store
+      insert:
+        id: @token
+        user: @user
+        expires:
+          date:
+            in: 1
+            unit: hour
+        acl: passwd:reset
+      into: tokens
+    token:
+      status: 201
+      headers:
+        content-type: application/json
+      body:
+        token: @token

@@ -2,7 +2,9 @@ kind: settings
 name: hours
 spec:
   store: hours
-  roles:
-    admin: 22ae449ad80e
-    employer: 63a0a5c122e5
-    employee: 2b344c8767a8
+  emails: false
+  admin: 22ae449ad80e
+  hash_options:
+    time: 1
+    memory: 5
+    length: 8

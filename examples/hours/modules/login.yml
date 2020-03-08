@@ -1,0 +1,96 @@
+kind: module
+name: login
+spec:
+  decoders:
+    http:
+      login:
+        method: POST
+        headers:
+          content-type: application/json
+        body:
+          email:
+            any: text
+          password:
+            any: text
+    store:
+      user_found:
+        user:
+          any: object
+      password_found:
+        password:
+          hash:
+            any: text
+      token_created:
+        status: created
+      not_found:
+        status: not_found
+    password:
+      verified:
+        status: ok
+      mismatch:
+        status: error
+  update:
+    login:
+      model:
+        email: @data.body.email
+        password: @data.body.password
+      cmds:
+        store: find_user
+    user_found:
+      model:
+        user: @data.user.id
+      cmds:
+        store: find_password
+    password_found:
+      model:
+        hash: @data.password.hash
+      cmds:
+        password: verify
+    verified:
+      model:
+        token:
+          uuid: {}
+      cmds:
+        store: create_token
+    token_created:
+      cmds:
+        return: token
+    mismatch:
+      cmds:
+        return: unauthorized
+    not_found:
+      cmds:
+        return: unauthorized
+  encoders:
+    find_user:
+      store: @store
+      fetch:
+        email: @email
+      from: users
+      as: user
+    find_password:
+      store: @store
+      fetch:
+        id: @user
+      from: passwords
+      as: password
+    verify:
+      verify: @password
+      with: @hash
+    create_token:
+      store: @store
+      insert:
+        id: @token
+        user: @user
+        acl: session
+        expires:
+          date:
+            in: 1
+            unit: hour
+      into: tokens
+    token:
+      status: 201
+      headers:
+        content-type: application/json
+      body:
+        token: @token

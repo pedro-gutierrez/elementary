@@ -2,7 +2,7 @@ kind: test
 name: projects
 spec:
   steps:
-    - title: Given details for iot
+    - title: Given details for project iot
       project:
         object:
           id:
@@ -11,7 +11,7 @@ spec:
           customer: none
     - title: Given project iot
       steps:
-        - Given details for iot
+        - Given details for project iot
         - When I create that project
         - Then I should have a 201
     - title: When I create that project
@@ -21,9 +21,9 @@ spec:
           - @baseUrl
           - /api/projects
         headers:
-          content-type: application/json
-          api-key: @client.key
-          api-secret: @client.secret
+          merge:
+            - @json
+            - @auth
         body: @project
       as: latest
     - title: When I get all projects
@@ -32,9 +32,7 @@ spec:
         url:
           - @baseUrl
           - /api/projects
-        headers:
-          api-key: @client.key
-          api-secret: @client.secret
+        headers: @auth
       as: latest
     - title: When I get that project
       http:
@@ -43,7 +41,5 @@ spec:
           - @baseUrl
           - /api/projects/
           - @project.id
-        headers:
-          api-key: @client.key
-          api-secret: @client.secret
+        headers: @auth
       as: latest

@@ -13,25 +13,31 @@ spec:
   init:
     baseUrl:
       url: @hours
+    auth: {}
+    json:
+      content-type: application/json
   scenarios:
     - title: Should have a healtcheck
       steps:
         - When I get the health
         - Then I should have a 200
     - title: Should register as employer or employee
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given Bob is an employee
         - Given Alice is an employer
         - When I get all users
         - Then I should have a 200
-        - Then I should have one item
+        - Then I should have two items
     - title: Employees should not list users
       steps:
         - Given the store is empty
         - Given Bob is an employee
+        - When I get all users
+        - Then I should have a 401
+    - title: Anonymous clients should not list users
+      steps:
+        - Given the store is empty
         - When I get all users
         - Then I should have a 401
     - title: Employer shoud create packages
@@ -46,6 +52,21 @@ spec:
         - Then I should have one item
         - When I get that package
         - Then I should have a 200
+    - title: Employees should not create packages
+      steps:
+        - Given the store is empty
+        - Given Bob is an employee
+        - Given details for package 50h
+        - When I create that package
+        - Then I should have a 401
+    - title: Anonymous users should not create packages
+      steps:
+        - Given the store is empty
+        - Given Alice is an employer
+        - Given details for package 50h
+        - Given I am logged out
+        - When I create that package
+        - Then I should have a 401
     - title: Employer should create projects
       steps:
         - Given the store is empty
@@ -58,6 +79,22 @@ spec:
         - Then I should have one item
         - When I get that project
         - Then I should have a 200
+    - title: Employees should not create projects
+      steps:
+        - Given the store is empty
+        - Given Bob is an employee
+        - Given details for project iot
+        - Given I am logged out
+        - When I create that project
+        - Then I should have a 401
+    - title: Anonymous users should not create projects
+      steps:
+        - Given the store is empty
+        - Given Alice is an employer
+        - Given details for project iot
+        - Given I am logged out
+        - When I create that project
+        - Then I should have a 401
     - title: Employer should assign packages to projects
       steps:
         - Given the store is empty
@@ -70,9 +107,25 @@ spec:
         - When I get all assignments for that project
         - Then I should have a 200
         - Then I should have one item
+    - title: Employees should not not assign packages to projects
+      steps:
+        - Given the store is empty
+        - Given Alice is an employer
+        - Given project iot
+        - Given package 50h
+        - Given Bob is an employee
+        - When I assign that package to that project
+        - Then I should have a 401
+    - title: Anonymous users should not assign packages to projects
+      steps:
+        - Given the store is empty
+        - Given Alice is an employer
+        - Given project iot
+        - Given package 50h
+        - Given I am logged out
+        - When I assign that package to that project
+        - Then I should have a 401
     - title: Employer should assign users to projects
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given Bob is an employee
@@ -85,3 +138,20 @@ spec:
         - When I get all assignments for that project
         - Then I should have a 200
         - Then I should have one item
+    - title: Employees should not not assign users to projects
+      steps:
+        - Given the store is empty
+        - Given Alice is an employer
+        - Given project iot
+        - Given Bob is an employee
+        - When I assign that user to that project
+        - Then I should have a 401
+    - title: Anonymous users should not not assign users to projects
+      steps:
+        - Given the store is empty
+        - Given Alice is an employer
+        - Given project iot
+        - Given Bob is an employee
+        - Given I am logged out
+        - When I assign that user to that project
+        - Then I should have a 401

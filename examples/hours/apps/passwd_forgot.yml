@@ -1,10 +1,8 @@
 kind: app
-name: store
+name: passwd_forgot
 spec:
   settings:
     - hours
-  filters:
-    - admin
   modules:
-    - store
+    - passwd_forgot
     - http

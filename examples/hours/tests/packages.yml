@@ -21,9 +21,9 @@ spec:
           - @baseUrl
           - /api/packages
         headers:
-          content-type: application/json
-          api-key: @client.key
-          api-secret: @client.secret
+          merge:
+            - @json
+            - @auth
         body: @package
       as: latest
     - title: When I get all packages
@@ -32,9 +32,7 @@ spec:
         url:
           - @baseUrl
           - /api/packages
-        headers:
-          api-key: @client.key
-          api-secret: @client.secret
+        headers: @auth
       as: latest
     - title: When I get that package
       http:
@@ -43,7 +41,5 @@ spec:
           - @baseUrl
           - /api/packages/
           - @package.id
-        headers:
-          api-key: @client.key
-          api-secret: @client.secret
+        headers: @auth
       as: latest

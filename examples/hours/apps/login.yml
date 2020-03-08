@@ -1,10 +1,8 @@
 kind: app
-name: store
+name: login
 spec:
   settings:
     - hours
-  filters:
-    - admin
   modules:
-    - store
+    - login
     - http

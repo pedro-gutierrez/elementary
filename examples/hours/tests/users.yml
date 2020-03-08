@@ -4,17 +4,17 @@ spec:
   steps:
     - title: Given Alice is an employer
       steps:
-        - Given I am an employer
+        - Given I am the admin
         - Given details for Alice
         - Given a password for Alice
         - Given Alice is the current user
         - Given that user is registered and logged in
     - title: Given Bob is an employee
       steps:
-        - Given I am an employee
         - Given details for Bob
         - Given a password for Bob
         - Given Bob is the current user
+        - Given I am logged out
         - Given that user is registered and logged in
     - title: Given that user is registered and logged in
       steps:
@@ -62,9 +62,9 @@ spec:
           - @baseUrl
           - /api/register
         headers:
-          content-type: application/json
-          api-key: @client.key
-          api-secret: @client.secret
+          merge:
+            - @auth
+            - content-type: application/json
         body: @user
       as: latest
     - title: When I forget my password
@@ -74,9 +74,9 @@ spec:
           - @baseUrl
           - /api/passwd/forgot
         headers:
-          content-type: application/json
-          api-key: @client.key
-          api-secret: @client.secret
+          merge:
+            - @auth
+            - content-type: application/json
         body:
           email: @user.email
       as: latest
@@ -87,16 +87,16 @@ spec:
           - @baseUrl
           - /api/passwd/reset
         headers:
-          content-type: application/json
-          authorization: @token
-          api-key: @client.key
-          api-secret: @client.secret
+          merge:
+            - @auth
+            - content-type: application/json
         body:
           email: @user.email
           password: @password
       as: latest
     - title: Then I should have a token
-      token: @latest.body.token
+      auth:
+        authorization: @latest.body.token
     - title: Given a password for Alice
       password: alice123
     - title: Given a password for Bob
@@ -113,9 +113,9 @@ spec:
           - @baseUrl
           - /api/login
         headers:
-          content-type: application/json
-          api-key: @client.key
-          api-secret: @client.secret
+          merge:
+            - @auth
+            - content-type: application/json
         body:
           email: @user.email
           password: @password
@@ -127,10 +127,9 @@ spec:
           - @baseUrl
           - /api/logout
         headers:
-          api-key: @client.key
-          api-secret: @client.secret
-          authorization: @token
-          content-type: application/json
+          merge:
+            - @auth
+            - content-type: application/json
         body: {}
       as: latest
     - title: When I get all users
@@ -139,9 +138,7 @@ spec:
         url:
           - @baseUrl
           - /api/users
-        headers:
-          api-key: @client.key
-          api-secret: @client.secret
+        headers: @auth
       as: latest
     - title: When I get that user
       http:
@@ -150,7 +147,5 @@ spec:
           - @baseUrl
           - /api/users/
           - @user.id
-        headers:
-          api-key: @client.key
-          api-secret: @client.secret
+        headers: @auth
       as: latest

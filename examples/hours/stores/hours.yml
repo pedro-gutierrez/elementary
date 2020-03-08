@@ -4,6 +4,10 @@ spec:
   url:
     env: MONGO_URL
   collections:
+    users:
+      indexes:
+        - unique: email
+    tokens: {}
     packages:
       indexes:
         - unique: name

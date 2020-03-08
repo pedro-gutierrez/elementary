@@ -1,14 +1,12 @@
 kind: app
-name: package
+name: logout
 spec:
   settings:
     - hours
   filters:
     - auth
   modules:
-    - package
-    - common_store
-    - employer_only
+    - logout
     - session
+    - any_role
     - http
-

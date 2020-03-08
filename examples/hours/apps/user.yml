@@ -1,14 +1,14 @@
 kind: app
 name: user
 spec:
-  debug: true
   settings:
     - hours
   filters:
-    - role
+    - auth
   modules:
     - user
     - common_store
-    - role_employer
+    - employer_only
+    - session
     - http
 

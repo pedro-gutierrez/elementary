@@ -1,10 +1,8 @@
 kind: app
-name: store
+name: register
 spec:
   settings:
     - hours
-  filters:
-    - admin
   modules:
-    - store
+    - register
     - http

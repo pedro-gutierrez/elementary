@@ -1,0 +1,7 @@
+kind: module
+name: session
+spec:
+  init:
+    model:
+      acls:
+        - session

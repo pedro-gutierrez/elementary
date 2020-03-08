@@ -1,14 +1,11 @@
 kind: app
-name: package
+name: passwd_reset
 spec:
   settings:
     - hours
   filters:
     - auth
   modules:
-    - package
-    - common_store
-    - employer_only
-    - session
+    - passwd_reset
+    - any_role
     - http
-

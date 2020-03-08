@@ -13,9 +13,9 @@ spec:
           - @baseUrl
           - /api/assignments
         headers:
-          content-type: application/json
-          api-key: @client.key
-          api-secret: @client.secret
+          merge:
+            - @auth
+            - @json
         body:
           id:
             uuid: {}
@@ -28,9 +28,7 @@ spec:
         url:
           - @baseUrl
           - /api/assignments
-        headers:
-          api-key: @client.key
-          api-secret: @client.secret
+        headers: @auth
         query:
           project: @project.id
           kind: package
@@ -46,9 +44,9 @@ spec:
           - @baseUrl
           - /api/assignments
         headers:
-          content-type: application/json
-          api-key: @client.key
-          api-secret: @client.secret
+          merge:
+            - @json
+            - @auth
         body:
           id:
             uuid: {}

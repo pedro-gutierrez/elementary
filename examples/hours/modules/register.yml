@@ -1,0 +1,65 @@
+kind: module
+name: register
+spec:
+  decoders:
+    http:
+      employer:
+        method: POST
+        headers:
+          authorization: @admin
+        body:
+          id:
+            any: text
+          first:
+            any: text
+          last:
+            any: text
+          email:
+            any: text
+      employee:
+        method: POST
+        headers:
+          without:
+            - authorization
+        body:
+          id:
+            any: text
+          first:
+            any: text
+          last:
+            any: text
+          email:
+            any: text
+    store:
+      created:
+        status: created
+      conflict:
+        status: conflict
+  update:
+    employer:
+      model:
+        user:
+          merge:
+            - @data.body
+            - role: employer
+      cmds:
+        store: create
+    employee:
+      model:
+        user:
+          merge:
+            - @data.body
+            - role: employee
+      cmds:
+        store: create
+    conflict:
+      cmds:
+        return: conflict
+    created:
+      cmds:
+        return: created
+  encoders:
+    create:
+      store: @store
+      insert: @user
+      into: users

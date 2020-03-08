@@ -1,6 +1,0 @@
-kind: module
-name: role_admin
-spec:
-  init:
-    roles:
-      admin: @roles.admin

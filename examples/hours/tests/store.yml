@@ -13,6 +13,5 @@ spec:
           - @baseUrl
           - /api/stores/hours
         headers:
-          api-key: admin
-          api-secret: @roles.admin
+          authorization: @admin
       as: latest

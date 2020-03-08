@@ -8,6 +8,14 @@ spec:
       http: /api/health
     store:
       http: /api/stores/:name
+    register:
+      http: /api/register
+    passwd_forgot:
+      http: /api/passwd/forgot
+    passwd_reset:
+      http: /api/passwd/reset
+    login:
+      http: /api/login
     packages:
       http: /api/packages
     package:
