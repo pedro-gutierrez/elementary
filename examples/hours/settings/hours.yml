@@ -3,7 +3,8 @@ name: hours
 spec:
   store: hours
   emails: false
-  admin: 22ae449ad80e
+  admin:
+    env: ELEMENTARY_ADMIN_TOKEN
   hash_options:
     time: 1
     memory: 5
