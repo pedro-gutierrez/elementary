@@ -1,0 +1,83 @@
+kind: module
+name: time
+spec:
+  decoders:
+    http:
+      log:
+        method: POST
+        body:
+          id:
+            any: text
+          project:
+            any: text
+          time:
+            any: number
+          description:
+            any: text
+      get_by_user:
+        method: GET
+        query:
+          user:
+            any: text
+    store:
+      assignment:
+        assignment:
+          any: object
+      time_entries:
+        time:
+          any: list
+      not_found:
+        status: not_found
+  update:
+    log:
+      model:
+        data: @data.body
+      cmds:
+        store: find_assignment
+    get_by_user:
+      model:
+        query:
+          either:
+            - when:
+                equal:
+                  - @model.user.role
+                  - employee
+              then:
+                user: @user.id
+            - user: @data.query.user
+      cmds:
+        store: query
+    time_entries:
+      model:
+        data: @data.time
+      cmds:
+        return: data
+    assignment:
+      cmds:
+        store: create
+    not_found:
+      cmds:
+        return: unauthorized
+  encoders:
+    query:
+      store: @store
+      find: @query
+      from: time
+      as: time
+    find_assignment:
+      store: @store
+      fetch:
+        project: @data.project
+        user: @user.id
+      from: assignments
+      as: assignment
+    create:
+      store: @store
+      insert:
+        merge:
+          - @data
+          - created:
+              now: {}
+            user: @user.id
+
+      into: time

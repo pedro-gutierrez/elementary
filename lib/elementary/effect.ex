@@ -150,7 +150,7 @@ defmodule Elementary.Effect do
        "status" =>
          case store.reset() do
            :ok ->
-             "init"
+             "reset"
 
            {:error, e} when is_atom(e) ->
              Atom.to_string(e)

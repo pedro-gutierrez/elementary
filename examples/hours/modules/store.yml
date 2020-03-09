@@ -8,19 +8,37 @@ spec:
         params:
           name:
             any: text
+      reset:
+        method: POST
+        params:
+          name:
+            any: text
     store:
       emptied:
         status: empty
+      resetted:
+        status: reset
   update:
     empty:
       model:
         name: @data.params.name
       cmds:
         store: empty
+    reset:
+      model:
+        name: @data.params.name
+      cmds:
+        store: reset
     emptied:
+      cmds:
+        return: ok
+    resetted:
       cmds:
         return: ok
   encoders:
     empty:
       store: @name
       empty: {}
+    reset:
+      store: @name
+      reset: {}

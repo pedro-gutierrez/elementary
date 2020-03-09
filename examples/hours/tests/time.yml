@@ -1,0 +1,41 @@
+kind: test
+name: time
+spec:
+  steps:
+    - title: Given 2 hours
+      time: 2.0
+    - title: Given I worked that time on that project
+      steps:
+        - When I work on that project
+        - Then I should have a 201
+    - title: When I work on that project
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/time
+        headers:
+          merge:
+            - @json
+            - @auth
+        body:
+          id:
+            uuid: {}
+          project: @project.id
+          time: @time
+          description: Some task
+      as: latest
+    - title: When I get the time logged by that user
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/time
+        headers:
+          merge:
+            - @json
+            - @auth
+        query:
+          user: @user.id
+      as: latest
+

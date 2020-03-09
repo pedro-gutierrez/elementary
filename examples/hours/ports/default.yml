@@ -30,3 +30,5 @@ spec:
       http: /api/users/:id
     assignments:
       http: /api/assignments
+    time:
+      http: /api/time

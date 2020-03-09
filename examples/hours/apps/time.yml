@@ -1,0 +1,15 @@
+kind: app
+name: time
+spec:
+  debug: true
+  settings:
+    - hours
+  filters:
+    - auth
+  modules:
+    - time
+    - common_store
+    - any_role
+    - session
+    - http
+

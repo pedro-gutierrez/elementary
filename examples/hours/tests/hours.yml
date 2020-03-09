@@ -10,6 +10,7 @@ spec:
     - packages
     - projects
     - assignments
+    - time
   init:
     baseUrl:
       url: @hours
@@ -154,4 +155,41 @@ spec:
         - Given Bob is an employee
         - Given I am logged out
         - When I assign that user to that project
+        - Then I should have a 401
+    - title: Employer should log time on their projects
+      steps:
+        - Given the store is empty
+        - Given Alice is an employer
+        - Given project iot
+        - Given that user is assigned to that project
+        - Given 2 hours
+        - Given I worked that time on that project
+    - title: Employees should log time
+      tags:
+        - debug
+      steps:
+        - Given the store is empty
+        - Given Bob is an employee
+        - Given Alice is an employer
+        - Given project iot
+        - Given package 50h
+        - Given Bob is the current user
+        - Given that user is assigned to that project
+        - Given I am logged out
+        - Given a password for Bob
+        - Given I am logged in
+        - Given 2 hours
+        - Given I worked that time on that project
+        - When I get the time logged by that user
+        - Then I should have a 200
+        - Then I should have one item
+    - title: Should not log time against unassigned projects
+      steps:
+        - Given the store is empty
+        - Given Alice is an employer
+        - Given project iot
+        - Given package 50h
+        - Given Bob is an employee
+        - Given 2 hours
+        - When I work on that project
         - Then I should have a 401
