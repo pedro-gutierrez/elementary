@@ -9,9 +9,21 @@ spec:
         name: 50h
         hours: 50
         rate: 36
+    - title: Given details for package 60h
+      package:
+        id:
+          uuid: {}
+        name: 60h
+        hours: 60
+        rate: 24
     - title: Given package 50h
       steps:
         - Given details for package 50h
+        - When I create that package
+        - Then I should have a 201
+    - title: Given package 60h
+      steps:
+        - Given details for package 60h
         - When I create that package
         - Then I should have a 201
     - title: When I create that package

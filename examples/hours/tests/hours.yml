@@ -108,6 +108,18 @@ spec:
         - When I get all assignments for that project
         - Then I should have a 200
         - Then I should have one item
+    - title: A project should not have more than one active package
+      tags:
+        - debug
+      steps:
+        - Given the store is empty
+        - Given Alice is an employer
+        - Given project iot
+        - Given package 50h
+        - Given that package is assigned to that project
+        - Given package 60h
+        - When I assign that package to that project
+        - Then I should have a 409
     - title: Employees should not not assign packages to projects
       steps:
         - Given the store is empty

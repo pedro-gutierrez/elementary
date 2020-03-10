@@ -4,6 +4,13 @@ defmodule Elementary.Http do
   alias Elementary.App
   require Logger
 
+  @cors %{
+    "access-control-max-age" => "1728000",
+    "access-control-allow-methods" => "HEAD, GET, POST, DELETE, PUT",
+    "access-control-allow-headers" => "content-type, authorization",
+    "access-control-allow-origin" => "*"
+  }
+
   def init(
         %{
           bindings: params,
@@ -145,7 +152,7 @@ defmodule Elementary.Http do
           "app" => "#{app}",
           "time" => "#{elapsed}"
         },
-        headers
+        Map.merge(@cors, headers)
       )
 
     resp = %{status: status, headers: headers, body: body}
@@ -173,10 +180,14 @@ defmodule Elementary.Http do
           ""
       end
 
-    headers = %{
-      "app" => "#{app}",
-      "time" => "#{elapsed}"
-    }
+    headers =
+      Map.merge(
+        @cors,
+        %{
+          "app" => "#{app}",
+          "time" => "#{elapsed}"
+        }
+      )
 
     resp = %{status: status, headers: headers, body: body}
 
