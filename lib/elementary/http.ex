@@ -6,8 +6,8 @@ defmodule Elementary.Http do
 
   @cors %{
     "access-control-max-age" => "1728000",
-    "access-control-allow-methods" => "HEAD, GET, POST, DELETE, PUT",
-    "access-control-allow-headers" => "content-type, authorization",
+    "access-control-allow-methods" => "*",
+    "access-control-allow-headers" => "*",
     "access-control-allow-origin" => "*"
   }
 
