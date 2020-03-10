@@ -4,6 +4,7 @@ spec:
   settings:
     - hours
   filters:
+    - cors
     - auth
   modules:
     - project

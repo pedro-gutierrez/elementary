@@ -3,6 +3,8 @@ name: login
 spec:
   settings:
     - hours
+  filters:
+    - cors
   modules:
     - login
     - http

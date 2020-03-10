@@ -4,12 +4,14 @@ defmodule Elementary.Http do
   alias Elementary.App
   require Logger
 
-  @cors %{
-    "access-control-max-age" => "1728000",
-    "access-control-allow-methods" => "*",
-    "access-control-allow-headers" => "*",
-    "access-control-allow-origin" => "*"
-  }
+  ## @cors %{
+  ##  "access-control-max-age" => "1728000",
+  ##  "access-control-allow-methods" => "*",
+  ##  "access-control-allow-headers" => "*",
+  ##  "access-control-allow-origin" => "*"
+  ## }
+
+  @cors %{}
 
   @version "0.1"
 
@@ -48,7 +50,7 @@ defmodule Elementary.Http do
              ) do
         reply(req, app, start, resp)
       else
-        {:stop, %{"status" => _, "body" => _} = resp} ->
+        {:stop, resp} ->
           reply(req, app, start, resp)
 
         {:error, req, e} ->
@@ -138,59 +140,44 @@ defmodule Elementary.Http do
     %{"status" => 500, "headers" => %{}, "body" => %{}}
   end
 
-  defp reply(req, app, started, %{
-         "status" => status,
-         "headers" => %{"content-type" => @json_mime} = headers,
-         "body" => body
-       }) do
-    body = Jason.encode!(body)
+  defp reply(
+         req,
+         app,
+         started,
+         %{
+           "status" => status
+         } = resp
+       ) do
+    headers = resp["headers"] || %{}
+
+    body = resp["body"] || ""
+
+    body =
+      case headers["content-type"] do
+        @json_mime ->
+          Jason.encode!(body)
+
+        _ ->
+          case is_binary(body) do
+            true ->
+              body
+
+            false ->
+              ""
+          end
+      end
+
     headers = encoded_headers(headers)
     elapsed = Elementary.Kit.duration(started)
 
     headers =
       Map.merge(
         %{
-          "content-type" => "application/json",
           "app" => "#{app}",
           "time" => "#{elapsed}",
           "elementary-version" => @version
         },
-        Map.merge(@cors, headers)
-      )
-
-    resp = %{status: status, headers: headers, body: body}
-
-    req =
-      :cowboy_req.reply(
-        status,
-        headers,
-        body,
-        req
-      )
-
-    {req, resp}
-  end
-
-  defp reply(req, app, started, %{"status" => status, "body" => body}) do
-    elapsed = System.system_time(:microsecond) - started
-
-    body =
-      case is_binary(body) do
-        true ->
-          body
-
-        false ->
-          ""
-      end
-
-    headers =
-      Map.merge(
-        @cors,
-        %{
-          "app" => "#{app}",
-          "time" => "#{elapsed}",
-          "elementary-version" => @version
-        }
+        headers
       )
 
     resp = %{status: status, headers: headers, body: body}

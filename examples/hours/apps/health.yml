@@ -3,6 +3,8 @@ name: health
 spec:
   settings:
     - hours
+  filters:
+    - cors
   modules:
     - health
     - http

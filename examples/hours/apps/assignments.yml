@@ -4,6 +4,7 @@ spec:
   settings:
     - hours
   filters:
+    - cors
     - auth
   modules:
     - assignments
@@ -11,4 +12,3 @@ spec:
     - employer_only
     - session
     - http
-

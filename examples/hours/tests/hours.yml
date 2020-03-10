@@ -23,6 +23,8 @@ spec:
         - When I get the health
         - Then I should have a 200
     - title: Should register as employer or employee
+      tags:
+        - debug
       steps:
         - Given the store is empty
         - Given Bob is an employee
@@ -109,8 +111,6 @@ spec:
         - Then I should have a 200
         - Then I should have one item
     - title: A project should not have more than one active package
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given Alice is an employer
@@ -177,8 +177,6 @@ spec:
         - Given 2 hours
         - Given I worked that time on that project
     - title: Employees should log time
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given Bob is an employee

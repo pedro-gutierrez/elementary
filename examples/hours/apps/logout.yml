@@ -10,3 +10,4 @@ spec:
     - session
     - any_role
     - http
+    - cors

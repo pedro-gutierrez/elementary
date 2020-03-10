@@ -3,6 +3,8 @@ name: passwd_forgot
 spec:
   settings:
     - hours
+  filters:
+    - cors
   modules:
     - passwd_forgot
     - http

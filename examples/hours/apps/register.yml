@@ -3,6 +3,9 @@ name: register
 spec:
   settings:
     - hours
+  filters:
+    - cors
   modules:
     - register
     - http
+
