@@ -11,6 +11,8 @@ defmodule Elementary.Http do
     "access-control-allow-origin" => "*"
   }
 
+  @version "0.1"
+
   def init(
         %{
           bindings: params,
@@ -150,7 +152,8 @@ defmodule Elementary.Http do
         %{
           "content-type" => "application/json",
           "app" => "#{app}",
-          "time" => "#{elapsed}"
+          "time" => "#{elapsed}",
+          "elementary-version" => @version
         },
         Map.merge(@cors, headers)
       )
@@ -185,7 +188,8 @@ defmodule Elementary.Http do
         @cors,
         %{
           "app" => "#{app}",
-          "time" => "#{elapsed}"
+          "time" => "#{elapsed}",
+          "elementary-version" => @version
         }
       )
 
