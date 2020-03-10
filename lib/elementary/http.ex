@@ -4,15 +4,6 @@ defmodule Elementary.Http do
   alias Elementary.App
   require Logger
 
-  ## @cors %{
-  ##  "access-control-max-age" => "1728000",
-  ##  "access-control-allow-methods" => "*",
-  ##  "access-control-allow-headers" => "*",
-  ##  "access-control-allow-origin" => "*"
-  ## }
-
-  @cors %{}
-
   @version "0.1"
 
   def init(
@@ -26,6 +17,7 @@ defmodule Elementary.Http do
     start = System.system_time(:microsecond)
     app = mod.name()
     {:ok, settings} = mod.settings()
+    headers = normalized_content_type(headers)
 
     {:ok, req, body} = body(req, headers)
     query = :cowboy_req.parse_qs(req) |> Enum.into(%{})
@@ -119,6 +111,19 @@ defmodule Elementary.Http do
 
   @json_mime "application/json"
 
+  defp normalized_content_type(
+         %{"content-type" => "application/json;charset=" <> charset} = headers
+       ) do
+    Map.merge(headers, %{
+      "content-type" => @json_mime,
+      "charset" => charset
+    })
+  end
+
+  defp normalized_content_type(headers) do
+    headers
+  end
+
   defp json?(headers) do
     @json_mime == (headers["content-type"] || "")
   end
@@ -175,7 +180,11 @@ defmodule Elementary.Http do
         %{
           "app" => "#{app}",
           "time" => "#{elapsed}",
-          "elementary-version" => @version
+          "elementary-version" => @version,
+          "access-control-max-age" => "1728000",
+          "access-control-allow-methods" => "*",
+          "access-control-allow-headers" => "*",
+          "access-control-allow-origin" => "*"
         },
         headers
       )
