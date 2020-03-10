@@ -180,11 +180,11 @@ defmodule Elementary.Http do
         %{
           "app" => "#{app}",
           "time" => "#{elapsed}",
-          "elementary-version" => @version,
-          "access-control-max-age" => "1728000",
-          "access-control-allow-methods" => "*",
-          "access-control-allow-headers" => "*",
-          "access-control-allow-origin" => "*"
+          "elementary-version" => @version
+          ## "access-control-max-age" => "1728000",
+          ## "access-control-allow-methods" => "*",
+          ## "access-control-allow-headers" => "*",
+          ## "access-control-allow-origin" => "*"
         },
         headers
       )
