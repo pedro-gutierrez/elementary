@@ -1,7 +1,6 @@
 kind: app
 name: passwd_reset
 spec:
-  debug: true
   settings:
     - hours
   filters:
