@@ -188,6 +188,25 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(
+        %{"switch" => expr, "case" => clauses, "default" => default} = spec,
+        context,
+        encoders
+      ) do
+    with {:ok, expr} <- encode(expr, context, encoders),
+         {:ok, clauses} when is_map(clauses) <- encode(clauses, context, encoders),
+         {:ok, default} <- encode(default, context, encoders) do
+      case clauses[expr] do
+        nil ->
+          {:ok, default}
+
+        value ->
+          {:ok, value}
+      end
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"url" => url_parts}, context, encoders) when is_list(url_parts) do
     Enum.reduce_while(url_parts, [], fn url_spec, parts ->
       case encode(url_spec, context, encoders) do

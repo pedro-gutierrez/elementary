@@ -1,6 +1,7 @@
 kind: app
 name: assignments
 spec:
+  debug: true
   settings:
     - hours
   filters:

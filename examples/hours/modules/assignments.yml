@@ -39,27 +39,47 @@ spec:
       assignments:
         assignments:
           any: list
+      packages:
+        packages:
+          non_empty: list
+      no_packages:
+        packages:
+          empty: list
   update:
     find:
       model:
-        project: @data.query.project
+        context: query
+        data:
+          project: @data.query.project
       cmds:
         store: find_assignments
-    assignments:
-      model:
-        data: @data.assignments
-      cmds:
-        return: data
     assign_package:
       model:
+        context: assign
         data: @data.body
       cmds:
-        store: find_package
+        store: find_assignments
     assign_user:
       model:
         data: @data.body
       cmds:
         store: find_user
+    assignments:
+      model:
+        assignments: @data.assignments
+      cmds:
+        switch: @model.context
+        case:
+          query:
+            return: assignments
+        default:
+          store: find_packages
+    packages:
+      cmds:
+        return: conflict
+    no_packages:
+      cmds:
+        store: find_package
     user:
       cmds:
         store: find_project
@@ -91,9 +111,24 @@ spec:
     find_assignments:
       store: @store
       find:
-        project: @project
+        project: @data.project
       from: assignments
       as: assignments
+    find_packages:
+      store: @store
+      find:
+        status: open
+        id:
+          $in:
+            map: @assignments
+            with: @package
+      from: packages
+      as: packages
+    assignments:
+      status: 200
+      headers:
+        content-type: application/json
+      body: @assignments
     create:
       store: @store
       insert:

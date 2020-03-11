@@ -38,6 +38,7 @@ spec:
           - @package
           - created:
               now: {}
+            status: open
       into: packages
     list:
       store: @store

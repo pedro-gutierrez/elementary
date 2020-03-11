@@ -536,6 +536,8 @@ defmodule Elementary.Compiler do
          end
 
          def find_all(col, query, opts \\ []) do
+           query = Elementary.Kit.with_mongo_id(query)
+
            {:ok,
             Mongo.find(@store, col, query,
               skip: Keyword.get(opts, :offset, 0),
@@ -547,6 +549,8 @@ defmodule Elementary.Compiler do
          end
 
          def find_one(col, query) do
+           query = Elementary.Kit.with_mongo_id(query)
+
            case Mongo.find_one(@store, col, query) do
              nil ->
                {:error, :not_found}
