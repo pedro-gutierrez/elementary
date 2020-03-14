@@ -16,17 +16,21 @@ defmodule Elementary.Encoder do
   end
 
   def encode(specs, context, encoders) when is_list(specs) do
-    with {:ok, encoded} <-
-           Enum.reduce_while(specs, [], fn spec, acc ->
-             case encode(spec, context, encoders) do
-               {:ok, encoded} ->
-                 {:cont, [encoded | acc]}
+    Enum.reduce_while(specs, [], fn spec, acc ->
+      case encode(spec, context, encoders) do
+        {:ok, encoded} ->
+          {:cont, [encoded | acc]}
 
-               {:error, _} = error ->
-                 {:halt, error}
-             end
-           end) do
-      {:ok, Enum.reverse(encoded)}
+        {:error, _} = error ->
+          {:halt, error}
+      end
+    end)
+    |> case do
+      {:error, _} = err ->
+        err
+
+      items ->
+        {:ok, Enum.reverse(items)}
     end
     |> result(specs, context)
   end
@@ -45,7 +49,7 @@ defmodule Elementary.Encoder do
       key, map when is_map(map) ->
         case map[key] do
           nil ->
-            {:halt, {:error, %{"error" => "no_such_key", "key" => key, "data" => map}}}
+            {:halt, {:error, %{"error" => "no_such_key", "key" => key, "keys" => Map.keys(map)}}}
 
           value ->
             {:cont, value}
@@ -112,6 +116,22 @@ defmodule Elementary.Encoder do
         other ->
           {:error, %{"error" => "not_a_list", "data" => other}}
       end
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"reduce" => source, "initial" => initial, "with" => fun} = spec, context, encoders) do
+    with {:ok, source} when is_list(source) <- encode(source, context, encoders),
+         {:ok, initial} <- encode(initial, context, encoders) do
+      Enum.reduce_while(source, {:ok, initial}, fn item, {:ok, acc} ->
+        case encode(fun, %{"item" => item, "acc" => acc, "model" => context}, encoders) do
+          {:ok, _} = value ->
+            {:cont, value}
+
+          {:error, _} = err ->
+            {:halt, err}
+        end
+      end)
     end
     |> result(spec, context)
   end
@@ -506,8 +526,8 @@ defmodule Elementary.Encoder do
     result({:error, :not_supported}, spec, context)
   end
 
-  defp result({:error, e}, spec, context) do
-    {:error, %{spec: spec, context: context, error: e}}
+  defp result({:error, _} = err, _, _) do
+    err
   end
 
   defp result({:ok, _} = result, _, _), do: result
