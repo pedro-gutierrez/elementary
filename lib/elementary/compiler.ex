@@ -500,13 +500,20 @@ defmodule Elementary.Compiler do
 
          def update(col, where, doc) when is_map(doc) do
            where = Elementary.Kit.with_mongo_id(where)
-           doc = Elementary.Kit.with_mongo_id(doc)
+
+           doc =
+             Elementary.Kit.with_mongo_id(doc)
+             |> case do
+               %{"$push" => _} = doc -> doc
+               %{"$pull" => _} = doc -> doc
+               doc -> %{"$set" => doc}
+             end
 
            case Mongo.update_one(
                   @store,
                   col,
                   where,
-                  %{"$set" => doc},
+                  doc,
                   upsert: true
                 ) do
              {:ok, _} ->
@@ -561,6 +568,16 @@ defmodule Elementary.Compiler do
            |> log(%{find_one: col, query: query})
          end
 
+         def aggregate(col, p, opts \\ []) do
+           p = pipeline(p)
+
+           {:ok,
+            Mongo.aggregate(@store, col, p, opts)
+            |> Stream.map(&Elementary.Kit.without_mongo_id(&1))
+            |> Enum.to_list()}
+           |> log(%{aggregate: col, pipeline: p, opts: opts})
+         end
+
          defp mongo_error(%{write_errors: [error]}) do
            mongo_error(error)
          end
@@ -568,6 +585,53 @@ defmodule Elementary.Compiler do
          defp mongo_error(%{"code" => 11000}) do
            :conflict
          end
+
+         defp pipeline(items) do
+           Enum.map(items, &pipeline_item(&1))
+         end
+
+         defp pipeline_item(%{"$match" => query}) do
+           %{"$match" => Elementary.Kit.with_mongo_id(query)}
+         end
+
+         defp pipeline_item(%{
+                "$lookup" => %{
+                  "from" => foreignCol,
+                  "localField" => localField,
+                  "foreignField" => foreignField,
+                  "as" => as
+                }
+              }) do
+           %{
+             "$lookup" => %{
+               "from" => foreignCol,
+               "localField" => intern_field(localField),
+               "foreignField" => intern_field(foreignField),
+               "as" => as
+             }
+           }
+         end
+
+         defp pipeline_item(%{
+                "$lookup" => %{
+                  "from" => foreignCol,
+                  "as" => as
+                }
+              }) do
+           %{
+             "$lookup" => %{
+               "from" => foreignCol,
+               "localField" => intern_field(as),
+               "foreignField" => "_id",
+               "as" => as
+             }
+           }
+         end
+
+         defp pipeline_item(other), do: other
+
+         defp intern_field("id"), do: "_id"
+         defp intern_field(other), do: other
        end}
     ]
   end
@@ -712,7 +776,7 @@ defmodule Elementary.Compiler do
                {:noreply, %{state | context: context, step: nil, scenario: scenario},
                 {:continue, :step}}
 
-             {:error, %{context: context, error: e}} ->
+             {:error, e} ->
                scenario = Map.put(scenario, "steps", [])
                failures = report.failures
                report = %{report | failures: [title | failures], failed: report.failed + 1}
