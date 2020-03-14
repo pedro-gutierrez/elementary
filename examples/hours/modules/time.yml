@@ -14,70 +14,60 @@ spec:
             any: number
           description:
             any: text
-      get_by_user:
-        method: GET
-        query:
-          user:
-            any: text
     store:
-      assignment:
-        assignment:
-          any: object
-      time_entries:
-        time:
-          any: list
       not_found:
-        status: not_found
+        project: not_found
+      not_allowed:
+        project:
+          packages:
+            one_of:
+              - empty: list
+              - list:
+                  timeLeft: 0
+      allowed:
+        project:
+          packages:
+            list:
+              with:
+                timeLeft:
+                  greater_than: 0
+      created: created
   update:
     log:
       model:
-        data: @data.body
+        logEntry: @data.body
       cmds:
-        store: find_assignment
-    get_by_user:
-      model:
-        query:
-          either:
-            - when:
-                equal:
-                  - @model.user.role
-                  - employee
-              then:
-                user: @user.id
-            - user: @data.query.user
-      cmds:
-        store: query
-    time_entries:
-      model:
-        data: @data.time
-      cmds:
-        return: data
-    assignment:
-      cmds:
-        store: create
+        store: find_project
     not_found:
       cmds:
+        return: not_found
+    not_allowed:
+      cmds:
         return: unauthorized
+    allowed:
+      model:
+        package:
+          first: @data.packages
+      cmds:
+        store: create
   encoders:
+    find_project:
+      store: @store
+      fetch:
+        id: @logEntry.project
+      from: projects
+      as: project
     query:
       store: @store
       find: @query
       from: time
       as: time
-    find_assignment:
-      store: @store
-      fetch:
-        project: @data.project
-        user: @user.id
-      from: assignments
-      as: assignment
     create:
       store: @store
       insert:
         merge:
-          - @data
+          - @logEntry
           - created:
               now: {}
             user: @user.id
-
       into: time

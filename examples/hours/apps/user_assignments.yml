@@ -1,0 +1,15 @@
+kind: app
+name: user_assignments
+spec:
+  debug: true
+  settings:
+    - hours
+  filters:
+    - cors
+    - auth
+  modules:
+    - user_assignments
+    - common_store
+    - employer_only
+    - session
+    - http

@@ -1,0 +1,90 @@
+kind: module
+name: user_assignments
+spec:
+  decoders:
+    http:
+      create:
+        method: POST
+        params:
+          id:
+            any: text
+        body:
+          user:
+            any: text
+    store:
+      no_such_user:
+        user: not_found
+      no_such_project:
+        project: not_found
+      user:
+        user:
+          any: object
+      already_assigned:
+        project:
+          users:
+            list:
+              with:
+                id: @foundUser.id
+      not_assigned:
+        project:
+          id:
+            any: text
+          users:
+            one_of:
+              - empty: list
+              - not:
+                  list:
+                    with:
+                      id: @foundUser.id
+      assigned: updated
+  update:
+    create:
+      model:
+        project: @data.params.id
+        user: @data.body.user
+      cmds:
+        store: find_user
+    user:
+      model:
+        foundUser: @data.user
+      cmds:
+        store: find_project
+    no_such_user:
+      cmds:
+        return: not_found
+    no_such_project:
+      cmds:
+        return: not_found
+    already_assigned:
+      cmds:
+        return: conflict
+    not_assigned:
+      cmds:
+        store: assign
+    assigned:
+      cmds:
+        return: created
+  encoders:
+    find_user:
+      store: @store
+      fetch:
+        id: @user
+      from: users
+      as: user
+    find_project:
+      store: @store
+      fetch:
+        id: @project
+      from: projects
+      as: project
+    assign:
+      store: @store
+      update:
+        $push:
+          users:
+            id: @foundUser.id
+            added:
+              now: {}
+      where:
+        id: @project
+      into: projects

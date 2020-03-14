@@ -3,12 +3,9 @@ name: common_store
 spec:
   decoders:
     store:
-      created:
-        status: created
-      conflict:
-        status: conflict
-      not_found:
-        status: not_found
+      created: created
+      conflict: conflict
+      not_found: not_found
   update:
     conflict:
       cmds:

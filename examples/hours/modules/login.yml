@@ -20,10 +20,8 @@ spec:
         password:
           hash:
             any: text
-      token_created:
-        status: created
-      not_found:
-        status: not_found
+      token_created: created
+      not_found: not_found
     password:
       verified:
         status: ok

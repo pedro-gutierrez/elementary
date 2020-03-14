@@ -7,14 +7,14 @@ spec:
         id:
           uuid: {}
         name: 50h
-        hours: 50
+        time: 50
         rate: 36
     - title: Given details for package 60h
       package:
         id:
           uuid: {}
         name: 60h
-        hours: 60
+        time: 60
         rate: 24
     - title: Given package 50h
       steps:

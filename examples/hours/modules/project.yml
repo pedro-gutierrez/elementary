@@ -12,6 +12,9 @@ spec:
       project:
         project:
           any: object
+      time:
+        time:
+          any: list
   update:
     get:
       model:
@@ -20,7 +23,21 @@ spec:
         store: fetch
     project:
       model:
-        data: @data.project
+        project: @data.project
+      cmds:
+        store: find_time
+    time:
+      model:
+        data:
+          merge:
+            - @model.project
+            - hours:
+                reduce: @data.time
+                initial: 0
+                with:
+                  sum:
+                    - @acc
+                    - @item.time
       cmds:
         return: data
   encoders:
@@ -30,3 +47,9 @@ spec:
         id: @id
       from: projects
       as: project
+    find_time:
+      store: @store
+      find:
+        project: @project.id
+      from: time
+      as: time

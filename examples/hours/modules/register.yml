@@ -31,10 +31,8 @@ spec:
           email:
             any: text
     store:
-      created:
-        status: created
-      conflict:
-        status: conflict
+      created: created
+      conflict: conflict
   update:
     employer:
       model:

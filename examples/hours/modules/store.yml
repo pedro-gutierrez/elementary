@@ -14,10 +14,8 @@ spec:
           name:
             any: text
     store:
-      emptied:
-        status: empty
-      resetted:
-        status: reset
+      emptied: empty
+      resetted: reset
   update:
     empty:
       model:

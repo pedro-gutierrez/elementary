@@ -1,0 +1,28 @@
+kind: module
+name: user_time
+spec:
+  decoders:
+    http:
+      query:
+        method: GET
+    store:
+      time:
+        time:
+          any: list
+  update:
+    query:
+      cmds:
+        store: query
+    time:
+      model:
+        data: @data.time
+      cmds:
+        return: data
+  encoders:
+    query:
+      store: @store
+      aggregate:
+        - $match:
+            user: @user.id
+      from: time
+      as: time

@@ -10,6 +10,10 @@ spec:
             any: text
           name:
             any: text
+          time:
+            any: number
+          rate:
+            any: number
       get:
         method: GET
     store:
@@ -38,7 +42,7 @@ spec:
           - @package
           - created:
               now: {}
-            status: open
+            timeLeft: @package.time
       into: packages
     list:
       store: @store

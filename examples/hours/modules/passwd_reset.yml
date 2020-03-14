@@ -17,10 +17,8 @@ spec:
           email:
             any: text
     store:
-      updated:
-        status: updated
-      deleted:
-        status: deleted
+      updated: updated
+      deleted: deleted
     password:
       hashed:
         hash:

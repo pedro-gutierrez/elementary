@@ -1,5 +1,5 @@
 kind: port
-name: default
+name: hours
 spec:
   port:
     env: PORT
@@ -28,7 +28,11 @@ spec:
       http: /api/users
     user:
       http: /api/users/:id
-    assignments:
-      http: /api/assignments
+    user_assignments:
+      http: /api/projects/:id/users
+    package_assignments:
+      http: /api/projects/:id/packages
     time:
       http: /api/time
+    user_time:
+      http: /api/users/:id/time

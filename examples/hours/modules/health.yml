@@ -6,8 +6,7 @@ spec:
       health:
         method: GET
     store:
-      pong:
-        status: ok
+      pong: ok
   update:
     health:
       cmds:

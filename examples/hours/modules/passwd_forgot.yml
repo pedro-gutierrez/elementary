@@ -28,14 +28,10 @@ spec:
           expires:
             before:
               now: {}
-      not_found:
-        status: not_found
-      token_consumed:
-        status: deleted
-      created:
-        status: created
-      updated:
-        status: updated
+      not_found: not_found
+      token_consumed: deleted
+      created: created
+      updated: updated
     password:
       hashed:
         hash:

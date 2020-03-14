@@ -1,0 +1,90 @@
+kind: module
+name: package_assignments
+spec:
+  decoders:
+    http:
+      create:
+        method: POST
+        params:
+          id:
+            any: text
+        body:
+          package:
+            any: text
+    store:
+      no_such_package:
+        package: not_found
+      no_such_project:
+        project: not_found
+      package:
+        package:
+          any: object
+      already_assigned:
+        project:
+          packages:
+            list:
+              with:
+                timeLeft:
+                  greater_than: 0
+      not_assigned:
+        project:
+          id:
+            any: text
+          packages:
+            one_of:
+              - empty: list
+              - list:
+                  timeLeft: 0
+      assigned: updated
+  update:
+    create:
+      model:
+        project: @data.params.id
+        package: @data.body.package
+      cmds:
+        store: find_package
+    package:
+      model:
+        package: @data.package
+      cmds:
+        store: find_project
+    no_such_package:
+      cmds:
+        return: not_found
+    no_such_project:
+      cmds:
+        return: not_found
+    already_assigned:
+      cmds:
+        return: conflict
+    not_assigned:
+      cmds:
+        store: assign
+    assigned:
+      cmds:
+        return: created
+  encoders:
+    find_package:
+      store: @store
+      fetch:
+        id: @package
+      from: packages
+      as: package
+    find_project:
+      store: @store
+      fetch:
+        id: @project
+      from: projects
+      as: project
+    assign:
+      store: @store
+      update:
+        $push:
+          packages:
+            id: @package.id
+            added:
+              now: {}
+            timeLeft: @package.timeLeft
+      where:
+        id: @project
+      into: projects

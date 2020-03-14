@@ -40,6 +40,8 @@ spec:
           - @project
           - created:
               now: {}
+            packages: []
+            users: []
       into: projects
     list:
       store: @store
