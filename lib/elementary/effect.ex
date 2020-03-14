@@ -44,118 +44,102 @@ defmodule Elementary.Effect do
      }}
   end
 
-  def apply("store", %{"store" => store, "ping" => _}) do
+  def apply("store", %{"store" => store, "ping" => _} = spec) do
     {:ok, store} = Elementary.Index.get("store", store)
 
-    {:ok,
-     case store.ping() do
-       :ok ->
-         %{"status" => "ok"}
-
-       {:error, e} when is_atom(e) ->
-         %{"status" => "#{e}"}
-     end}
+    case store.ping() do
+      :ok -> "ok"
+      {:error, e} -> "#{e}"
+    end
+    |> store_result(spec)
   end
 
-  def apply("store", %{"store" => store, "insert" => doc, "into" => col})
+  def apply("store", %{"store" => store, "insert" => doc, "into" => col} = spec)
       when is_map(doc) do
     {:ok, store} = Elementary.Index.get("store", store)
 
-    {:ok,
-     case store.insert(col, doc) do
-       :ok ->
-         %{"status" => "created"}
-
-       {:error, e} when is_atom(e) ->
-         %{"status" => "#{e}"}
-     end}
+    case store.insert(col, doc) do
+      :ok -> "created"
+      {:error, e} -> "#{e}"
+    end
+    |> store_result(spec)
   end
 
-  def apply("store", %{"store" => store, "where" => query, "update" => doc, "into" => col})
+  def apply("store", %{"store" => store, "where" => query, "update" => doc, "into" => col} = spec)
       when is_map(doc) do
-    {:ok, store} = Elementary.Index.get("store", store)
-
-    {:ok,
-     case store.update(col, query, doc) do
-       :ok ->
-         %{"status" => "updated"}
-
-       {:error, e} when is_atom(e) ->
-         %{"status" => "#{e}"}
-     end}
-  end
-
-  def apply("store", %{"store" => store, "delete" => doc, "from" => col}) do
-    {:ok, store} = Elementary.Index.get("store", store)
-
-    {:ok,
-     case store.delete(col, doc) do
-       :ok ->
-         %{"status" => "deleted"}
-
-       {:error, e} when is_atom(e) ->
-         %{"status" => "#{e}"}
-     end}
-  end
-
-  def apply("store", %{"store" => store, "from" => col, "fetch" => query, "as" => as}) do
     {:ok, store} = Elementary.Index.get("store", store)
 
     query = Kit.with_mongo_id(query)
 
-    {:ok,
-     case store.find_one(col, query) do
-       {:ok, item} ->
-         %{as => item}
-
-       {:error, e} when is_atom(e) ->
-         %{"status" => Atom.to_string(e)}
-     end}
+    case store.update(col, query, doc) do
+      :ok -> "updated"
+      {:error, e} -> "#{e}"
+    end
+    |> store_result(spec)
   end
 
-  def apply("store", %{"store" => store, "from" => col, "as" => as} = spec) do
+  def apply("store", %{"store" => store, "delete" => query, "from" => col} = spec) do
     {:ok, store} = Elementary.Index.get("store", store)
 
-    {:ok,
-     case store.find_all(col, spec["find"] || %{}) do
-       {:ok, items} ->
-         %{as => items}
+    query = Kit.with_mongo_id(query)
 
-       {:error, e} when is_atom(e) ->
-         %{"status" => Atom.to_string(e)}
-     end}
+    case store.delete(col, query) do
+      :ok -> "deleted"
+      {:error, e} -> "#{e}"
+    end
+    |> store_result(spec)
   end
 
-  def apply("store", %{"empty" => %{}, "store" => store}) do
+  def apply("store", %{"store" => store, "from" => col, "fetch" => query} = spec) do
     {:ok, store} = Elementary.Index.get("store", store)
 
-    {:ok,
-     %{
-       "status" =>
-         case store.empty() do
-           :ok ->
-             "empty"
+    query = Kit.with_mongo_id(query)
 
-           {:error, e} when is_atom(e) ->
-             Atom.to_string(e)
-         end
-     }}
+    case store.find_one(col, query) do
+      {:ok, item} -> item
+      {:error, e} -> "#{e}"
+    end
+    |> store_result(spec)
   end
 
-  def apply("store", %{"reset" => %{}, "store" => store}) do
+  def apply("store", %{"store" => store, "aggregate" => pipeline, "from" => col} = spec) do
     {:ok, store} = Elementary.Index.get("store", store)
 
-    {:ok,
-     %{
-       "status" =>
-         case store.reset() do
-           :ok ->
-             "reset"
+    case store.aggregate(col, pipeline) do
+      {:ok, items} -> items
+      {:error, e} -> "#{e}"
+    end
+    |> store_result(spec)
+  end
 
-           {:error, e} when is_atom(e) ->
-             Atom.to_string(e)
-         end
-     }}
+  def apply("store", %{"store" => store, "from" => col} = spec) do
+    {:ok, store} = Elementary.Index.get("store", store)
+
+    case store.find_all(col, spec["find"] || %{}) do
+      {:ok, items} -> items
+      {:error, e} -> "#{e}"
+    end
+    |> store_result(spec)
+  end
+
+  def apply("store", %{"empty" => %{}, "store" => store} = spec) do
+    {:ok, store} = Elementary.Index.get("store", store)
+
+    case store.empty() do
+      :ok -> "empty"
+      {:error, e} -> "#{e}"
+    end
+    |> store_result(spec)
+  end
+
+  def apply("store", %{"reset" => %{}, "store" => store} = spec) do
+    {:ok, store} = Elementary.Index.get("store", store)
+
+    case store.empty() do
+      :ok -> "reset"
+      {:error, e} -> "#{e}"
+    end
+    |> store_result(spec)
   end
 
   def apply("test", %{"run" => test, "settings" => settings}) do
@@ -173,4 +157,11 @@ defmodule Elementary.Effect do
   def apply(effect, data) do
     {:error, %{"error" => "no_such_effect", "effect" => effect, "data" => data}}
   end
+
+  defp store_result(res, spec) do
+    {:ok, maybe_alias(spec["as"], res)}
+  end
+
+  defp maybe_alias(nil, res), do: res
+  defp maybe_alias(as, res), do: %{as => res}
 end
