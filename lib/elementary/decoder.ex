@@ -1,6 +1,8 @@
 defmodule Elementary.Decoder do
   @moduledoc false
 
+  require Logger
+
   import Elementary.Encoder, only: [encode: 2]
 
   defguard is_literal(v) when is_binary(v) or is_number(v) or is_atom(v)
@@ -12,6 +14,8 @@ defmodule Elementary.Decoder do
   def decode(nil = spec, data, _) do
     decode_error(spec, data)
   end
+
+  def decode(data, data, _), do: {:ok, data}
 
   def decode(spec, data, context) when is_binary(spec) do
     case Elementary.Encoder.encode(spec, context) do
@@ -111,22 +115,62 @@ defmodule Elementary.Decoder do
     |> result(spec)
   end
 
-  def decode(%{"other_than" => value} = spec, data, context) do
-    with {:ok, ^data} <- encode(value, context) do
-      decode_error(spec, data)
+  def decode(%{"list" => %{"with" => dec}} = spec, data, context) when is_list(data) do
+    with {:ok, dec} <- encode(dec, context),
+         nil <-
+           Enum.reduce_while(data, {:error, %{"error" => "empty_list", "data" => data}}, fn item,
+                                                                                            _ ->
+             case decode(dec, item, context) do
+               {:ok, _} ->
+                 {:halt, nil}
+
+               {:error, _} = err ->
+                 {:cont, err}
+             end
+           end) do
+      {:ok, data}
     end
     |> result(spec)
   end
 
-  def decode(%{"one_of" => options} = spec, data, context) do
-    with {:ok, options} when is_list(options) <- encode(options, context) do
-      case Enum.member?(options, data) do
-        true ->
-          {:ok, data}
+  def decode(%{"list" => dec} = spec, data, context) when is_list(data) do
+    with {:ok, dec} <- encode(dec, context),
+         nil <-
+           Enum.reduce_while(data, nil, fn item, _ ->
+             case decode(dec, item, context) do
+               {:ok, _} ->
+                 {:cont, nil}
 
-        false ->
-          {:error, %{"allowed_values" => options, "unexpected" => data}}
-      end
+               {:error, _} = err ->
+                 {:halt, err}
+             end
+           end) do
+      {:ok, data}
+    end
+    |> result(spec)
+  end
+
+  def decode(%{"one_of" => decs} = spec, data, context) do
+    with {:ok, decs} <- encode(decs, context),
+         nil <-
+           Enum.reduce_while(decs, {:error, %{"error" => "none_matched", "data" => data}}, fn dec,
+                                                                                              _ ->
+             case decode(dec, data, context) do
+               {:ok, _} ->
+                 {:halt, nil}
+
+               {:error, _} = err ->
+                 {:cont, err}
+             end
+           end) do
+      {:ok, data}
+    end
+    |> result(spec)
+  end
+
+  def decode(%{"other_than" => value} = spec, data, context) do
+    with {:ok, ^data} <- encode(value, context) do
+      decode_error(spec, data)
     end
     |> result(spec)
   end
