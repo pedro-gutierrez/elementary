@@ -1,6 +1,7 @@
 # Base system
 FROM hexpm/elixir:1.10.1-erlang-22.2.6-alpine-3.11.3 as builder
 ENV MIX_ENV=prod
+ENV VERSION=1
 RUN apk add --update git build-base
 WORKDIR /opt/app
 COPY mix.* /opt/app/
