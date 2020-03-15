@@ -20,7 +20,18 @@ spec:
         store: fetch
     package:
       model:
-        data: @data.package
+        package: @data.package
+      cmds:
+        store: package_time
+    package_time:
+      model:
+        data:
+          merge:
+            - @model.package
+            - timeLeft:
+                diff:
+                  - @model.package.time
+                  - @data.package_time.timeLogged
       cmds:
         return: data
   encoders:

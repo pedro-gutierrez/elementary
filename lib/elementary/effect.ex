@@ -51,7 +51,7 @@ defmodule Elementary.Effect do
       :ok -> "ok"
       {:error, e} -> "#{e}"
     end
-    |> store_result(spec)
+    |> effect_result(spec)
   end
 
   def apply("store", %{"store" => store, "insert" => doc, "into" => col} = spec)
@@ -62,7 +62,7 @@ defmodule Elementary.Effect do
       :ok -> "created"
       {:error, e} -> "#{e}"
     end
-    |> store_result(spec)
+    |> effect_result(spec)
   end
 
   def apply("store", %{"store" => store, "where" => query, "update" => doc, "into" => col} = spec)
@@ -75,7 +75,7 @@ defmodule Elementary.Effect do
       :ok -> "updated"
       {:error, e} -> "#{e}"
     end
-    |> store_result(spec)
+    |> effect_result(spec)
   end
 
   def apply("store", %{"store" => store, "delete" => query, "from" => col} = spec) do
@@ -87,7 +87,7 @@ defmodule Elementary.Effect do
       :ok -> "deleted"
       {:error, e} -> "#{e}"
     end
-    |> store_result(spec)
+    |> effect_result(spec)
   end
 
   def apply("store", %{"store" => store, "from" => col, "fetch" => query} = spec) do
@@ -99,7 +99,7 @@ defmodule Elementary.Effect do
       {:ok, item} -> item
       {:error, e} -> "#{e}"
     end
-    |> store_result(spec)
+    |> effect_result(spec)
   end
 
   def apply("store", %{"store" => store, "aggregate" => pipeline, "from" => col} = spec) do
@@ -109,7 +109,7 @@ defmodule Elementary.Effect do
       {:ok, items} -> items
       {:error, e} -> "#{e}"
     end
-    |> store_result(spec)
+    |> effect_result(spec)
   end
 
   def apply("store", %{"store" => store, "from" => col} = spec) do
@@ -119,7 +119,7 @@ defmodule Elementary.Effect do
       {:ok, items} -> items
       {:error, e} -> "#{e}"
     end
-    |> store_result(spec)
+    |> effect_result(spec)
   end
 
   def apply("store", %{"empty" => %{}, "store" => store} = spec) do
@@ -129,7 +129,7 @@ defmodule Elementary.Effect do
       :ok -> "empty"
       {:error, e} -> "#{e}"
     end
-    |> store_result(spec)
+    |> effect_result(spec)
   end
 
   def apply("store", %{"reset" => %{}, "store" => store} = spec) do
@@ -139,7 +139,7 @@ defmodule Elementary.Effect do
       :ok -> "reset"
       {:error, e} -> "#{e}"
     end
-    |> store_result(spec)
+    |> effect_result(spec)
   end
 
   def apply("test", %{"run" => test, "settings" => settings}) do
@@ -158,7 +158,7 @@ defmodule Elementary.Effect do
     {:error, %{"error" => "no_such_effect", "effect" => effect, "data" => data}}
   end
 
-  defp store_result(res, spec) do
+  defp effect_result(res, spec) do
     {:ok, maybe_alias(spec["as"], res)}
   end
 

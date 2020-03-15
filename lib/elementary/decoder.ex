@@ -116,19 +116,48 @@ defmodule Elementary.Decoder do
   end
 
   def decode(%{"list" => %{"with" => dec}} = spec, data, context) when is_list(data) do
-    with {:ok, dec} <- encode(dec, context),
-         nil <-
-           Enum.reduce_while(data, {:error, %{"error" => "empty_list", "data" => data}}, fn item,
-                                                                                            _ ->
-             case decode(dec, item, context) do
-               {:ok, _} ->
-                 {:halt, nil}
+    with {:ok, dec} <- encode(dec, context) do
+      Enum.reduce_while(data, [], fn item, acc ->
+        case decode(dec, item, context) do
+          {:ok, decoded} ->
+            {:cont, [decoded | acc]}
 
-               {:error, _} = err ->
-                 {:cont, err}
-             end
-           end) do
-      {:ok, data}
+          {:error, _} ->
+            {:cont, acc}
+        end
+      end)
+      |> case do
+        [] -> {:error, %{"error" => "none_matched", "data" => data, "spec" => dec}}
+        decoded -> {:ok, Enum.reverse(decoded)}
+      end
+    end
+    |> result(spec)
+  end
+
+  def decode(%{"first" => %{"with" => dec}} = spec, data, context) when is_list(data) do
+    with {:ok, dec} <- encode(dec, context) do
+      Enum.reduce_while(data, nil, fn item, _ ->
+        case decode(dec, item, context) do
+          {:ok, decoded} ->
+            {:halt, decoded}
+
+          {:error, _} ->
+            {:cont, nil}
+        end
+      end)
+      |> case do
+        nil ->
+          case spec["otherwise"] do
+            nil ->
+              {:error, %{"error" => "none_matched", "data" => data, "spec" => dec}}
+
+            default ->
+              encode(default, context)
+          end
+
+        decoded ->
+          {:ok, decoded}
+      end
     end
     |> result(spec)
   end

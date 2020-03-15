@@ -4,8 +4,10 @@ spec:
   steps:
     - title: Given 2 hours
       time: 2.0
-    - title: Given 48 hours
-      time: 48.0
+    - title: Given 8 hours
+      time: 8.0
+    - title: Given 40 hours
+      time: 40.0
     - title: Given I worked that time on that project
       steps:
         - When I work on that project

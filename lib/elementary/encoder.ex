@@ -267,6 +267,26 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"diff" => items} = spec, context, encoders) do
+    with {:ok, items} <- encode_specs(items, context, encoders) do
+      case items do
+        [] ->
+          {:ok, 0}
+
+        [first | rest] when is_number(first) ->
+          Enum.reduce_while(rest, first, fn
+            item, acc when is_number(item) ->
+              {:cont, acc - item}
+
+            other, _ ->
+              {:halt,
+               {:error, %{"error" => "not_a_number", "actual" => other, "expected" => "number"}}}
+          end)
+      end
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"first_day" => date} = spec, context, encoders) do
     with {:ok, date} <- encode(date, context, encoders) do
       Elementary.Calendar.first_dom(date)

@@ -8,6 +8,7 @@ spec:
     - auth
   modules:
     - package
+    - package_time
     - common_store
     - employer_only
     - session

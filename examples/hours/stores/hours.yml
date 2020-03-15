@@ -1,7 +1,6 @@
 kind: store
 name: hours
 spec:
-  debug: true
   url:
     env: MONGO_URL
   collections:
@@ -14,12 +13,4 @@ spec:
         - unique: name
     users: {}
     projects: {}
-    assignments:
-      indexes:
-        - unique:
-            - project
-            - package
-        - unique:
-            - project
-            - user
     time: {}

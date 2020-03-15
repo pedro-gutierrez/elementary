@@ -1,7 +1,6 @@
 kind: app
 name: user_time
 spec:
-  debug: true
   settings:
     - hours
   filters:

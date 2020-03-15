@@ -29,6 +29,8 @@ spec:
           packages:
             list:
               with:
+                id:
+                  any: text
                 timeLeft:
                   greater_than: 0
       created: created
@@ -47,7 +49,7 @@ spec:
     allowed:
       model:
         package:
-          first: @data.packages
+          first: @data.project.packages
       cmds:
         store: create
   encoders:
@@ -70,4 +72,5 @@ spec:
           - created:
               now: {}
             user: @user.id
+            package: @package.id
       into: time

@@ -199,8 +199,6 @@ spec:
         - When I work on that project
         - Then I should have a 401
     - title: Projects and packages should sum up time logged
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given Alice is an employer
@@ -210,6 +208,8 @@ spec:
         - Given that package is assigned to that project
         - Given 2 hours
         - Given I worked that time on that project
-        - Given 48 hours
+        - Given 8 hours
+        - Given I worked that time on that project
+        - Given 40 hours
         - When I get that package
         - Then it should have that time left
