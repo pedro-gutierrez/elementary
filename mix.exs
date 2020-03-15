@@ -22,6 +22,7 @@ defmodule Elementary.MixProject do
         :httpoison,
         :jason,
         :mongodb_driver,
+        :mustache,
         :ranch,
         :uuid,
         :yaml_elixir
