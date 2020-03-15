@@ -39,6 +39,7 @@ defmodule Elementary.MixProject do
       {:httpoison, "~> 1.6"},
       {:jason, "~> 1.1.2"},
       {:mongodb_driver, "~> 0.6"},
+      {:mustache, "~> 0.3.0"},
       {:uuid, "~> 1.1"},
       {:yaml_elixir, "~> 2.4.0"}
     ]

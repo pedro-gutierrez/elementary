@@ -4,6 +4,8 @@ spec:
   port:
     env: PORT
   apps:
+    index:
+      http: /
     health:
       http: /api/health
     store:

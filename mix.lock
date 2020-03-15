@@ -18,6 +18,7 @@
   "metrics": {:hex, :metrics, "1.0.1", "25f094dea2cda98213cecc3aeff09e940299d950904393b2a29d191c346a8486", [:rebar3], [], "hexpm", "69b09adddc4f74a40716ae54d140f93beb0fb8978d8636eaded0c31b6f099f16"},
   "mimerl": {:hex, :mimerl, "1.2.0", "67e2d3f571088d5cfd3e550c383094b47159f3eee8ffa08e64106cdf5e981be3", [:rebar3], [], "hexpm", "f278585650aa581986264638ebf698f8bb19df297f66ad91b18910dfc6e19323"},
   "mongodb_driver": {:hex, :mongodb_driver, "0.6.4", "ce3dabae6c8a0cd17d28accb0fe69b16ebb9c9d002f8539ea9e03f6a7377afe5", [:mix], [{:db_connection, "~> 2.1.1", [hex: :db_connection, repo: "hexpm", optional: false]}, {:decimal, "~> 1.8", [hex: :decimal, repo: "hexpm", optional: false]}], "hexpm", "f192efedc33f71e06ca2d3b00072fe9e4df4ac20a8569cbd217a5c42080ae551"},
+  "mustache": {:hex, :mustache, "0.3.1", "4c6ee79b13aae954035fe31b83c94480ddc7b536d09c44d4c65e61a9ead38d6b", [:mix], [], "hexpm", "8dc92b9b92a0d7449628f4fc981f8018a16a5b8c9907249e59db461482dac143"},
   "nanoid": {:hex, :nanoid, "2.0.2", "f3f7b4bf103ab6667f22beb00b6315825ee3f30100dd2c93d534e5c02164e857", [:mix], [], "hexpm"},
   "parse_trans": {:hex, :parse_trans, "3.3.0", "09765507a3c7590a784615cfd421d101aec25098d50b89d7aa1d66646bc571c1", [:rebar3], [], "hexpm", "17ef63abde837ad30680ea7f857dd9e7ced9476cdd7b0394432af4bfc241b960"},
   "ranch": {:hex, :ranch, "1.7.1", "6b1fab51b49196860b733a49c07604465a47bdb78aa10c1c16a3d199f7f8c881", [:rebar3], [], "hexpm", "451d8527787df716d99dc36162fca05934915db0b6141bbdac2ea8d3c7afc7d7"},

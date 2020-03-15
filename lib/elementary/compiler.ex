@@ -241,10 +241,13 @@ defmodule Elementary.Compiler do
              :cowboy_router.compile([
                {:_,
                 unquote(
-                  Enum.map(apps, fn {app, %{"http" => route}} ->
-                    app_module = Elementary.Compiler.app_module_name(app)
-                    {route, Elementary.Http, [app_module]}
-                  end)
+                  (Enum.map(apps, fn {app, %{"http" => route}} ->
+                     app_module = Elementary.Compiler.app_module_name(app)
+                     {route, Elementary.Http, [app_module]}
+                   end) ++
+                     [
+                       {"/[...]", :cowboy_static, {:dir, Elementary.Kit.assets()}}
+                     ])
                   |> Macro.escape()
                 )}
              ])

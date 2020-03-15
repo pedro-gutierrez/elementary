@@ -1,0 +1,11 @@
+kind: app
+name: index
+spec:
+  settings:
+    - hours
+  filters:
+    - cors
+  modules:
+    - index
+    - http
+

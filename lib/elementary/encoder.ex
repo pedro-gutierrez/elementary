@@ -471,6 +471,19 @@ defmodule Elementary.Encoder do
     encode_init(init, context, encoders)
   end
 
+  def encode(%{"format" => template, "with" => params}, context, encoders) do
+    with {:ok, template} <- encode(template, context, encoders),
+         {:ok, params} <- encode(params, context, encoders) do
+      {:ok, Mustache.render(template, Map.merge(context, params))}
+    end
+  end
+
+  def encode(%{"format" => template}, context, encoders) do
+    with {:ok, template} <- encode(template, context, encoders) do
+      {:ok, Mustache.render(template, context)}
+    end
+  end
+
   def encode(spec, context, encoders) when is_map(spec) do
     encode(%{"object" => spec}, context, encoders)
   end
