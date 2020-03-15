@@ -19,13 +19,24 @@ spec:
         project: not_found
       not_allowed:
         project:
-          packages:
-            one_of:
-              - empty: list
-              - list:
+          one_of:
+            - users:
+                empty: list
+            - users:
+                list:
+                  without:
+                    id: @user.id
+            - packages:
+                empty: list
+            - packages:
+                list:
                   timeLeft: 0
       allowed:
         project:
+          users:
+            list:
+              with:
+                id: @user.id
           packages:
             list:
               with:

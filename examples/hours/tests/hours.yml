@@ -194,6 +194,7 @@ spec:
         - Given Alice is an employer
         - Given project iot
         - Given package 50h
+        - Given that package is assigned to that project
         - Given Bob is an employee
         - Given 2 hours
         - When I work on that project
