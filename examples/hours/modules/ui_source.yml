@@ -1,0 +1,23 @@
+kind: module
+name: ui_source
+spec:
+  init:
+    app: ui
+  decoders:
+    http:
+      render:
+        any: object
+  update:
+    render:
+      cmds:
+        return: source
+  encoders:
+    source:
+      status: 200
+      headers:
+        content-type: "application/json"
+        cache-control: "no-cache, no-store, must-revalidate"
+        pragma: "no-cache"
+        expires: "0"
+      body:
+        ui: @app

@@ -6,6 +6,8 @@ spec:
   apps:
     index:
       http: /
+    ui_source:
+      http: /js/app.js
     health:
       http: /api/health
     store:
