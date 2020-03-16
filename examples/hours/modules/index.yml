@@ -9,7 +9,6 @@ spec:
     index:
       model:
         title: Floohours
-        baseUrl: http://localhost:4000
       cmds:
         return: index
   encoders:
