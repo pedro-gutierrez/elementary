@@ -2,22 +2,31 @@ kind: module
 name: ui_source
 spec:
   init:
-    app: ui
+    app: ui_source
   decoders:
     http:
-      render:
+      compile:
+        any: object
+    app:
+      spec:
         any: object
   update:
-    render:
+    compile:
       cmds:
-        return: source
+        app: compile
+    spec:
+      model:
+        spec: @data
+      cmds:
+        return: render
   encoders:
-    source:
+    compile:
+      app: @app
+    render:
       status: 200
       headers:
         content-type: "application/json"
         cache-control: "no-cache, no-store, must-revalidate"
         pragma: "no-cache"
         expires: "0"
-      body:
-        ui: @app
+      body: @spec

@@ -1,0 +1,5 @@
+kind: settings
+name: web
+spec:
+  baseUrl:
+    env: ELEMENTARY_WEBROOT

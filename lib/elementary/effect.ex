@@ -154,6 +154,12 @@ defmodule Elementary.Effect do
     end
   end
 
+  def apply("app", %{"app" => app}) do
+    with {:ok, app} <- Elementary.Index.get("app", app) do
+      {:ok, app.spec}
+    end
+  end
+
   def apply(effect, data) do
     {:error, %{"error" => "no_such_effect", "effect" => effect, "data" => data}}
   end

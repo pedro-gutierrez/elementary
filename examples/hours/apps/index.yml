@@ -3,6 +3,7 @@ name: index
 spec:
   settings:
     - hours
+    - web
   filters:
     - cors
   modules:
