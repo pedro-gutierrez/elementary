@@ -1,5 +1,7 @@
 kind: settings
 name: web
 spec:
+  telemetry: true
+  title: Floohours
   baseUrl:
     env: ELEMENTARY_WEBROOT

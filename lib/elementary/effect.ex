@@ -155,8 +155,12 @@ defmodule Elementary.Effect do
   end
 
   def apply("app", %{"app" => app}) do
-    with {:ok, app} <- Elementary.Index.get("app", app) do
-      {:ok, app.spec}
+    with {:ok, app} <- Elementary.Index.get("app", app),
+         {:ok, settings} <- app.settings do
+      {:ok,
+       app.spec
+       |> Map.put("settings", settings)
+       |> Map.drop(["modules"])}
     end
   end
 

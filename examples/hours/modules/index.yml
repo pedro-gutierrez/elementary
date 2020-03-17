@@ -7,8 +7,6 @@ spec:
         any: object
   update:
     index:
-      model:
-        title: Floohours
       cmds:
         return: index
   encoders:

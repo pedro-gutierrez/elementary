@@ -2,7 +2,7 @@ kind: module
 name: ui_source
 spec:
   init:
-    app: ui_source
+    app: ui
   decoders:
     http:
       compile:

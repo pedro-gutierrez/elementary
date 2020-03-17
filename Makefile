@@ -1,12 +1,12 @@
 define start
-@ELEMENTARY_HOME=${PWD}/examples/$(1) ELEMENTARY_ASSETS=${PWD}/examples/$(1)/assets MONGO_URL=mongodb://localhost/$1 ELEMENTARY_ADMIN_TOKEN=$1-admin-token PORT=4000 ELEMENTARY_WEBROOT=http://localhost:4002 iex -S mix
+@ELEMENTARY_HOME=${PWD}/examples/$(1) ELEMENTARY_ASSETS=${PWD}/examples/$(1)/assets MONGO_URL=mongodb://localhost/$1 ELEMENTARY_ADMIN_TOKEN=$1-admin-token PORT=$(2) ELEMENTARY_WEBROOT=http://localhost:$(2) iex -S mix
 endef
 
 fullpass:
-	$(call  start,fullpass)
+	$(call  start,fullpass,4001)
 
 hours:
-	$(call  start,hours)
+	$(call  start,hours,4000)
 
 
 build:

@@ -1,0 +1,69 @@
+kind: module
+name: ui_hello
+spec:
+  init:
+    cmds:
+      ui: layout-view
+  decoders: {}
+  update: {}
+  encoders:
+    layout-view:
+      tag: div
+      children:
+        - view: title-view
+        - tag: div
+          attrs:
+            class: container
+          children:
+            - view: endpoint-view
+              params:
+                title: Healthcheck
+                subtitle: Returns the availability of the server
+
+    title-view:
+      view: hero-view
+      params:
+        title: @title
+        subtitle: Api docs
+    endpoint-view:
+      tag: article
+      attrs:
+        class: media
+      children:
+        - tag: div
+          attrs:
+            class: media-content
+          children:
+            - tag: div
+              attrs:
+                class: content
+              children:
+                - tag: h4
+                  children:
+                    - @title
+                - tag: p
+                  children:
+                    - @subtitle
+    hero-view:
+      tag: section
+      attrs:
+        class: hero
+      children:
+        - tag: div
+          attrs:
+            class: hero-body
+          children:
+            - tag: div
+              attrs:
+                class: container
+              children:
+                - tag: h1
+                  attrs:
+                    class: title
+                  children:
+                    - @title
+                - tag: h2
+                  attrs:
+                    class: subtitle
+                  children:
+                    - @subtitle

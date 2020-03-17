@@ -4,7 +4,7 @@ export default (appUrl, appEffects) => {
 
     function sleep(sleepDuration) {
         var now = new Date().getTime();
-        while(new Date().getTime() < now + sleepDuration){ /* do nothing */ } 
+        while(new Date().getTime() < now + sleepDuration){ /* do nothing */ }
     }
 
     function elapsed(t1, t2) {
@@ -58,7 +58,7 @@ export default (appUrl, appEffects) => {
     function encodeNewObject(spec, data, ctx) {
         return encodeObject(spec, data, ctx, {});
     }
-    
+
     function encodeKey(spec, data, ctx) {
         if (!data) return error(spec, data, "no_data");
         if (spec === '@' || (spec.key && spec.key === '@')) return {value: data};
@@ -87,14 +87,14 @@ export default (appUrl, appEffects) => {
                             return encodeKey({key: value}, inCtx, ctx);
                         case 'string':
                             if (!inCtx.hasOwnProperty(spec.key)) {
-                                if (!spec.hasOwnProperty("default"))  
+                                if (!spec.hasOwnProperty("default"))
                                     return error(spec, inCtx, "missing_key");
                                 var {err, value} = encode(spec['default'], data, ctx);
                                 if (err) return error(spec, data, err);
                                 return {value};
                             }
                             return { value: inCtx[spec.key]};
-                        
+
                         default:
                             return error(spec, data, "key_spec_not_supported");
 
@@ -107,7 +107,7 @@ export default (appUrl, appEffects) => {
                             return encodeKey({key: value}, data, ctx);
                         case 'string' :
                             if (!data.hasOwnProperty(spec.key)) {
-                                if (!spec.hasOwnProperty("default")) {   
+                                if (!spec.hasOwnProperty("default")) {
                                     return error(spec, data, "missing_key");
                                 }
                                 var {err, value} = encode(spec['default'], data, ctx);
@@ -135,7 +135,7 @@ export default (appUrl, appEffects) => {
         }
         return _(items.slice(0), []);
     }
-    
+
     function encodeByAppending(spec, data, ctx) {
         if (!ctx) return error(spec, ctx, "no_data");
         switch(typeof(ctx)) {
@@ -150,7 +150,7 @@ export default (appUrl, appEffects) => {
 
         return error(spec, ctx, "by_adding spec not supported");
     }
-    
+
     function encodeByRemoving(spec, data, ctx) {
         if (!ctx) return error(spec, ctx, "no_data");
         switch(typeof(ctx)) {
@@ -193,11 +193,11 @@ export default (appUrl, appEffects) => {
 
                 return encodeObject(spec.by_replacing, data, ctx, ctx);
         }
-        
+
         return error(spec, ctx, "by_replacing spec not supported");
     }
-    
-    
+
+
 
 
     function encodeKeyPath(spec, data, ctx) {
@@ -210,7 +210,7 @@ export default (appUrl, appEffects) => {
         }
         return { value: d };
     }
-    
+
     function asKeyPath(spec, out) {
         if (spec.key) out.push(spec.key)
         if (!spec.in) {
@@ -252,7 +252,7 @@ export default (appUrl, appEffects) => {
         return err ? error(spec, data, err) : {value: fmt( pattern, value)};
     }
 
-    
+
     function encodeFormatDate(spec, data, ctx) {
         var {pattern, date} = spec.format_date;
         var {err, value} = encode(pattern, data, ctx);
@@ -286,10 +286,10 @@ export default (appUrl, appEffects) => {
             if (err) return error(spec, data, err);
             if (value != expected) return { value: false};
         }
-        
+
         return {value: true};
     }
-    
+
     function encodeAnd(spec, data, ctx) {
         if (!spec.and) return {value: false};
         for (var i=0; i<spec.and.length; i++) {
@@ -300,7 +300,7 @@ export default (appUrl, appEffects) => {
         }
         return {value: true};
     }
-    
+
     function encodeOr(spec, data, ctx) {
         if (!spec.or) return {value: false};
         for (var i=0; i<spec.or.length; i++) {
@@ -324,7 +324,7 @@ export default (appUrl, appEffects) => {
         }
         return {value: true}
     }
-    
+
     function encodeNot(spec, data, ctx) {
         var {err, value} = encode(spec.not, data, ctx);
         if (err) return error(spec, data, err);
@@ -358,7 +358,7 @@ export default (appUrl, appEffects) => {
         if (!enc) return error(spec, data, "no_such_encoder: " + encName);
         return encode(enc, data, ctx);
     }
-    
+
     function encodeUsingExpression(spec, data, ctx) {
         var {err, value} = encode(spec.encode, data, ctx);
         if (err) return error(spec, data, err);
@@ -374,7 +374,7 @@ export default (appUrl, appEffects) => {
     }
 
     function encodeTimestamp(spec, data, ctx) {
-        return encode({ 
+        return encode({
             format_date: {
                 pattern: spec.timestamp.format,
                 date: spec.timestamp.value
@@ -396,9 +396,9 @@ export default (appUrl, appEffects) => {
         var {err, value} = encode(spec.percent.den, data, ctx);
         if (err) return error(spec, data, err);
         var den = value;
-        if (!den) return { value: 0 }; 
+        if (!den) return { value: 0 };
         return {value : Math.floor(num/den)*100};
-        
+
     }
 
     function encodeAny(spec, data, ctx) {
@@ -408,26 +408,26 @@ export default (appUrl, appEffects) => {
 
         return error(spec, data, "any spec not supported");
     }
-    
+
     function encodeExpression(spec, data, ctx) {
         return {value: spec.expression};
     }
-    
+
     function encodeEncoded(spec, data, ctx) {
         var {err, value} = encode(spec.encoded, data, ctx);
         if (err) return error(spec, data, err);
         return encode(value, data, ctx);
     }
-        
+
     function encodeIterate(spec, data, ctx) {
         var {err, value} = encode(spec.iterate.source, data, ctx);
         if (err) return error(spec, data, err);
         var source = value;
         var out = [];
-        var filterFn = spec.iterate.filter === 'none' ? 
+        var filterFn = spec.iterate.filter === 'none' ?
             function(i, ctx) {
                 return {value: true};
-            } 
+            }
             :
             function(i, ctx) {
                 return decode(spec.iterate.filter, i, ctx);
@@ -435,7 +435,7 @@ export default (appUrl, appEffects) => {
         var itemFn = spec.iterate.as === 'none' ?
             function(i) {
                 return i;
-            } 
+            }
             :
             function(i) {
                 var obj = {};
@@ -477,7 +477,7 @@ export default (appUrl, appEffects) => {
         }
         return {value: Object.assign({}, ...objs)}
     }
-    
+
     function encodePrettify(spec, data, ctx) {
         var {err, value} = encode(spec.prettify, data, ctx);
         if (err) return error(spec, data, err);
@@ -543,18 +543,18 @@ export default (appUrl, appEffects) => {
         var {err, value} = encode(spec.lowercase, data, ctx);
         if (err) return error(spec, data, err);
         switch (typeof(value)) {
-            case "string": 
+            case "string":
                 return {value: value.toLowerCase()};
             default:
                 return error(spec, value, "not_a_string");
         }
     }
-    
+
     function encodeUpperCase(spec, data, ctx) {
         var {err, value} = encode(spec.uppercase, data, ctx);
         if (err) return error(spec, data, err);
         switch (typeof(value)) {
-            case "string": 
+            case "string":
                 return {value: value.toUpperCase()};
             default:
                 return error(spec, value, "not_a_string");
@@ -587,7 +587,7 @@ export default (appUrl, appEffects) => {
     function encodeSplit(spec, data, ctx) {
         var {err, value} = encode(spec.using, data, ctx);
         if (err) return error(spec, data, err);
-        var sep = value; 
+        var sep = value;
         var {err, value} = encode(spec.split, data, ctx);
         if (err) return error(spec, data, err);
         switch (typeof(value)) {
@@ -597,11 +597,11 @@ export default (appUrl, appEffects) => {
                 return error(spec, value, "not_a_string");
         }
     }
-    
+
     function encodeJoin(spec, data, ctx) {
         var {err, value} = encode(spec.using, data, ctx);
         if (err) return error(spec, data, err);
-        var sep = value; 
+        var sep = value;
         var {err, value} = encode(spec.join, data, ctx);
         if (err) return error(spec, data, err);
         if (!Array.isArray(value)) return error(spec, value, "not_a_list");
@@ -626,7 +626,7 @@ export default (appUrl, appEffects) => {
         if (!tail) return error(spec, value, "empty_list");
         return {value: tail};
     }
-    
+
     function encodeLast(spec, data, ctx) {
         var {err, value} = encode(spec.last, data, ctx);
         if (err) return error(spec, data, err);
@@ -642,8 +642,8 @@ export default (appUrl, appEffects) => {
         var {err, value} = encode(spec['in'], data, ctx);
         if (err) return error(spec, data, err);
         return {value: value.charAt(c)};
-    }           
-    
+    }
+
     function encodeGreaterThan(spec, data, ctx) {
         if (spec.greater_than.length < 2) return error(spec, data, "not_enough_arguments");
         var {err, value}= encode(spec.greater_than[0], data, ctx);
@@ -674,9 +674,8 @@ export default (appUrl, appEffects) => {
             return encode(clause, data, ctx);
         }
     }
-    
+
     function encode(spec, data, ctx) {
-        //if (!spec) return error({}, data, "missing_encoder_spec");
         switch(typeof(spec)) {
             case "object":
                 if (spec.hasOwnProperty("text")) return encodeText(spec, data, ctx);
@@ -726,9 +725,10 @@ export default (appUrl, appEffects) => {
                 if (spec.greater_than) return encodeGreaterThan(spec, data, ctx);
                 if (spec.lower_than) return encodeLowerThan(spec, data, ctx);
                 if (!Object.keys(spec).length) return {value: {}};
-                console.warn("returning spec as default encoding value", spec);
-                return { value: spec };
+                return encodeNewObject({object: spec}, data, ctx)
             case "string":
+                if (spec == "@") return {value: data};
+                if (spec.startsWith("@")) return encodeKeyPath({key_path: spec.substring(1)}, data, ctx);
                 return { value: spec };
             case "boolean":
                 return { value: spec };
@@ -751,7 +751,7 @@ export default (appUrl, appEffects) => {
         }
         return {decoded: out};
     }
-    
+
     function decodeOtherThan(spec, data, ctx) {
         var {err, value} = encode(spec.other_than, ctx);
         if (err) return error(spec, data, err);
@@ -762,28 +762,28 @@ export default (appUrl, appEffects) => {
     function no_match(spec, data) {
         return error(spec, data, "no_match");
     }
-    
+
     function decodeType(spec, data, expected) {
         return typeof(data) === expected ?
             {decoded: data} : no_match(spec, data)
     }
-    
+
     var anyConditions = {
-        "text": (spec, data) => { 
+        "text": (spec, data) => {
             return decodeType(spec, data, 'string');
         },
-        "number": (spec, data) => { 
+        "number": (spec, data) => {
             return decodeType(spec, data, "number");
         },
-        "boolean": (spec, data) => { 
+        "boolean": (spec, data) => {
             return decodeType(spec, data, "boolean");
         },
-        "object": (spec, data) => { 
+        "object": (spec, data) => {
             return decodeType(spec, data, "object");
         },
-        "list": (spec, data) => { 
-            return Array.isArray(data) ? 
-                {decoded: data} : no_match(spec, data) 
+        "list": (spec, data) => {
+            return Array.isArray(data) ?
+                {decoded: data} : no_match(spec, data)
         },
         "file": (spec, data) => {
             if (data && data.length && data.item) {
@@ -833,7 +833,7 @@ export default (appUrl, appEffects) => {
             return { decoded: out};
         }
     }
-    
+
     function decodeOne(spec, data, ctx) {
         function _(i) {
             if (i == spec.one_of.length) return error(spec, data, "no_match")
@@ -843,9 +843,9 @@ export default (appUrl, appEffects) => {
             return { decoded };
         }
         return _(0);
-    } 
-    
-    
+    }
+
+
     function decodeJson(spec, data, ctx) {
         try {
             return { value: JSON.parse(spec.json)};
@@ -853,13 +853,13 @@ export default (appUrl, appEffects) => {
             return { err: { json: spec.json, error: e} };
         }
     }
-    
+
     function decodeSize(spec, data) {
         var {err, value} = encode(spec.size, data);
         if (err) return error(spec, data, err);
         switch (typeof(data)) {
             case 'object':
-                if (Array.isArray(data) && data.length == value) return {decoded:data}; 
+                if (Array.isArray(data) && data.length == value) return {decoded:data};
                 if (Object.keys(data).length == value) return {decoded: data};
             case 'string':
                 if (data && data.length == value) return {decoded: data};
@@ -915,33 +915,50 @@ export default (appUrl, appEffects) => {
     function assetUrl(baseUrl, name) {
         return baseUrl + 'js/' + name + '.js';
     }
-    
+
+   // function encodeCmds(spec, data) {
+   //     switch(typeof(spec)) {
+   //         case "object":
+   //             if (Array.isArray(spec)) {
+   //                 var encoded = [];
+   //                 for (var i=0; i<spec.length; i++) {
+   //                     var cmd = { effect: spec[i].effect };
+   //                     if (spec[i].hasOwnProperty("encoder")) {
+   //                         var {err, value} = encode(spec[i].encoder, data, {});
+   //                         if (err) return error(spec, data, "unsupported_encoder");
+   //                         cmd.encoder = value;
+   //                     }
+   //                     encoded[i] = cmd;
+   //                 }
+   //                 return {value: encoded};
+   //             } else {
+   //                 return encode(spec, data, {})
+   //             }
+   //         default:
+   //             return error(spec, data, "unsupported_cmds")
+   //     }
+   // }
+
     function encodeCmds(spec, data) {
-        switch(typeof(spec)) {
-            case "object":
-                if (Array.isArray(spec)) {
-                    var encoded = [];
-                    for (var i=0; i<spec.length; i++) {
-                        var cmd = { effect: spec[i].effect };
-                        if (spec[i].hasOwnProperty("encoder")) {
-                            var {err, value} = encode(spec[i].encoder, data, {});
-                            if (err) return error(spec, data, "unsupported_encoder");
-                            cmd.encoder = value;
-                        } 
-                        encoded[i] = cmd;
-                    }
-                    return {value: encoded};
-                } else {
-                    return encode(spec, data, {})
-                }
-            default:
-                return error(spec, data, "unsupported_cmds")
+        var cmds = [];
+        var effects  = Object.getOwnPropertyNames(spec);
+        for (var i=0; i<effects.length; i++){
+            var eff = effects[i];
+            var enc = spec[eff];
+            var {err, value} = encode(enc, data, {});
+            if (err) return error(enc, data, "unsupported_encoder");
+            cmds.push({
+                effect: eff,
+                encoder: value
+            });
         }
+
+        return {value: cmds};
     }
 
     function withSettings(m) {
         return Object.assign({}, m, state.app.settings);
-    }   
+    }
 
     function applyCmds(encoders, effects, cmds, m2) {
         var {err, value} = encodeCmds(cmds, m2);
@@ -963,7 +980,7 @@ export default (appUrl, appEffects) => {
                 }
             }
 
-            setTimeout(() => {   
+            setTimeout(() => {
                 eff(encoders, enc, withSettings(m2));
             }, 0);
         });
@@ -988,7 +1005,7 @@ export default (appUrl, appEffects) => {
     function log(msg, data) {
         if (state.app.settings.debug) console.log(msg, data);
     }
-    
+
     function selectUpdate(msg, update, ctx) {
         var clauses = update[msg];
         if (!clauses || !clauses.length) return error(msg, ctx, "no_update_implemented");
@@ -996,10 +1013,10 @@ export default (appUrl, appEffects) => {
             var c = clauses[i];
             if (!c.condition) return {spec: c};
             const { err, value } = encode(c.condition, ctx);
-            log("[core] condition", { 
+            log("[core] condition", {
                 condition: c.condition,
-                context: ctx, 
-                error: err, 
+                context: ctx,
+                error: err,
                 value: value
             });
             if (err) return error(c.condition, model, err);
@@ -1024,7 +1041,7 @@ export default (appUrl, appEffects) => {
         if (err) {
             console.error("Update error", err);
             return;
-        } 
+        }
         var {err, value} = withWhere(spec, ctx);
         if (err) {
             console.error("Where error", err);
@@ -1053,13 +1070,18 @@ export default (appUrl, appEffects) => {
             _update(ev);
         }, 0)
     }
-    
+
+    function encodeModelWithDefault(spec, defaultValue, context) {
+        if (!spec) return {value: defaultValue}
+        return encode(model, context);
+    }
+
     function init(app) {
         const { init } = app;
         const { model, cmds } = init;
 
         const t0 = new Date();
-        const { err, value } = encode(model, withSettings({}));
+        const {err, value} = encodeModelWithDefault(model, {}, withSettings({}))
         if (err) {
             console.error("(init) cannot encode model", err);
         } else {
@@ -1107,12 +1129,12 @@ export default (appUrl, appEffects) => {
         app.settings = app.settings || {};
         return app;
     }
-    
+
     function effects(mods, next) {
         const out = {};
         for (var n in mods) {
             if (mods.hasOwnProperty(n)){
-                const effSettings = state.app.effects[n] ?
+                const effSettings = (state.app.effects && state.app.effects[n]) ?
                     (state.app.effects[n].settings || {}) : {};
                 const settings = Object.assign({}, state.app.settings, effSettings);
                 const mod = mods[n];
@@ -1142,7 +1164,7 @@ export default (appUrl, appEffects) => {
                 console.error("app error", err);
             });
     };
-    
+
     app(appUrl, function(app) {
         state.app = compiledApp(app);
         if (state.app.settings.debug) console.log(app);
