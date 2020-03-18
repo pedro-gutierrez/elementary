@@ -1,0 +1,56 @@
+kind: module
+name: organizations
+spec:
+  decoders:
+    http:
+      create:
+        method: POST
+        body:
+          id:
+            any: text
+          name:
+            text:
+              - downcase
+              - trim
+      get:
+        method: GET
+    store:
+      organizations:
+        organizations:
+          any: list
+  update:
+    create:
+      model:
+        id: @data.body.id
+        name: @data.body.name
+      cmds:
+        store: create
+    get:
+      cmds:
+        store: list
+    organizations:
+      model:
+        data: @data.organizations
+      cmds:
+        return: data
+  encoders:
+    create:
+      store: @store
+      insert:
+        id: @id
+        name: @name
+        created:
+          now: {}
+        owner: @user.id
+        users:
+          - id: @user.id
+            role: owner
+      into: organizations
+    list:
+      store: @store
+      find:
+        users:
+          $elemMatch:
+            id: @user.id
+      from: organizations
+      as: organizations

@@ -1,0 +1,30 @@
+kind: test
+name: bob
+spec:
+  steps:
+    - title: Given details for Bob
+      bob:
+        object:
+          id:
+            uuid: {}
+          first: Bob
+          last: Marley
+          email: bob@foo.bar
+    - title: Given a password for Bob
+      password: bob123
+    - title: Given Bob is the current user
+      user: @bob
+    - title: Given Bob is an employee
+      steps:
+        - Given details for Bob
+        - Given a password for Bob
+        - Given Bob is the current user
+        - Given I am logged out
+        - Given that user is registered and logged in
+    - title: Given I am logged in as Bob
+      steps:
+        - Given details for Bob
+        - Given Bob is the current user
+        - Given a password for Bob
+        - Given I am logged out
+        - Given I am logged in

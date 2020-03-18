@@ -7,6 +7,11 @@ spec:
     - health
     - roles
     - users
+    - alice
+    - bob
+    - charlie
+    - organizations
+    - invites
     - packages
     - projects
     - assignments
@@ -40,6 +45,90 @@ spec:
       steps:
         - Given the store is empty
         - When I get all users
+        - Then I should have a 401
+    - title: Users should create organizations
+      steps:
+        - Given the store is empty
+        - Given Alice is an employer
+        - Given organization Floostack
+        - When I create that organization
+        - Then I should have a 409
+        - When I get all organizations
+        - Then I should have a 200
+        - Then I should have one item
+        - When I get that organization
+        - Then I should have a 200
+    - title: Anonymous users should not create organizations
+      steps:
+        - Given the store is empty
+        - Given details for organization Floostack
+        - When I create that organization
+        - Then I should have a 401
+    - title: Anonymous users should not see organizations
+      steps:
+        - Given the store is empty
+        - Given Alice is an employer
+        - Given organization Floostack
+        - Given I am logged out
+        - When I get all organizations
+        - Then I should have a 401
+        - When I get that organization
+        - Then I should have a 401
+    - title: Organizations should not be seen by non members
+      steps:
+        - Given the store is empty
+        - Given Alice is an employer
+        - Given organization Floostack
+        - Given Bob is an employee
+        - When I get all organizations
+        - Then I should have a 200
+        - Then I should have no items
+        - When I get that organization
+        - Then I should have a 404
+    - title: Owners should invite users to organizations
+      tags:
+        - debug
+      steps:
+        - Given the store is empty
+        - Given Alice is an employer
+        - Given organization Floostack
+        - Given Bob is an employee
+        - Given I am logged in as Alice
+        - Given Bob is the current user
+        - Given I invited that user to that organization
+        - When I invite that user to that organization
+        - Then I should have a 409
+    - title: Owners should not invite themselves
+      tags:
+        - debug
+      steps:
+        - Given the store is empty
+        - Given Alice is an employer
+        - Given organization Floostack
+        - When I invite that user to that organization
+        - Then I should have a 401
+    - title: Owners should not invite unknown users
+      tags:
+        - debug
+      steps:
+        - Given the store is empty
+        - Given Alice is an employer
+        - Given organization Floostack
+        - Given details for Bob
+        - Given Bob is the current user
+        - When I invite that user to that organization
+        - Then I should have a 404
+    - title: Non owners should not invite users to organizations
+      tags:
+        - debug
+      steps:
+        - Given the store is empty
+        - Given Alice is an employer
+        - Given organization Floostack
+        - Given Bob is an employee
+        - Given details for Charlie
+        - Given Charlie is the current user
+        - When I invite that user to that organization
         - Then I should have a 401
     - title: Employer shoud create packages
       steps:

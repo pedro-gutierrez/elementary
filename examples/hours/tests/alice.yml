@@ -1,0 +1,30 @@
+kind: test
+name: alice
+spec:
+  steps:
+    - title: Given Alice is an employer
+      steps:
+        - Given I am the admin
+        - Given details for Alice
+        - Given a password for Alice
+        - Given Alice is the current user
+        - Given that user is registered and logged in
+    - title: Given details for Alice
+      alice:
+        object:
+          id:
+            uuid: {}
+          first: Alice
+          last: Cooper
+          email: alice@foo.bar
+    - title: Given a password for Alice
+      password: alice123
+    - title: Given Alice is the current user
+      user: @alice
+    - title: Given I am logged in as Alice
+      steps:
+        - Given details for Alice
+        - Given Alice is the current user
+        - Given a password for Alice
+        - Given I am logged out
+        - Given I am logged in

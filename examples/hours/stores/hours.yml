@@ -4,6 +4,9 @@ spec:
   url:
     env: MONGO_URL
   collections:
+    organizations:
+      indexes:
+        - unique: name
     users:
       indexes:
         - unique: email

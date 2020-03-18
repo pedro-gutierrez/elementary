@@ -20,6 +20,10 @@ spec:
       http: /api/passwd/reset
     login:
       http: /api/login
+    organizations:
+      http: /api/organizations
+    organization:
+      http: /api/organizations/:id
     packages:
       http: /api/packages
     package:

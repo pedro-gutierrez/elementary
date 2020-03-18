@@ -1,0 +1,44 @@
+kind: test
+name: organizations
+spec:
+  steps:
+    - title: Given details for organization Floostack
+      organization:
+        id:
+          uuid: {}
+        name: floostack
+    - title: Given organization Floostack
+      steps:
+        - Given details for organization Floostack
+        - When I create that organization
+        - Then I should have a 201
+    - title: When I create that organization
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/organizations
+        headers:
+          merge:
+            - @json
+            - @auth
+        body: @organization
+      as: latest
+    - title: When I get all organizations
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/organizations
+        headers: @auth
+      as: latest
+    - title: When I get that organization
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/organizations/
+          - @organization.id
+        headers: @auth
+      as: latest
+

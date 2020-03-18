@@ -1,0 +1,14 @@
+kind: app
+name: organization
+spec:
+  settings:
+    - hours
+  filters:
+    - cors
+    - auth
+  modules:
+    - organization
+    - common_store
+    - any_role
+    - session
+    - http

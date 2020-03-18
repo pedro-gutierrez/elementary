@@ -1,0 +1,40 @@
+kind: module
+name: organization
+spec:
+  decoders:
+    http:
+      get:
+        method: GET
+        params:
+          id:
+            any: text
+    store:
+      not_found:
+        organization: not_found
+      organization:
+        organization:
+          any: object
+  update:
+    get:
+      model:
+        id: @data.params.id
+      cmds:
+        store: fetch
+    organization:
+      model:
+        data: @data.organization
+      cmds:
+        return: data
+    not_found:
+      cmd:
+        return: not_found
+  encoders:
+    fetch:
+      store: @store
+      fetch:
+        id: @id
+        users:
+          $elemMatch:
+            id: @user.id
+      from: organizations
+      as: organization
