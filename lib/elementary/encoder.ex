@@ -484,6 +484,18 @@ defmodule Elementary.Encoder do
     end
   end
 
+  def encode(%{"downcase" => text}, context, encoders) do
+    with {:ok, text} when is_binary(text) <- encode(text, context, encoders) do
+      {:ok, String.downcase(text)}
+    end
+  end
+
+  def encode(%{"trim" => text}, context, encoders) do
+    with {:ok, text} when is_binary(text) <- encode(text, context, encoders) do
+      {:ok, String.trim(text)}
+    end
+  end
+
   def encode(spec, context, encoders) when is_map(spec) do
     encode(%{"object" => spec}, context, encoders)
   end

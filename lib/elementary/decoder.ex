@@ -94,6 +94,29 @@ defmodule Elementary.Decoder do
     end
   end
 
+  def decode(%{"text" => transforms} = spec, data, context)
+      when is_binary(data) and byte_size(data) > 0 do
+    Enum.reduce_while(transforms, nil, fn encoder, _ ->
+      case encode(%{encoder => data}, context) do
+        {:ok, encoded} ->
+          {:cont, encoded}
+
+        {:error, _} = err ->
+          {:halt, err}
+      end
+    end)
+    |> case do
+      nil ->
+        decode_error(spec, data)
+
+      {:error, _} ->
+        decode_error(spec, data)
+
+      decoded ->
+        {:ok, decoded}
+    end
+  end
+
   def decode(%{"empty" => "list"}, [], _) do
     {:ok, []}
   end
