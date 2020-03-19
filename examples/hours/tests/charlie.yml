@@ -10,6 +10,7 @@ spec:
           first: Charlie
           last: Brown
           email: charlie@brown.bar
+          profile: @profile
     - title: Given Charlie is the current user
       user: @charlie
     - title: Given a password for Charlie

@@ -21,6 +21,10 @@ spec:
       steps:
         - When I reset my password
         - Then I should have a 201
+    - title: Given a public profile
+      profile: public
+    - title: Given a private profile
+      profile: private
     - title: When I register
       http:
         method: post
@@ -101,6 +105,16 @@ spec:
           - @baseUrl
           - /api/users
         headers: @auth
+      as: latest
+    - title: When I search for that user
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/users
+        headers: @auth
+        query:
+          email: @user.email
       as: latest
     - title: When I get that user
       http:

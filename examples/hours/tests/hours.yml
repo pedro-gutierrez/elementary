@@ -6,10 +6,10 @@ spec:
     - store
     - health
     - roles
-    - users
     - alice
     - bob
     - charlie
+    - users
     - organizations
     - invites
     - packages
@@ -22,6 +22,7 @@ spec:
     auth: {}
     json:
       content-type: application/json
+    profile: public
   scenarios:
     - title: Should have a healtcheck
       steps:
@@ -32,9 +33,32 @@ spec:
         - Given the store is empty
         - Given Bob is an employee
         - Given Alice is an employer
-        - When I get all users
+    - title: Should allow to search for public profiles
+      tags:
+        - debug
+        - wip
+      steps:
+        - Given the store is empty
+        - Given Bob is an employee
+        - Given Alice is an employer
+        - Given details for Bob
+        - Given Bob is the current user
+        - When I search for that user
         - Then I should have a 200
-        - Then I should have two items
+        - Then I should have one item
+    - title: Should not allow to search for private profiles
+      tags:
+        - debug
+      steps:
+        - Given the store is empty
+        - Given a private profile
+        - Given Bob is an employee
+        - Given Alice is an employer
+        - Given details for Bob
+        - Given Bob is the current user
+        - When I search for that user
+        - Then I should have a 200
+        - Then I should have no items
     - title: Employees should not list users
       steps:
         - Given the store is empty

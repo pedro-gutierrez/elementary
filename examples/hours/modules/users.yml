@@ -3,48 +3,32 @@ name: users
 spec:
   decoders:
     http:
-      create:
-        method: POST
-        body:
-          id:
-            any: text
-          first:
-            any: text
-          last:
-            any: text
-          email:
-            any: text
-      get:
+      search:
         method: GET
+        query:
+          email:
+            text:
+              - downcase
     store:
       users:
         users:
           any: list
   update:
-    create:
+    search:
       model:
-        data: @data.body
+        query: @data.query.email
       cmds:
-        store: create
-    get:
-      cmds:
-        store: list
+        store: search_by_email
     users:
       model:
         data: @data.users
       cmds:
         return: data
   encoders:
-    create:
+    search_by_email:
       store: @store
-      insert:
-        merge:
-          - @data
-          - created:
-              now: {}
-      into: users
-    list:
-      store: @store
-      find: {}
+      find:
+        profile: public
+        email: @query
       from: users
       as: users

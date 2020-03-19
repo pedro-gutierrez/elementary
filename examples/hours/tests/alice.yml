@@ -17,6 +17,7 @@ spec:
           first: Alice
           last: Cooper
           email: alice@foo.bar
+          profile: @profile
     - title: Given a password for Alice
       password: alice123
     - title: Given Alice is the current user

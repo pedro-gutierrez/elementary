@@ -16,6 +16,10 @@ spec:
             any: text
           email:
             any: text
+          profile:
+            one_of:
+              - public
+              - private
       employee:
         method: POST
         headers:
@@ -30,6 +34,10 @@ spec:
             any: text
           email:
             any: text
+          profile:
+            one_of:
+              - public
+              - private
     store:
       created: created
       conflict: conflict

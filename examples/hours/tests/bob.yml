@@ -10,6 +10,7 @@ spec:
           first: Bob
           last: Marley
           email: bob@foo.bar
+          profile: @profile
     - title: Given a password for Bob
       password: bob123
     - title: Given Bob is the current user
