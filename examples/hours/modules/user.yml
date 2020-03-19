@@ -3,19 +3,33 @@ name: user
 spec:
   decoders:
     http:
-      get:
+      my_profile:
+        method: GET
+        params:
+          id: @user.id
+      public_profile:
         method: GET
         params:
           id:
-            any: text
+            other_than: @user.id
     store:
       user:
         user:
           any: object
+      not_found:
+        user: not_found
   update:
-    get:
+    my_profile:
       model:
-        id: @data.params.id
+        query:
+          id: @data.params.id
+      cmds:
+        store: fetch
+    public_profile:
+      model:
+        query:
+          id: @data.params.id
+          profile: public
       cmds:
         store: fetch
     user:
@@ -23,10 +37,12 @@ spec:
         data: @data.user
       cmds:
         return: data
+    not_found:
+      cmds:
+        return: unauthorized
   encoders:
     fetch:
       store: @store
-      fetch:
-        id: @id
+      fetch: @query
       from: users
       as: user
