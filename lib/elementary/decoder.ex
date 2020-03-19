@@ -238,8 +238,14 @@ defmodule Elementary.Decoder do
   end
 
   def decode(%{"other_than" => value} = spec, data, context) do
-    with {:ok, ^data} <- encode(value, context) do
-      decode_error(spec, data)
+    with {:ok, unexpected} <- encode(value, context) do
+      case data == unexpected do
+        true ->
+          decode_error(spec, data)
+
+        false ->
+          {:ok, data}
+      end
     end
     |> result(spec)
   end
