@@ -24,6 +24,8 @@ spec:
       http: /api/organizations
     organization:
       http: /api/organizations/:id
+    organization_invites:
+      http: /api/organizations/:id/invites
     packages:
       http: /api/packages
     package:

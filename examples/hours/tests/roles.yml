@@ -7,3 +7,8 @@ spec:
         authorization: @admin
     - title: Given I am logged out
       auth: {}
+    - title: Given role client
+      role: client
+    - title: Given role contractor
+      role: contractor
+

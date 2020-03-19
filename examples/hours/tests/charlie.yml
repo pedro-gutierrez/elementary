@@ -18,7 +18,7 @@ spec:
       steps:
         - Given details for Charlie
         - Given a password for Charlie
-        - Given Bob is the current user
+        - Given Charlie is the current user
         - Given I am logged out
         - Given that user is registered and logged in
     - title: Given I am logged in as Charlie

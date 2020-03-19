@@ -1,0 +1,100 @@
+kind: module
+name: organization_invites
+spec:
+  decoders:
+    http:
+      self_invite:
+        body:
+          user: @user.id
+      create:
+        method: POST
+        params:
+          id:
+            any: text
+        body:
+          user:
+            other_than: @user.id
+          role:
+            one_of:
+              - client
+              - contractor
+    store:
+      not_found:
+        one_of:
+          - organization: not_found
+          - user: not_found
+      not_owner:
+        organization:
+          owner:
+            other_than: @user.id
+      new_member:
+        organization:
+          id:
+            any: text
+          owner: @user.id
+          users:
+            list:
+              without:
+                id: @member
+      existing_member:
+        organization:
+          users:
+            list:
+              with:
+                id: @member
+      user:
+        user:
+          any: object
+      invited: updated
+  update:
+    self_invite:
+      cmds:
+        return: unauthorized
+    not_owner:
+      cmds:
+        return: unauthorized
+    create:
+      model:
+        organization: @data.params.id
+        member: @data.body.user
+        memberRole: @data.body.role
+      cmds:
+        store: fetch_organization
+    not_found:
+      cmds:
+        return: not_found
+    existing_member:
+      cmds:
+        return: conflict
+    new_member:
+      cmds:
+        store: fetch_user
+    user:
+      cmds:
+        store: create
+    invited:
+      cmds:
+        return: created
+  encoders:
+    fetch_organization:
+      store: @store
+      fetch:
+        id: @organization
+      from: organizations
+      as: organization
+    fetch_user:
+      store: @store
+      fetch:
+        id: @member
+      from: users
+      as: user
+    create:
+      store: @store
+      update:
+        $push:
+          users:
+            id: @member
+            role: @memberRole
+      where:
+        id: @organization
+      into: organizations

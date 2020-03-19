@@ -86,8 +86,6 @@ spec:
         - When I get that organization
         - Then I should have a 404
     - title: Owners should invite users to organizations
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given Alice is an employer
@@ -95,39 +93,39 @@ spec:
         - Given Bob is an employee
         - Given I am logged in as Alice
         - Given Bob is the current user
+        - Given role contractor
         - Given I invited that user to that organization
         - When I invite that user to that organization
         - Then I should have a 409
     - title: Owners should not invite themselves
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given Alice is an employer
         - Given organization Floostack
+        - Given role contractor
         - When I invite that user to that organization
         - Then I should have a 401
     - title: Owners should not invite unknown users
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given Alice is an employer
         - Given organization Floostack
         - Given details for Bob
         - Given Bob is the current user
+        - Given role contractor
         - When I invite that user to that organization
         - Then I should have a 404
     - title: Non owners should not invite users to organizations
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given Alice is an employer
         - Given organization Floostack
         - Given Bob is an employee
+        - Given Charlie is an employee
+        - Given I am logged in as Bob
         - Given details for Charlie
         - Given Charlie is the current user
+        - Given role contractor
         - When I invite that user to that organization
         - Then I should have a 401
     - title: Employer shoud create packages

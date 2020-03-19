@@ -20,4 +20,5 @@ spec:
             - @auth
         body:
           user: @user.id
+          role: @role
       as: latest

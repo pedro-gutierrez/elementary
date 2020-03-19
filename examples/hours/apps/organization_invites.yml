@@ -1,0 +1,14 @@
+kind: app
+name: organization_invites
+spec:
+  settings:
+    - hours
+  filters:
+    - cors
+    - auth
+  modules:
+    - organization_invites
+    - common_store
+    - any_role
+    - session
+    - http
