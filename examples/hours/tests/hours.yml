@@ -156,8 +156,6 @@ spec:
         - When I add that user to that organization
         - Then I should have a 401
     - title: Users from the same organization should see each other
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given Alice is an employer
@@ -176,8 +174,6 @@ spec:
         - Then I should have a 200
         - Then I should have two items
     - title: Users should not see users from an organization they don't belong to
-      tags:
-        - debug
       steps:
         - Given the store is empty
         - Given Alice is an employer
@@ -219,9 +215,6 @@ spec:
         - When I create that package
         - Then I should have a 401
     - title: Employer should create projects
-      tags:
-        - debug
-        - wip
       steps:
         - Given the store is empty
         - Given Alice is an employer

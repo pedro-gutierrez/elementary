@@ -7,12 +7,33 @@ spec:
         params:
           id:
             any: text
+    store:
+      not_member:
+        organization:
+          users:
+            list:
+              without:
+                id: @user.id
+      member:
+        organization:
+          users:
+            list:
+              with:
+                id: @user.id
   update:
     list:
       model:
         id: @data.params.id
       cmds:
         store: fetch_organization
+    not_member:
+      cmds:
+        return: unauthorized
+    member:
+      model:
+        data: @data.organization.users
+      cmds:
+        return: data
   encoders:
     fetch_organization:
       store: @store
