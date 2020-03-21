@@ -1,6 +1,10 @@
 kind: app
 name: packages
 spec:
+  routes:
+    hours:
+      get: /api/packages
+      post: /api/packages
   settings:
     - hours
   filters:

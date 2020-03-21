@@ -1,0 +1,22 @@
+kind: module
+name: list_organization_users
+spec:
+  decoders:
+    http:
+      list:
+        params:
+          id:
+            any: text
+  update:
+    list:
+      model:
+        id: @data.params.id
+      cmds:
+        store: fetch_organization
+  encoders:
+    fetch_organization:
+      store: @store
+      fetch:
+        id: @id
+      from: organizations
+      as: organization

@@ -1,13 +1,16 @@
 kind: app
-name: organization_invites
+name: add_user_to_organization
 spec:
+  routes:
+    hours:
+      post: /api/organizations/:id/users
   settings:
     - hours
   filters:
     - cors
     - auth
   modules:
-    - organization_invites
+    - add_user_to_organization
     - common_store
     - any_role
     - session

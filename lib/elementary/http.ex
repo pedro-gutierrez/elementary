@@ -12,77 +12,100 @@ defmodule Elementary.Http do
           method: method,
           headers: headers
         } = req,
-        [mod] = state
+        [spec] = state
       ) do
     start = System.system_time(:microsecond)
-    app = mod.name()
-    {:ok, settings} = mod.settings()
-    headers = normalized_content_type(headers)
 
-    {:ok, req, body} = body(req, headers)
-    query = :cowboy_req.parse_qs(req) |> Enum.into(%{})
+    with {:error, :not_found} <- resolve_app(req, spec) do
+      reply(req, "unknown", start, %{
+        "status" => 404,
+        "body" => %{}
+      })
+    else
+      {:ok, mod} ->
+        app = mod.name()
+        {:ok, settings} = mod.settings()
+        headers = normalized_content_type(headers)
 
-    data = %{
-      "method" => method,
-      "headers" => headers,
-      "params" => encoded_params(params),
-      "body" => body,
-      "query" => query
-    }
+        {:ok, req, body} = body(req, headers)
+        query = :cowboy_req.parse_qs(req) |> Enum.into(%{})
 
-    {req, resp} =
-      with {:ok, model} <- App.init(mod, settings),
-           {:ok, model2} <- App.filter(mod, @effect, data, model),
-           {:ok, %{"status" => _, "body" => _} = resp} <-
-             App.decode(
-               mod,
-               @effect,
-               data,
-               Map.merge(model, model2)
-             ) do
-        reply(req, app, start, resp)
-      else
-        {:stop, resp} ->
-          reply(req, app, start, resp)
+        data = %{
+          "method" => method,
+          "headers" => headers,
+          "params" => encoded_params(params),
+          "body" => body,
+          "query" => query
+        }
 
-        {:error, req, e} ->
-          resp = encoded_error(e)
-          reply(req, app, start, resp)
+        {req, resp} =
+          with {:ok, model} <- App.init(mod, settings),
+               {:ok, model2} <- App.filter(mod, @effect, data, model),
+               {:ok, %{"status" => _, "body" => _} = resp} <-
+                 App.decode(
+                   mod,
+                   @effect,
+                   data,
+                   Map.merge(model, model2)
+                 ) do
+            reply(req, app, start, resp)
+          else
+            {:stop, resp} ->
+              reply(req, app, start, resp)
 
-        {:error, %{"effect" => @effect, "error" => :decode}} ->
-          reply(req, app, start, %{
-            "status" => 400,
-            "body" => %{}
-          })
+            {:error, req, e} ->
+              resp = encoded_error(e)
+              reply(req, app, start, resp)
 
-        {:error, e} ->
-          resp = encoded_error(e)
-          reply(req, app, start, resp)
+            {:error, %{"effect" => @effect, "error" => :decode}} ->
+              reply(req, app, start, %{
+                "status" => 400,
+                "body" => %{}
+              })
 
-        {:ok, other} ->
-          Logger.error("invalid http response: #{inspect(other)}")
-          resp = encoded_error("invalid_response")
-          reply(req, app, start, resp)
+            {:error, e} ->
+              resp = encoded_error(e)
+              reply(req, app, start, resp)
 
-        other ->
-          resp = encoded_error(%{"unexpected" => other})
-          reply(req, app, start, resp)
-      end
+            {:ok, other} ->
+              Logger.error("invalid http response: #{inspect(other)}")
+              resp = encoded_error("invalid_response")
+              reply(req, app, start, resp)
 
-    if mod.debug() do
-      Logger.info(
-        "#{
-          inspect(%{
-            app: app,
-            req: data,
-            resp: resp
-          })
-        }"
-      )
+            other ->
+              resp = encoded_error(%{"unexpected" => other})
+              reply(req, app, start, resp)
+          end
+
+        if mod.debug() do
+          Logger.info(
+            "#{
+              inspect(%{
+                app: app,
+                req: data,
+                resp: resp
+              })
+            }"
+          )
+        end
+
+        {:ok, req, state}
     end
-
-    {:ok, req, state}
   end
+
+  defp resolve_app(_, mod) when is_atom(mod), do: {:ok, mod}
+
+  defp resolve_app(%{method: method}, apps) do
+    case apps[method] do
+      nil ->
+        {:error, :not_found}
+
+      mod ->
+        {:ok, mod}
+    end
+  end
+
+  defp resolve_app(_, _), do: {:error, :not_found}
 
   defp body(req, headers) do
     case :cowboy_req.has_body(req) do

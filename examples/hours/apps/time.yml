@@ -1,6 +1,9 @@
 kind: app
 name: time
 spec:
+  routes:
+    hours:
+      post: /api/time
   settings:
     - hours
   filters:

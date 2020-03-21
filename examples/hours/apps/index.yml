@@ -1,6 +1,9 @@
 kind: app
 name: index
 spec:
+  routes:
+    hours:
+      get: /
   settings:
     - hours
     - web

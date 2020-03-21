@@ -18,8 +18,11 @@ defmodule Elementary.Compiler do
     {:noreply, state}
   end
 
-  def handle_info({:file_event, _, {_, _}}, state) do
-    compile()
+  def handle_info({:file_event, _, {_, events}}, state) do
+    if Enum.member?(events, :modified) do
+      compile()
+    end
+
     {:noreply, state}
   end
 
@@ -215,21 +218,39 @@ defmodule Elementary.Compiler do
   defp compile(_specs, %{
          "kind" => "port",
          "name" => name,
-         "spec" => %{"port" => port, "apps" => apps}
+         "spec" => %{"port" => port}
        }) do
     {:ok, port} = Encoder.encode(port)
     {port, ""} = Integer.parse(port)
+
+    routes =
+      Spec.all()
+      |> Spec.all("app")
+      |> Enum.flat_map(fn
+        {app, %{"spec" => %{"routes" => %{^name => routes}}}} ->
+          Enum.map(routes, fn {method, path} ->
+            [app: app, path: path, method: method, scheme: :http]
+          end)
+
+        _ ->
+          []
+      end)
+      |> Enum.reduce(%{}, fn [app: app, path: path, method: method, scheme: :http], acc ->
+        methods = acc[path] || %{}
+        Map.put(acc, path, Map.put(methods, method, app))
+      end)
+      |> Enum.map(fn {path, methods} ->
+        %{"path" => path, "apps" => methods}
+      end)
+
+    paths = Enum.map(routes, fn %{"path" => path} -> path end)
 
     [
       {port_module_name(name),
        quote do
          @name unquote(name)
          @port unquote(port)
-         @routes unquote(
-                   Enum.flat_map(apps, fn {_, mounts} ->
-                     Map.values(mounts)
-                   end)
-                 )
+         @routes unquote(paths)
 
          def name(), do: @name
          def kind(), do: "port"
@@ -241,9 +262,22 @@ defmodule Elementary.Compiler do
              :cowboy_router.compile([
                {:_,
                 unquote(
-                  (Enum.map(apps, fn {app, %{"http" => route}} ->
-                     app_module = Elementary.Compiler.app_module_name(app)
-                     {route, Elementary.Http, [app_module]}
+                  (Enum.map(routes, fn
+                     %{"path" => route, "app" => app} ->
+                       app_module = Elementary.Compiler.app_module_name(app)
+                       {route, Elementary.Http, [app_module]}
+
+                     %{"path" => route, "apps" => apps} ->
+                       {route, Elementary.Http,
+                        [
+                          Enum.reduce(apps, %{}, fn {method, app}, acc ->
+                            Map.put(
+                              acc,
+                              String.upcase(method),
+                              Elementary.Compiler.app_module_name(app)
+                            )
+                          end)
+                        ]}
                    end) ++
                      [
                        {"/[...]", :cowboy_static, {:dir, Elementary.Kit.assets()}}

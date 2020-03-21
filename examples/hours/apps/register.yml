@@ -1,6 +1,9 @@
 kind: app
 name: register
 spec:
+  routes:
+    hours:
+      post: /api/register
   settings:
     - hours
   filters:

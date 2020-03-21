@@ -1,6 +1,9 @@
 kind: app
 name: user
 spec:
+  routes:
+    hours:
+      get: /api/users/:id
   settings:
     - hours
   filters:

@@ -1,6 +1,9 @@
 kind: app
 name: store
 spec:
+  routes:
+    hours:
+      delete: /api/stores/:name
   settings:
     - hours
   filters:

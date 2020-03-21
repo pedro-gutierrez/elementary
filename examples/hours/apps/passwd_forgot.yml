@@ -1,6 +1,9 @@
 kind: app
 name: passwd_forgot
 spec:
+  routes:
+    hours:
+      post: /api/passwd/forgot
   settings:
     - hours
   filters:

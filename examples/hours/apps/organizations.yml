@@ -1,6 +1,10 @@
 kind: app
 name: organizations
 spec:
+  routes:
+    hours:
+      get: /api/organizations
+      post: /api/organizations
   settings:
     - hours
   filters:

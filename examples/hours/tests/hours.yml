@@ -11,7 +11,6 @@ spec:
     - charlie
     - users
     - organizations
-    - invites
     - packages
     - projects
     - assignments
@@ -113,7 +112,7 @@ spec:
         - Then I should have no items
         - When I get that organization
         - Then I should have a 404
-    - title: Owners should invite users to organizations
+    - title: Owners should add users to organizations
       steps:
         - Given the store is empty
         - Given Alice is an employer
@@ -122,18 +121,18 @@ spec:
         - Given I am logged in as Alice
         - Given Bob is the current user
         - Given role contractor
-        - Given I invited that user to that organization
-        - When I invite that user to that organization
+        - Given that user belongs to that organization
+        - When I add that user to that organization
         - Then I should have a 409
-    - title: Owners should not invite themselves
+    - title: Should not add self to an organization
       steps:
         - Given the store is empty
         - Given Alice is an employer
         - Given organization Floostack
         - Given role contractor
-        - When I invite that user to that organization
+        - When I add that user to that organization
         - Then I should have a 401
-    - title: Owners should not invite unknown users
+    - title: Should not add unknown users to organizations
       steps:
         - Given the store is empty
         - Given Alice is an employer
@@ -141,9 +140,9 @@ spec:
         - Given details for Bob
         - Given Bob is the current user
         - Given role contractor
-        - When I invite that user to that organization
+        - When I add that user to that organization
         - Then I should have a 404
-    - title: Non owners should not invite users to organizations
+    - title: Non owners should not add users to organizations
       steps:
         - Given the store is empty
         - Given Alice is an employer
@@ -154,7 +153,43 @@ spec:
         - Given details for Charlie
         - Given Charlie is the current user
         - Given role contractor
-        - When I invite that user to that organization
+        - When I add that user to that organization
+        - Then I should have a 401
+    - title: Users from the same organization should see each other
+      tags:
+        - debug
+      steps:
+        - Given the store is empty
+        - Given Alice is an employer
+        - Given organization Floostack
+        - Given Bob is an employee
+        - Given Charlie is an employee
+        - Given I am logged in as Alice
+        - Given Charlie is the current user
+        - Given role contractor
+        - Given that user belongs to that organization
+        - When I get the users in that organization
+        - Then I should have a 200
+        - Then I should have two items
+        - Given I am logged in as Charlie
+        - When I get the users in that organization
+        - Then I should have a 200
+        - Then I should have two items
+    - title: Users should not see users from an organization they don't belong to
+      tags:
+        - debug
+      steps:
+        - Given the store is empty
+        - Given Alice is an employer
+        - Given organization Floostack
+        - Given Bob is an employee
+        - Given Charlie is an employee
+        - Given I am logged in as Alice
+        - Given Charlie is the current user
+        - Given role contractor
+        - Given that user belongs to that organization
+        - Given I am logged in as Bob
+        - When I get the users in that organization
         - Then I should have a 401
     - title: Employer shoud create packages
       steps:
@@ -184,6 +219,9 @@ spec:
         - When I create that package
         - Then I should have a 401
     - title: Employer should create projects
+      tags:
+        - debug
+        - wip
       steps:
         - Given the store is empty
         - Given Alice is an employer

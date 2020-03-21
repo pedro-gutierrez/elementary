@@ -1,6 +1,9 @@
 kind: app
 name: health
 spec:
+  routes:
+    hours:
+      get: /api/health
   settings:
     - hours
   filters:

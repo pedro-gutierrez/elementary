@@ -1,6 +1,9 @@
 kind: app
 name: user_assignments
 spec:
+  routes:
+    hours:
+      post: /api/projects/:id/users
   settings:
     - hours
   filters:

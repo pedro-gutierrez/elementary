@@ -1,5 +1,5 @@
 kind: module
-name: organization_invites
+name: add_user_to_organization
 spec:
   decoders:
     http:

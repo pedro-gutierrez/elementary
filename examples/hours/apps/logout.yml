@@ -1,6 +1,9 @@
 kind: app
 name: logout
 spec:
+  routes:
+    hours:
+      post: /api/logout
   settings:
     - hours
   filters:

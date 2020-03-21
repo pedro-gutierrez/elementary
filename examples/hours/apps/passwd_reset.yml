@@ -1,6 +1,9 @@
 kind: app
 name: passwd_reset
 spec:
+  routes:
+    hours:
+      post: /api/passwd/reset
   settings:
     - hours
   filters:

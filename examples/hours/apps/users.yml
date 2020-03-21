@@ -1,6 +1,10 @@
 kind: app
 name: users
 spec:
+  routes:
+    hours:
+      get: /api/users
+      post: /api/users
   settings:
     - hours
   filters:

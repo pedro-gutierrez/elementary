@@ -1,16 +1,16 @@
 kind: app
-name: user_time
+name: list_organization_users
 spec:
   routes:
     hours:
-      get: /api/users/:id/time
+      get: /api/organizations/:id/users
   settings:
     - hours
   filters:
     - cors
     - auth
   modules:
-    - user_time
+    - list_organization_users
     - common_store
     - any_role
     - session
