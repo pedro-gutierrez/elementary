@@ -176,22 +176,25 @@ defmodule Elementary.Compiler do
 
          defp do_update(%{"when" => condition} = spec, context) do
            case Encoder.encode(condition, context, @encoders) do
-             {:ok, true} ->
+             {:ok, false} ->
+               false
+
+             {:ok, _} ->
                spec
                |> Map.drop(["when"])
                |> do_update(context)
-
-             {:ok, false} ->
-               false
 
              other ->
                other
            end
          end
 
-         defp do_update(%{"model" => model, "cmds" => cmds}, context) do
+         defp do_update(
+                %{"model" => model, "cmds" => cmds},
+                %{"model" => current_model} = context
+              ) do
            with {:ok, encoded} <- Encoder.encode(model, context, @encoders),
-                {:ok, cmds} <- Encoder.encode(cmds, context, @encoders) do
+                {:ok, cmds} <- Encoder.encode(cmds, Map.merge(current_model, encoded), @encoders) do
              {:ok, encoded, cmds}
            end
          end
@@ -202,8 +205,8 @@ defmodule Elementary.Compiler do
            end
          end
 
-         defp do_update(%{"cmds" => cmds}, context) do
-           with {:ok, cmds} <- Encoder.encode(cmds, context, @encoders) do
+         defp do_update(%{"cmds" => cmds}, %{"model" => current_model} = context) do
+           with {:ok, cmds} <- Encoder.encode(cmds, current_model, @encoders) do
              {:ok, %{}, cmds}
            end
          end
