@@ -435,4 +435,7 @@ defmodule Elementary.Decoder do
   defp decode_object(spec, data, _) do
     decode_error(spec, data)
   end
+
+  def decode_error?({:error, %{error: :decode}}), do: true
+  def decode_error?(_), do: false
 end

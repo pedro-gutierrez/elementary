@@ -1,6 +1,8 @@
 defmodule Elementary.Encoder do
   @moduledoc false
 
+  alias Elementary.Decoder
+
   defguard is_literal(v) when is_binary(v) or is_number(v) or is_atom(v)
 
   def encode(spec) do
@@ -78,6 +80,22 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"one_of" => exprs} = spec, context, encoders) when is_list(exprs) do
+    Enum.reduce_while(exprs, false, fn expr, _ ->
+      case encode(expr, context, encoders) do
+        {:ok, false} ->
+          {:cont, false}
+
+        {:ok, _} ->
+          {:halt, true}
+
+        {:error, _} = err ->
+          {:halt, err}
+      end
+    end)
+    |> result(spec, context)
+  end
+
   def encode(%{"either" => clauses} = spec, context, encoders) do
     with nil <-
            Enum.reduce_while(clauses, nil, fn clause, _ ->
@@ -91,12 +109,24 @@ defmodule Elementary.Encoder do
            end) do
       {:error, %{"error" => "no_clause_applies", "spec" => spec}}
     end
+    |> result(spec, context)
   end
 
   def encode(%{"when" => condition, "then" => then} = spec, context, encoders) do
     case encode(condition, context, encoders) do
-      {:ok, true} ->
+      {:ok, false} ->
+        {:error, :failed_condition}
+
+      {:ok, _} ->
         encode(then, context, encoders)
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"when" => condition} = spec, context, encoders) do
+    case encode(condition, context, encoders) do
+      {:ok, true} ->
+        encode(Map.drop(spec, ["when"]), context, encoders)
 
       {:ok, false} ->
         {:error, :failed_condition}
@@ -162,6 +192,14 @@ defmodule Elementary.Encoder do
 
       {:ok, other} ->
         {:error, %{"error" => "unexpected", "data" => other, "expected" => "all_maps|all_lists"}}
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"drop" => keys, "from" => expr} = spec, context, encoders) do
+    with {:ok, keys} when is_list(keys) <- encode(keys, context, encoders),
+         {:ok, map} when is_map(map) <- encode(expr, context, encoders) do
+      {:ok, Map.drop(map, keys)}
     end
     |> result(spec, context)
   end
@@ -411,9 +449,29 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"match" => value, "with" => expr} = spec, context, encoders) do
+    with {:ok, value} <- encode(value, context, encoders),
+         {:ok, expr} <- encode(expr, context, encoders) do
+      case Decoder.decode(expr, value, context) do
+        {:ok, _} ->
+          {:ok, true}
+
+        {:error, _} = err ->
+          case Decoder.decode_error?(err) do
+            true ->
+              {:ok, false}
+
+            false ->
+              err
+          end
+      end
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"expect" => expr, "in" => key} = spec, context, encoders) do
     with {:ok, encoded} <- encode(key, context, encoders) do
-      case Elementary.Decoder.decode(expr, encoded, context) do
+      case Decoder.decode(expr, encoded, context) do
         {:ok, decoded} ->
           case Map.get(spec, "where", nil) do
             nil ->
