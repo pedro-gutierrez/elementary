@@ -1,0 +1,31 @@
+kind: module
+name: search_organizations
+spec:
+  decoders:
+    http:
+      search:
+        any: object
+    store:
+      organizations:
+        organizations:
+          list:
+            id:
+              any: text
+            name:
+              any: text
+  update:
+    search:
+      cmds:
+        store: find_public
+    organizations:
+      model:
+        data: @data.organizations
+      cmds:
+        return: data
+  encoders:
+    find_public:
+      store: @store
+      find:
+        visibility: public
+      from: organizations
+      as: organizations

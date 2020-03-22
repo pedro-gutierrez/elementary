@@ -1,10 +1,9 @@
 kind: module
-name: organizations
+name: create_organization
 spec:
   decoders:
     http:
       create:
-        method: POST
         body:
           id:
             any: text
@@ -12,27 +11,18 @@ spec:
             text:
               - downcase
               - trim
-      get:
-        method: GET
-    store:
-      organizations:
-        organizations:
-          any: list
+          visibility:
+            one_of:
+              - public
+              - private
   update:
     create:
       model:
         id: @data.body.id
         name: @data.body.name
+        visibility: @data.body.visibility
       cmds:
         store: create
-    get:
-      cmds:
-        store: list
-    organizations:
-      model:
-        data: @data.organizations
-      cmds:
-        return: data
   encoders:
     create:
       store: @store
@@ -45,12 +35,5 @@ spec:
         users:
           - id: @user.id
             role: owner
+        visibility: @visibility
       into: organizations
-    list:
-      store: @store
-      find:
-        users:
-          $elemMatch:
-            id: @user.id
-      from: organizations
-      as: organizations

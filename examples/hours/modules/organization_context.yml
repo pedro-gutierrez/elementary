@@ -1,10 +1,9 @@
 kind: module
-name: organization
+name: organization_context
 spec:
   decoders:
     http:
-      get:
-        method: GET
+      find:
         params:
           id:
             any: text
@@ -15,16 +14,14 @@ spec:
         organization:
           any: object
   update:
-    get:
+    find:
       model:
         id: @data.params.id
       cmds:
         store: fetch
     organization:
       model:
-        data: @data.organization
-      cmds:
-        return: data
+        organization: @data.organization
     not_found:
       cmd:
         return: not_found
@@ -33,8 +30,5 @@ spec:
       store: @store
       fetch:
         id: @id
-        users:
-          $elemMatch:
-            id: @user.id
       from: organizations
       as: organization

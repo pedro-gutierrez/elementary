@@ -4,11 +4,9 @@ spec:
   decoders:
     http:
       my_profile:
-        method: GET
         params:
           id: @user.id
-      public_profile:
-        method: GET
+      public_profiles:
         params:
           id:
             other_than: @user.id
@@ -25,11 +23,11 @@ spec:
           id: @data.params.id
       cmds:
         store: fetch
-    public_profile:
+    public_profiles:
       model:
         query:
           id: @data.params.id
-          profile: public
+          visibility: public
       cmds:
         store: fetch
     user:

@@ -1,9 +1,8 @@
 kind: app
-name: organizations
+name: create_organization
 spec:
   routes:
     hours:
-      get: /api/organizations
       post: /api/organizations
   settings:
     - hours
@@ -11,8 +10,7 @@ spec:
     - cors
     - auth
   modules:
-    - organizations
+    - create_organization
     - common_store
-    - any_role
     - session
     - http

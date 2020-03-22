@@ -12,7 +12,6 @@ spec:
   modules:
     - user
     - common_store
-    - employer_only
     - session
     - http
 

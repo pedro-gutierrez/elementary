@@ -9,6 +9,8 @@ spec:
     - alice
     - bob
     - charlie
+    - floostack
+    - codemutiny
     - users
     - organizations
     - packages
@@ -21,22 +23,24 @@ spec:
     auth: {}
     json:
       content-type: application/json
-    profile: public
+    visibility: public
   scenarios:
     - title: Should have a healtcheck
       steps:
         - When I get the health
         - Then I should have a 200
-    - title: Should register as employer or employee
+    - title: Users should register once
       steps:
         - Given the store is empty
-        - Given Bob is an employee
-        - Given Alice is an employer
+        - Given Alice is registered
+        - When I register
+        - Then I should have a 409
+        - Given that user has a password
     - title: Should see public users
       steps:
         - Given the store is empty
-        - Given Bob is an employee
-        - Given Alice is an employer
+        - Given Bob is registered and logged in
+        - Given Alice is registered and logged in
         - Given Bob is the current user
         - When I search for that user
         - Then I should have a 200
@@ -46,9 +50,9 @@ spec:
     - title: Should not see private users
       steps:
         - Given the store is empty
-        - Given a private profile
-        - Given Bob is an employee
-        - Given Alice is an employer
+        - Given a private visibility
+        - Given Bob is registered and logged in
+        - Given Alice is registered and logged in
         - Given Bob is the current user
         - When I search for that user
         - Then I should have a 200
@@ -58,16 +62,10 @@ spec:
     - title: I should see my own profile
       steps:
         - Given the store is empty
-        - Given a private profile
-        - Given Alice is an employer
+        - Given a private visibility
+        - Given Alice is registered and logged in
         - When I get that user
         - Then I should have a 200
-    - title: Employees should not list users
-      steps:
-        - Given the store is empty
-        - Given Bob is an employee
-        - When I get all users
-        - Then I should have a 401
     - title: Anonymous clients should not list users
       steps:
         - Given the store is empty
@@ -76,11 +74,11 @@ spec:
     - title: Users should create organizations
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given organization Floostack
         - When I create that organization
         - Then I should have a 409
-        - When I get all organizations
+        - When I get my organizations
         - Then I should have a 200
         - Then I should have one item
         - When I get that organization
@@ -94,30 +92,44 @@ spec:
     - title: Anonymous users should not see organizations
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given organization Floostack
         - Given I am logged out
-        - When I get all organizations
+        - When I search all organizations
         - Then I should have a 401
         - When I get that organization
         - Then I should have a 401
-    - title: Organizations should not be seen by non members
+    - title: Non members should see public organizations
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given organization Floostack
-        - Given Bob is an employee
-        - When I get all organizations
+        - Given Bob is registered and logged in
+        - When I search all organizations
+        - Then I should have a 200
+        - Then I should have one item
+        - When I get that organization
+        - Then I should have a 200
+    - title: Non members should not see private organizations
+      steps:
+        - Given the store is empty
+        - Given Alice is registered and logged in
+        - Given a private visibility
+        - Given organization Floostack
+        - Given Bob is registered and logged in
+        - When I search all organizations
         - Then I should have a 200
         - Then I should have no items
         - When I get that organization
         - Then I should have a 404
     - title: Owners should add users to organizations
+      tags:
+        - debug
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given organization Floostack
-        - Given Bob is an employee
+        - Given Bob is registered and logged in
         - Given I am logged in as Alice
         - Given Bob is the current user
         - Given role contractor
@@ -127,7 +139,7 @@ spec:
     - title: Should not add self to an organization
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given organization Floostack
         - Given role contractor
         - When I add that user to that organization
@@ -135,7 +147,7 @@ spec:
     - title: Should not add unknown users to organizations
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given organization Floostack
         - Given details for Bob
         - Given Bob is the current user
@@ -145,10 +157,10 @@ spec:
     - title: Non owners should not add users to organizations
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given organization Floostack
-        - Given Bob is an employee
-        - Given Charlie is an employee
+        - Given Bob is registered and logged in
+        - Given Charlie is registered and logged in
         - Given I am logged in as Bob
         - Given details for Charlie
         - Given Charlie is the current user
@@ -156,68 +168,107 @@ spec:
         - When I add that user to that organization
         - Then I should have a 401
     - title: Users from the same organization should see each other
+      tags:
+        - debug
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given organization Floostack
-        - Given Bob is an employee
-        - Given Charlie is an employee
+        - Given Bob is registered and logged in
+        - Given Charlie is registered and logged in
         - Given I am logged in as Alice
         - Given Charlie is the current user
         - Given role contractor
         - Given that user belongs to that organization
-        - When I get the users in that organization
-        - Then I should have a 200
-        - Then I should have two items
+        - When I get that organization
+        - Then it should have two users
         - Given I am logged in as Charlie
-        - When I get the users in that organization
-        - Then I should have a 200
-        - Then I should have two items
+        - When I get that organization
+        - Then it should have two users
     - title: Users should not see users from an organization they don't belong to
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given organization Floostack
-        - Given Bob is an employee
-        - Given Charlie is an employee
+        - Given Bob is registered and logged in
+        - Given Charlie is registered and logged in
         - Given I am logged in as Alice
         - Given Charlie is the current user
         - Given role contractor
         - Given that user belongs to that organization
         - Given I am logged in as Bob
-        - When I get the users in that organization
-        - Then I should have a 401
-    - title: Employer shoud create packages
+        - When I get that organization
+        - Then it should have no users
+    - title: Users should see the organizations they belong to
       steps:
         - Given the store is empty
-        - Given Alice is an employer
-        - Given package 50h
-        - When I create that package
-        - Then I should have a 409
-        - When I get all packages
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given organization CodeMutiny
+        - Given Bob is registered and logged in
+        - Given I am logged in as Alice
+        - Given Bob is the current user
+        - Given role contractor
+        - Given that user belongs to that organization
+        - Given I am logged in as Bob
+        - When I get my organizations
         - Then I should have a 200
         - Then I should have one item
-        - When I get that package
+        - Given I am logged in as Alice
+        - When I get my organizations
         - Then I should have a 200
-    - title: Employees should not create packages
+        - Then I should have two items
+    - title: Organization owners shoud create packages
       steps:
         - Given the store is empty
-        - Given Bob is an employee
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given package 50h
+        - When I add that package to that organization
+        - Then I should have a 409
+        - When I get that package
+        - Then I should have a 200
+    - title: Non owners should not create packages
+      steps:
+        - Given the store is empty
+        - Given Bob is registered and logged in
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given role contractor
+        - Given Bob is the current user
+        - Given that user belongs to that organization
+        - Given I am logged in as Bob
         - Given details for package 50h
-        - When I create that package
+        - When I add that package to that organization
         - Then I should have a 401
     - title: Anonymous users should not create packages
       steps:
         - Given the store is empty
-        - Given Alice is an employer
-        - Given details for package 50h
+        - Given Alice is registered and logged in
+        - Given organization Floostack
         - Given I am logged out
-        - When I create that package
+        - Given details for package 50h
+        - When I add that package to that organization
         - Then I should have a 401
-    - title: Employer should create projects
+    - title: Members should not see organization packages
+      tags:
+        - debug
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Bob is registered and logged in
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given package 50h
+        - Given Bob is the current user
+        - Given role contractor
+        - Given that user belongs to that organization
+        - Given I am logged in as Bob
+        - When I get that organization
+        - Then it should have no packages
+    - title: Users should create projects
+      steps:
+        - Given the store is empty
+        - Given Alice is registered and logged in
         - Given project iot
         - When I create that project
         - Then I should have a 409
@@ -226,18 +277,10 @@ spec:
         - Then I should have one item
         - When I get that project
         - Then I should have a 200
-    - title: Employees should not create projects
+    - title: Anonymous users should not access projects
       steps:
         - Given the store is empty
-        - Given Bob is an employee
-        - Given details for project iot
-        - Given I am logged out
-        - When I create that project
-        - Then I should have a 401
-    - title: Anonymous users should not create projects
-      steps:
-        - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given details for project iot
         - Given I am logged out
         - When I create that project
@@ -245,7 +288,7 @@ spec:
     - title: Employer should assign packages to projects
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given project iot
         - Given package 50h
         - Given that package is assigned to that project
@@ -254,7 +297,7 @@ spec:
     - title: A project should not have more than one active package
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given project iot
         - Given package 50h
         - Given that package is assigned to that project
@@ -264,16 +307,16 @@ spec:
     - title: Employees should not not assign packages to projects
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given project iot
         - Given package 50h
-        - Given Bob is an employee
+        - Given Bob is registered and logged in
         - When I assign that package to that project
         - Then I should have a 401
     - title: Anonymous users should not assign packages to projects
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given project iot
         - Given package 50h
         - Given I am logged out
@@ -282,8 +325,8 @@ spec:
     - title: Employer should assign users to projects
       steps:
         - Given the store is empty
-        - Given Bob is an employee
-        - Given Alice is an employer
+        - Given Bob is registered and logged in
+        - Given Alice is registered and logged in
         - Given project iot
         - Given Bob is the current user
         - Given that user is assigned to that project
@@ -292,24 +335,24 @@ spec:
     - title: Employees should not not assign users to projects
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given project iot
-        - Given Bob is an employee
+        - Given Bob is registered and logged in
         - When I assign that user to that project
         - Then I should have a 401
     - title: Anonymous users should not not assign users to projects
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given project iot
-        - Given Bob is an employee
+        - Given Bob is registered and logged in
         - Given I am logged out
         - When I assign that user to that project
         - Then I should have a 401
     - title: Employer should log time on their projects
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given project iot
         - Given that user is assigned to that project
         - Given package 50h
@@ -319,8 +362,8 @@ spec:
     - title: Employees should log time
       steps:
         - Given the store is empty
-        - Given Bob is an employee
-        - Given Alice is an employer
+        - Given Bob is registered and logged in
+        - Given Alice is registered and logged in
         - Given project iot
         - Given package 50h
         - Given that package is assigned to that project
@@ -337,18 +380,18 @@ spec:
     - title: Should not log time against unassigned projects
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given project iot
         - Given package 50h
         - Given that package is assigned to that project
-        - Given Bob is an employee
+        - Given Bob is registered and logged in
         - Given 2 hours
         - When I work on that project
         - Then I should have a 401
     - title: Projects and packages should sum up time logged
       steps:
         - Given the store is empty
-        - Given Alice is an employer
+        - Given Alice is registered and logged in
         - Given project iot
         - Given that user is assigned to that project
         - Given package 50h

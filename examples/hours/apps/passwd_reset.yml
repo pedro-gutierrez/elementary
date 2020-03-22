@@ -11,5 +11,4 @@ spec:
     - auth
   modules:
     - passwd_reset
-    - any_role
     - http

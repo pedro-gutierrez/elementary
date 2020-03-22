@@ -12,7 +12,6 @@ spec:
   modules:
     - project
     - common_store
-    - employer_only
     - session
     - http
 

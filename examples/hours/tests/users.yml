@@ -2,16 +2,14 @@ kind: test
 name: users
 spec:
   steps:
-    - title: Given that user is registered and logged in
-      steps:
-        - Given that user is registered
-        - Given I forgot my password
-        - Given I resetted my password
-        - Given I am logged in
     - title: Given that user is registered
       steps:
         - When I register
         - Then I should have a 201
+    - title: Given that user has a password
+      steps:
+        - Given I forgot my password
+        - Given I resetted my password
     - title: Given I forgot my password
       steps:
         - When I forget my password
@@ -21,10 +19,10 @@ spec:
       steps:
         - When I reset my password
         - Then I should have a 201
-    - title: Given a public profile
-      profile: public
-    - title: Given a private profile
-      profile: private
+    - title: Given a public visibility
+      visbility: public
+    - title: Given a private visibility
+      visibility: private
     - title: When I register
       http:
         method: post
@@ -125,3 +123,14 @@ spec:
           - @user.id
         headers: @auth
       as: latest
+    - title: Then it should have two users
+      expect:
+        list:
+          size: 2
+      in: @latest.body.users
+    - title: Then it should have no users
+      expect:
+        without:
+          - users
+      in: @latest.body
+

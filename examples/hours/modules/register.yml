@@ -3,10 +3,7 @@ name: register
 spec:
   decoders:
     http:
-      employer:
-        method: POST
-        headers:
-          authorization: @admin
+      register:
         body:
           id:
             any: text
@@ -15,26 +12,9 @@ spec:
           last:
             any: text
           email:
-            any: text
-          profile:
-            one_of:
-              - public
-              - private
-      employee:
-        method: POST
-        headers:
-          without:
-            - authorization
-        body:
-          id:
-            any: text
-          first:
-            any: text
-          last:
-            any: text
-          email:
-            any: text
-          profile:
+            text:
+              - downcase
+          visibility:
             one_of:
               - public
               - private
@@ -42,20 +22,9 @@ spec:
       created: created
       conflict: conflict
   update:
-    employer:
+    register:
       model:
-        user:
-          merge:
-            - @data.body
-            - role: employer
-      cmds:
-        store: create
-    employee:
-      model:
-        user:
-          merge:
-            - @data.body
-            - role: employee
+        user: @data.body
       cmds:
         store: create
     conflict:

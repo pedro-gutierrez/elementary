@@ -9,9 +9,10 @@ spec:
   filters:
     - cors
     - auth
+    - organization_context
+    - organization_member
   modules:
     - list_organization_users
     - common_store
-    - any_role
     - session
     - http

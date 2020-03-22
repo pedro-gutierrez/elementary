@@ -1,17 +1,16 @@
 kind: app
-name: organization
+name: search_organizations
 spec:
   routes:
     hours:
-      get: /api/organizations/:id
+      post: /api/search/organizations
   settings:
     - hours
   filters:
     - cors
     - auth
   modules:
-    - organization
+    - search_organizations
     - common_store
-    - any_role
     - session
     - http

@@ -11,6 +11,5 @@ spec:
   modules:
     - logout
     - session
-    - any_role
     - http
     - cors

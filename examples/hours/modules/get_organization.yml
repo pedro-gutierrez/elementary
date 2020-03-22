@@ -1,0 +1,55 @@
+kind: module
+name: get_organization
+spec:
+  decoders:
+    http:
+      get:
+        any: object
+  update:
+    get:
+      - when:
+          encoder: is_owner
+        model:
+          data: @model.organization
+        cmds:
+          return: data
+      - when:
+          encoder: is_member
+        model:
+          data:
+            drop:
+              - packages
+            from: @model.organization
+        cmds:
+          return: data
+      - when:
+          encoder: is_public
+        model:
+          data:
+            drop:
+              - packages
+              - users
+            from: @model.organization
+        cmds:
+          return: data
+      - cmds:
+          return: not_found
+  encoders:
+    is_owner:
+      equal:
+        - @model.organization.owner
+        - @model.user.id
+    is_member:
+      match: @model.organization.users
+      with:
+        list:
+          with:
+            id: @model.user.id
+    is_public:
+      equal:
+        - @model.organization.visibility
+        - public
+    is_visible:
+      one_of:
+        - encoder: is_public
+        - encoder: is_member

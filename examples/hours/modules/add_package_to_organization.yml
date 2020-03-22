@@ -1,10 +1,9 @@
 kind: module
-name: packages
+name: add_package_to_organization
 spec:
   decoders:
     http:
       create:
-        method: POST
         body:
           id:
             any: text
@@ -14,26 +13,12 @@ spec:
             any: number
           rate:
             any: number
-      get:
-        method: GET
-    store:
-      packages:
-        packages:
-          any: list
   update:
     create:
       model:
         package: @data.body
       cmds:
         store: create
-    get:
-      cmds:
-        store: list
-    packages:
-      model:
-        data: @data.packages
-      cmds:
-        return: data
   encoders:
     create:
       store: @store
@@ -42,11 +27,6 @@ spec:
           - @package
           - created:
               now: {}
+            organization: @organization.id
             timeLeft: @package.time
       into: packages
-    list:
-      store: @store
-      find: {}
-      from: packages
-      as: packages
-

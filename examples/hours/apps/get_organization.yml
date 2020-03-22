@@ -1,18 +1,18 @@
 kind: app
-name: package
+name: get_organization
 spec:
+  debug: true
   routes:
     hours:
-      get: /api/packages/:id
+      get: /api/organizations/:id
   settings:
     - hours
   filters:
     - cors
     - auth
+    - organization_context
   modules:
-    - package
-    - package_time
+    - get_organization
     - common_store
     - session
     - http
-

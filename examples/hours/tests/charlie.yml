@@ -2,6 +2,11 @@ kind: test
 name: charlie
 spec:
   steps:
+    - title: Given Charlie is registered and logged in
+      steps:
+        - Given Charlie is registered
+        - Given that user has a password
+        - Given I am logged in as Charlie
     - title: Given details for Charlie
       charlie:
         object:
@@ -10,22 +15,21 @@ spec:
           first: Charlie
           last: Brown
           email: charlie@brown.bar
-          profile: @profile
+          visibility: @visibility
     - title: Given Charlie is the current user
       user: @charlie
     - title: Given a password for Charlie
       password: charlie123
-    - title: Given Charlie is an employee
+    - title: Given Charlie is registered
       steps:
+        - Given I am logged out
         - Given details for Charlie
         - Given a password for Charlie
         - Given Charlie is the current user
-        - Given I am logged out
-        - Given that user is registered and logged in
+        - Given that user is registered
     - title: Given I am logged in as Charlie
       steps:
-        - Given details for Charlie
+        - Given I am logged out
         - Given Charlie is the current user
         - Given a password for Charlie
-        - Given I am logged out
         - Given I am logged in

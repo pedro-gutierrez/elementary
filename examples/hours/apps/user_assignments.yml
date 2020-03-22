@@ -12,6 +12,5 @@ spec:
   modules:
     - user_assignments
     - common_store
-    - employer_only
     - session
     - http

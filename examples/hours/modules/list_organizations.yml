@@ -1,0 +1,29 @@
+kind: module
+name: list_organizations
+spec:
+  decoders:
+    http:
+      get:
+        any: object
+    store:
+      organizations:
+        organizations:
+          any: list
+  update:
+    get:
+      cmds:
+        store: list
+    organizations:
+      model:
+        data: @data.organizations
+      cmds:
+        return: data
+  encoders:
+    list:
+      store: @store
+      find:
+        users:
+          $elemMatch:
+            id: @user.id
+      from: organizations
+      as: organizations

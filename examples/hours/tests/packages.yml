@@ -19,32 +19,26 @@ spec:
     - title: Given package 50h
       steps:
         - Given details for package 50h
-        - When I create that package
+        - When I add that package to that organization
         - Then I should have a 201
     - title: Given package 60h
       steps:
         - Given details for package 60h
-        - When I create that package
+        - When I add that package to that organization
         - Then I should have a 201
-    - title: When I create that package
+    - title: When I add that package to that organization
       http:
         method: post
         url:
           - @baseUrl
-          - /api/packages
+          - /api/organizations/
+          - @organization.id
+          - /packages
         headers:
           merge:
             - @json
             - @auth
         body: @package
-      as: latest
-    - title: When I get all packages
-      http:
-        method: get
-        url:
-          - @baseUrl
-          - /api/packages
-        headers: @auth
       as: latest
     - title: When I get that package
       http:
@@ -55,3 +49,9 @@ spec:
           - @package.id
         headers: @auth
       as: latest
+    - title: Then it should have no packages
+      expect:
+        without:
+          - packages
+      in: @latest.body
+

@@ -1,10 +1,9 @@
 kind: app
-name: add_user_to_organization
+name: list_organization_packages
 spec:
-  debug: true
   routes:
     hours:
-      post: /api/organizations/:id/users
+      get: /api/organizations/:id/packages
   settings:
     - hours
   filters:
@@ -13,7 +12,7 @@ spec:
     - organization_context
     - organization_owner
   modules:
-    - add_user_to_organization
+    - list_organization_packages
     - common_store
     - session
     - http

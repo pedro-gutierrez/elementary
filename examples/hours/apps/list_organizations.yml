@@ -1,19 +1,16 @@
 kind: app
-name: packages
+name: list_organizations
 spec:
   routes:
     hours:
-      get: /api/packages
-      post: /api/packages
+      get: /api/organizations
   settings:
     - hours
   filters:
     - cors
     - auth
   modules:
-    - packages
+    - list_organizations
     - common_store
-    - employer_only
     - session
     - http
-

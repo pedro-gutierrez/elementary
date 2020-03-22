@@ -1,7 +1,0 @@
-kind: module
-name: employer_only
-spec:
-  init:
-    model:
-      roles:
-        - employer

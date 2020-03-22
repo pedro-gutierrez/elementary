@@ -8,9 +8,6 @@ spec:
   decoders:
     http:
       reset:
-        method: POST
-        headers:
-          content-type: application/json
         body:
           password:
             any: text

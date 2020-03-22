@@ -12,7 +12,6 @@ spec:
   modules:
     - time
     - common_store
-    - any_role
     - session
     - http
 

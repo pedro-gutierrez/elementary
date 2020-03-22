@@ -28,7 +28,7 @@ spec:
     search_by_email:
       store: @store
       find:
-        profile: public
+        visibility: public
         email: @query
       from: users
       as: users

@@ -2,13 +2,18 @@ kind: test
 name: alice
 spec:
   steps:
-    - title: Given Alice is an employer
+    - title: Given Alice is registered and logged in
       steps:
-        - Given I am the admin
+        - Given Alice is registered
+        - Given that user has a password
+        - Given I am logged in as Alice
+    - title: Given Alice is registered
+      steps:
+        - Given I am logged out
         - Given details for Alice
         - Given a password for Alice
         - Given Alice is the current user
-        - Given that user is registered and logged in
+        - Given that user is registered
     - title: Given details for Alice
       alice:
         object:
@@ -17,15 +22,14 @@ spec:
           first: Alice
           last: Cooper
           email: alice@foo.bar
-          profile: @profile
+          visibility: @visibility
     - title: Given a password for Alice
       password: alice123
     - title: Given Alice is the current user
       user: @alice
     - title: Given I am logged in as Alice
       steps:
-        - Given details for Alice
+        - Given I am logged out
         - Given Alice is the current user
         - Given a password for Alice
-        - Given I am logged out
         - Given I am logged in

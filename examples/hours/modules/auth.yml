@@ -33,19 +33,9 @@ spec:
               in: @acls
       deleted:
         status: deleted
-      user_in_role:
+      user:
         user:
-          id:
-            any: text
-          role:
-            in: @roles
-      user_not_in_role:
-        user:
-          id:
-            any: text
-          role:
-            not:
-              in: @roles
+          any: object
       not_found:
         status: not_found
   update:
@@ -59,12 +49,9 @@ spec:
         user: @data.token.user
       cmds:
         store: find_user
-    user_in_role:
+    user:
       model:
         user: @data.user
-    user_not_in_role:
-      cmds:
-        stop: unauthorized
     invalid:
       cmds:
         stop: unauthorized

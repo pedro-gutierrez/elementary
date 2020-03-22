@@ -4,9 +4,6 @@ spec:
   decoders:
     http:
       login:
-        method: POST
-        headers:
-          content-type: application/json
         body:
           email:
             any: text

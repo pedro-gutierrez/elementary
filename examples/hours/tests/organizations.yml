@@ -2,16 +2,6 @@ kind: test
 name: organizations
 spec:
   steps:
-    - title: Given details for organization Floostack
-      organization:
-        id:
-          uuid: {}
-        name: floostack
-    - title: Given organization Floostack
-      steps:
-        - Given details for organization Floostack
-        - When I create that organization
-        - Then I should have a 201
     - title: When I create that organization
       http:
         method: post
@@ -24,13 +14,23 @@ spec:
             - @auth
         body: @organization
       as: latest
-    - title: When I get all organizations
+    - title: When I search all organizations
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/search/organizations
+        headers: @auth
+      as: latest
+    - title: When I get my organizations
       http:
         method: get
         url:
           - @baseUrl
           - /api/organizations
         headers: @auth
+        query:
+          member: true
       as: latest
     - title: When I get that organization
       http:
@@ -61,14 +61,3 @@ spec:
           user: @user.id
           role: @role
       as: latest
-    - title: When I get the users in that organization
-      http:
-        method: get
-        url:
-          - @baseUrl
-          - /api/organizations/
-          - @organization.id
-          - /users
-        headers: @auth
-      as: latest
-

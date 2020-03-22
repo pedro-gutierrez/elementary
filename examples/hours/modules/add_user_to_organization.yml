@@ -3,72 +3,41 @@ name: add_user_to_organization
 spec:
   decoders:
     http:
-      self_invite:
-        body:
-          user: @user.id
       create:
-        method: POST
         params:
           id:
             any: text
         body:
           user:
-            other_than: @user.id
+            any: text
           role:
             one_of:
               - client
               - contractor
     store:
       not_found:
-        one_of:
-          - organization: not_found
-          - user: not_found
-      not_owner:
-        organization:
-          owner:
-            other_than: @user.id
-      new_member:
-        organization:
-          id:
-            any: text
-          owner: @user.id
-          users:
-            list:
-              without:
-                id: @member
-      existing_member:
-        organization:
-          users:
-            list:
-              with:
-                id: @member
+        user: not_found
       user:
         user:
           any: object
       invited: updated
   update:
-    self_invite:
-      cmds:
-        return: unauthorized
-    not_owner:
-      cmds:
-        return: unauthorized
     create:
       model:
-        organization: @data.params.id
         member: @data.body.user
         memberRole: @data.body.role
       cmds:
-        store: fetch_organization
+        either:
+          - when:
+              encoder: is_owner
+            return: unauthorized
+          - when:
+              encoder: is_member
+            return: conflict
+          - store: find_user
     not_found:
       cmds:
         return: not_found
-    existing_member:
-      cmds:
-        return: conflict
-    new_member:
-      cmds:
-        store: fetch_user
     user:
       cmds:
         store: create
@@ -76,13 +45,16 @@ spec:
       cmds:
         return: created
   encoders:
-    fetch_organization:
-      store: @store
-      fetch:
-        id: @organization
-      from: organizations
-      as: organization
-    fetch_user:
+    is_owner:
+      match: @organization.owner
+      with: @member
+    is_member:
+      match: @organization.users
+      with:
+        list:
+          with:
+            id: @member
+    find_user:
       store: @store
       fetch:
         id: @member
@@ -96,5 +68,5 @@ spec:
             id: @member
             role: @memberRole
       where:
-        id: @organization
+        id: @organization.id
       into: organizations
