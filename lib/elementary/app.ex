@@ -19,13 +19,17 @@ defmodule Elementary.App do
     res =
       mod.filters
       |> Enum.reduce_while(model, fn filter, model ->
-        case decode(filter, effect, data, model) do
-          {:ok, model} ->
-            {:cont, model}
+        res =
+          case decode(filter, effect, data, model) do
+            {:ok, model} ->
+              {:cont, model}
 
-          other ->
-            {:halt, other}
-        end
+            other ->
+              {:halt, other}
+          end
+
+        debug(mod, filter: filter, data: data, model: model, result: res)
+        res
       end)
       |> case do
         {:stop, _} = err ->
@@ -38,7 +42,6 @@ defmodule Elementary.App do
           {:ok, model}
       end
 
-    debug(mod, filter: effect, filters: mod.filters, data: data, model: model, result: res)
     res
   end
 
@@ -92,22 +95,26 @@ defmodule Elementary.App do
   end
 
   def cmd(mod, effect, enc, model) do
-    case mod.encode(enc, model) do
-      {:ok, encoded} ->
-        case effect do
-          "return" ->
-            {:ok, encoded}
+    res =
+      case mod.encode(enc, model) do
+        {:ok, encoded} ->
+          case effect do
+            "return" ->
+              {:ok, encoded}
 
-          "stop" ->
-            {:stop, encoded}
+            "stop" ->
+              {:stop, encoded}
 
-          _ ->
-            effect(mod, effect, encoded, model)
-        end
+            _ ->
+              effect(mod, effect, encoded, model)
+          end
 
-      {:error, e} ->
-        error([app: mod, encoder: enc], e)
-    end
+        {:error, e} ->
+          error([app: mod, encoder: enc], e)
+      end
+
+    debug(mod, effect: effect, encoder: enc, model: model, result: res)
+    res
   end
 
   def effect(mod, effect, encoded, model) do
