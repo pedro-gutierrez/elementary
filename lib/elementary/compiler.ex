@@ -71,6 +71,16 @@ defmodule Elementary.Compiler do
               def get(kind, name) do
                 {:error, :not_found}
               end
+
+              def get!(kind, name) do
+                case get(kind, name) do
+                  {:ok, mod} ->
+                    mod
+
+                  {:error, :not_found} ->
+                    raise "Kind \"#{kind}\" with name \"#{name}\" is not defined"
+                end
+              end
             end
           ]
       )
@@ -86,7 +96,8 @@ defmodule Elementary.Compiler do
 
     filters =
       Enum.map(spec["filters"] || [], fn name ->
-        module_name(name, "module")
+        Elementary.Index.get!("app", name)
+        module_name(name, "app")
       end)
 
     {:ok, _} = encoded = Encoder.encode(settings, %{}, encoders)
@@ -117,6 +128,8 @@ defmodule Elementary.Compiler do
          def filters() do
            @filters
          end
+
+         def encoders(), do: @encoders
 
          def init(settings) do
            with {:ok, model, cmds} <-
@@ -205,7 +218,10 @@ defmodule Elementary.Compiler do
            end
          end
 
-         defp do_update(%{"cmds" => cmds}, %{"model" => current_model} = context) do
+         defp do_update(
+                %{"cmds" => cmds},
+                %{"model" => current_model} = context
+              ) do
            with {:ok, cmds} <- Encoder.encode(cmds, current_model, @encoders) do
              {:ok, %{}, cmds}
            end

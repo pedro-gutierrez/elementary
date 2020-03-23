@@ -54,7 +54,7 @@ defmodule Elementary.Http do
               reply(req, app, start, resp)
 
             {:error, req, e} ->
-              resp = encoded_error(e)
+              resp = encoded_error(mod, e)
               reply(req, app, start, resp)
 
             {:error, %{"effect" => @effect, "error" => :decode}} ->
@@ -64,16 +64,15 @@ defmodule Elementary.Http do
               })
 
             {:error, e} ->
-              resp = encoded_error(e)
+              resp = encoded_error(mod, e)
               reply(req, app, start, resp)
 
             {:ok, other} ->
-              Logger.error("invalid http response: #{inspect(other)}")
-              resp = encoded_error("invalid_response")
+              resp = encoded_error(mod, error: "invalid_http_response", data: other)
               reply(req, app, start, resp)
 
             other ->
-              resp = encoded_error(%{"unexpected" => other})
+              resp = encoded_error(mod, unexpected: other)
               reply(req, app, start, resp)
           end
 
@@ -163,8 +162,8 @@ defmodule Elementary.Http do
     end)
   end
 
-  defp encoded_error(e) do
-    Logger.error("#{inspect(e)}")
+  defp encoded_error(app, e) do
+    Logger.error("#{inspect(Keyword.merge(e, app: app), pretty: true)}")
     %{"status" => 500, "headers" => %{}, "body" => %{}}
   end
 

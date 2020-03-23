@@ -221,17 +221,17 @@ defmodule Elementary.Decoder do
 
   def decode(%{"list" => dec} = spec, data, context) when is_list(data) do
     with {:ok, dec} <- encode(dec, context),
-         nil <-
-           Enum.reduce_while(data, nil, fn item, _ ->
+         [_ | _] = decoded <-
+           Enum.reduce_while(data, [], fn item, acc ->
              case decode(dec, item, context) do
-               {:ok, _} ->
-                 {:cont, nil}
+               {:ok, decoded} ->
+                 {:cont, [decoded | acc]}
 
                {:error, _} = err ->
                  {:halt, err}
              end
            end) do
-      {:ok, data}
+      {:ok, Enum.reverse(decoded)}
     end
     |> result(spec)
   end

@@ -434,7 +434,8 @@ defmodule Elementary.Encoder do
         encode(spec, context, encoders)
 
       nil ->
-        {:error, %{"error" => "no_such_encoder", "encoder" => encoder, "data" => context}}
+        {:error,
+         %{"error" => "no_such_encoder", "encoder" => encoder, "encoders" => Map.keys(encoders)}}
     end
   end
 
