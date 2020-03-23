@@ -8,18 +8,9 @@ spec:
   update:
     get:
       - when:
-          encoder: is_owner
-        model:
-          data: @model.organization
-        cmds:
-          return: data
-      - when:
           encoder: is_member
         model:
-          data:
-            drop:
-              - packages
-            from: @model.organization
+          data: @model.organization
         cmds:
           return: data
       - when:
@@ -27,7 +18,6 @@ spec:
         model:
           data:
             drop:
-              - packages
               - users
             from: @model.organization
         cmds:
@@ -35,10 +25,6 @@ spec:
       - cmds:
           return: not_found
   encoders:
-    is_owner:
-      equal:
-        - @model.organization.owner
-        - @model.user.id
     is_member:
       match: @model.organization.users
       with:

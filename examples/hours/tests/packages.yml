@@ -40,6 +40,16 @@ spec:
             - @auth
         body: @package
       as: latest
+    - title: When I get all packages in that organization
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/organizations/
+          - @organization.id
+          - /packages
+        headers: @auth
+      as: latest
     - title: When I get that package
       http:
         method: get

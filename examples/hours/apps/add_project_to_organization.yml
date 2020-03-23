@@ -1,0 +1,19 @@
+kind: app
+name: add_project_to_organization
+spec:
+  debug: true
+  routes:
+    hours:
+      post: /api/organizations/:id/projects
+  settings:
+    - hours
+  filters:
+    - cors
+    - auth
+    - organization_context
+    - organization_owner
+  modules:
+    - add_project_to_organization
+    - common_store
+    - session
+    - http

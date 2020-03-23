@@ -170,6 +170,7 @@ spec:
     - title: Users from the same organization should see each other
       tags:
         - debug
+        - wip
       steps:
         - Given the store is empty
         - Given Alice is registered and logged in
@@ -250,7 +251,7 @@ spec:
         - Given details for package 50h
         - When I add that package to that organization
         - Then I should have a 401
-    - title: Members should not see organization packages
+    - title: Non owners should not see organization packages
       tags:
         - debug
       steps:
@@ -263,143 +264,157 @@ spec:
         - Given role contractor
         - Given that user belongs to that organization
         - Given I am logged in as Bob
-        - When I get that organization
-        - Then it should have no packages
-    - title: Users should create projects
+        - When I get all packages in that organization
+        - Then I should have a 401
+        - Given I am logged out
+        - When I get all packages in that organization
+        - Then I should have a 401
+    - title: Organization owners should create projects
+      tags:
+        - debug
       steps:
         - Given the store is empty
         - Given Alice is registered and logged in
+        - Given organization Floostack
         - Given project iot
         - When I create that project
         - Then I should have a 409
-        - When I get all projects
-        - Then I should have a 200
-        - Then I should have one item
         - When I get that project
         - Then I should have a 200
-    - title: Anonymous users should not access projects
-      steps:
-        - Given the store is empty
-        - Given Alice is registered and logged in
-        - Given details for project iot
-        - Given I am logged out
-        - When I create that project
-        - Then I should have a 401
-    - title: Employer should assign packages to projects
-      steps:
-        - Given the store is empty
-        - Given Alice is registered and logged in
-        - Given project iot
-        - Given package 50h
-        - Given that package is assigned to that project
-        - When I assign that package to that project
-        - Then I should have a 409
-    - title: A project should not have more than one active package
-      steps:
-        - Given the store is empty
-        - Given Alice is registered and logged in
-        - Given project iot
-        - Given package 50h
-        - Given that package is assigned to that project
-        - Given package 60h
-        - When I assign that package to that project
-        - Then I should have a 409
-    - title: Employees should not not assign packages to projects
-      steps:
-        - Given the store is empty
-        - Given Alice is registered and logged in
-        - Given project iot
-        - Given package 50h
-        - Given Bob is registered and logged in
-        - When I assign that package to that project
-        - Then I should have a 401
-    - title: Anonymous users should not assign packages to projects
-      steps:
-        - Given the store is empty
-        - Given Alice is registered and logged in
-        - Given project iot
-        - Given package 50h
-        - Given I am logged out
-        - When I assign that package to that project
-        - Then I should have a 401
-    - title: Employer should assign users to projects
-      steps:
-        - Given the store is empty
-        - Given Bob is registered and logged in
-        - Given Alice is registered and logged in
-        - Given project iot
-        - Given Bob is the current user
-        - Given that user is assigned to that project
-        - When I assign that user to that project
-        - Then I should have a 409
-    - title: Employees should not not assign users to projects
-      steps:
-        - Given the store is empty
-        - Given Alice is registered and logged in
-        - Given project iot
-        - Given Bob is registered and logged in
-        - When I assign that user to that project
-        - Then I should have a 401
-    - title: Anonymous users should not not assign users to projects
-      steps:
-        - Given the store is empty
-        - Given Alice is registered and logged in
-        - Given project iot
-        - Given Bob is registered and logged in
-        - Given I am logged out
-        - When I assign that user to that project
-        - Then I should have a 401
-    - title: Employer should log time on their projects
-      steps:
-        - Given the store is empty
-        - Given Alice is registered and logged in
-        - Given project iot
-        - Given that user is assigned to that project
-        - Given package 50h
-        - Given that package is assigned to that project
-        - Given 2 hours
-        - Given I worked that time on that project
-    - title: Employees should log time
-      steps:
-        - Given the store is empty
-        - Given Bob is registered and logged in
-        - Given Alice is registered and logged in
-        - Given project iot
-        - Given package 50h
-        - Given that package is assigned to that project
-        - Given Bob is the current user
-        - Given that user is assigned to that project
-        - Given I am logged out
-        - Given a password for Bob
-        - Given I am logged in
-        - Given 2 hours
-        - Given I worked that time on that project
-        - When I get the time logged by that user
+        - When I get all projects in that organization
         - Then I should have a 200
         - Then I should have one item
-    - title: Should not log time against unassigned projects
+    - title: Non members should not see projects
+      tags:
+        - debug
       steps:
         - Given the store is empty
         - Given Alice is registered and logged in
+        - Given organization Floostack
         - Given project iot
-        - Given package 50h
-        - Given that package is assigned to that project
+        - When I create that project
         - Given Bob is registered and logged in
-        - Given 2 hours
-        - When I work on that project
+        - When I get all projects in that organization
         - Then I should have a 401
-    - title: Projects and packages should sum up time logged
-      steps:
-        - Given the store is empty
-        - Given Alice is registered and logged in
-        - Given project iot
-        - Given that user is assigned to that project
-        - Given package 50h
-        - Given that package is assigned to that project
-        - Given 2 hours
-        - Given I worked that time on that project
-        - Given 8 hours
-        - Given I worked that time on that project
-        - Given 40 hours
-        - When I get that package
-        - Then it should have that time left
+        - Given I am logged out
+        - When I get all projects in that organization
+        - Then I should have a 401
+
+          ##- title: Employer should assign packages to projects
+          ##  steps:
+          ##    - Given the store is empty
+          ##    - Given Alice is registered and logged in
+          ##    - Given project iot
+          ##    - Given package 50h
+          ##    - Given that package is assigned to that project
+          ##    - When I assign that package to that project
+          ##    - Then I should have a 409
+          ##- title: A project should not have more than one active package
+          ##  steps:
+          ##    - Given the store is empty
+          ##    - Given Alice is registered and logged in
+          ##    - Given project iot
+          ##    - Given package 50h
+          ##    - Given that package is assigned to that project
+          ##    - Given package 60h
+          ##    - When I assign that package to that project
+          ##    - Then I should have a 409
+          ##- title: Employees should not not assign packages to projects
+          ##  steps:
+          ##    - Given the store is empty
+          ##    - Given Alice is registered and logged in
+          ##    - Given project iot
+          ##    - Given package 50h
+          ##    - Given Bob is registered and logged in
+          ##    - When I assign that package to that project
+          ##    - Then I should have a 401
+          ##- title: Anonymous users should not assign packages to projects
+          ##  steps:
+          ##    - Given the store is empty
+          ##    - Given Alice is registered and logged in
+          ##    - Given project iot
+          ##    - Given package 50h
+          ##    - Given I am logged out
+          ##    - When I assign that package to that project
+          ##    - Then I should have a 401
+          ##- title: Employer should assign users to projects
+          ##  steps:
+          ##    - Given the store is empty
+          ##    - Given Bob is registered and logged in
+          ##    - Given Alice is registered and logged in
+          ##    - Given project iot
+          ##    - Given Bob is the current user
+          ##    - Given that user is assigned to that project
+          ##    - When I assign that user to that project
+          ##    - Then I should have a 409
+          ##- title: Employees should not not assign users to projects
+          ##  steps:
+          ##    - Given the store is empty
+          ##    - Given Alice is registered and logged in
+          ##    - Given project iot
+          ##    - Given Bob is registered and logged in
+          ##    - When I assign that user to that project
+          ##    - Then I should have a 401
+          ##- title: Anonymous users should not not assign users to projects
+          ##  steps:
+          ##    - Given the store is empty
+          ##    - Given Alice is registered and logged in
+          ##    - Given project iot
+          ##    - Given Bob is registered and logged in
+          ##    - Given I am logged out
+          ##    - When I assign that user to that project
+          ##    - Then I should have a 401
+          ##- title: Employer should log time on their projects
+          ##  steps:
+          ##    - Given the store is empty
+          ##    - Given Alice is registered and logged in
+          ##    - Given project iot
+          ##    - Given that user is assigned to that project
+          ##    - Given package 50h
+          ##    - Given that package is assigned to that project
+          ##    - Given 2 hours
+          ##    - Given I worked that time on that project
+          ##- title: Employees should log time
+          ##  steps:
+          ##    - Given the store is empty
+          ##    - Given Bob is registered and logged in
+          ##    - Given Alice is registered and logged in
+          ##    - Given project iot
+          ##    - Given package 50h
+          ##    - Given that package is assigned to that project
+          ##    - Given Bob is the current user
+          ##    - Given that user is assigned to that project
+          ##    - Given I am logged out
+          ##    - Given a password for Bob
+          ##    - Given I am logged in
+          ##    - Given 2 hours
+          ##    - Given I worked that time on that project
+          ##    - When I get the time logged by that user
+          ##    - Then I should have a 200
+          ##    - Then I should have one item
+          ##- title: Should not log time against unassigned projects
+          ##  steps:
+          ##    - Given the store is empty
+          ##    - Given Alice is registered and logged in
+          ##    - Given project iot
+          ##    - Given package 50h
+          ##    - Given that package is assigned to that project
+          ##    - Given Bob is registered and logged in
+          ##    - Given 2 hours
+          ##    - When I work on that project
+          ##    - Then I should have a 401
+          ##- title: Projects and packages should sum up time logged
+          ##  steps:
+          ##    - Given the store is empty
+          ##    - Given Alice is registered and logged in
+          ##    - Given project iot
+          ##    - Given that user is assigned to that project
+          ##    - Given package 50h
+          ##    - Given that package is assigned to that project
+          ##    - Given 2 hours
+          ##    - Given I worked that time on that project
+          ##    - Given 8 hours
+          ##    - Given I worked that time on that project
+          ##    - Given 40 hours
+          ##    - When I get that package
+          ##    - Then it should have that time left

@@ -8,7 +8,6 @@ spec:
           id:
             uuid: {}
           name: iot
-          customer: none
     - title: Given project iot
       steps:
         - Given details for project iot
@@ -19,19 +18,23 @@ spec:
         method: post
         url:
           - @baseUrl
-          - /api/projects
+          - /api/organizations/
+          - @organization.id
+          - /projects
         headers:
           merge:
             - @json
             - @auth
         body: @project
       as: latest
-    - title: When I get all projects
+    - title: When I get all projects in that organization
       http:
         method: get
         url:
           - @baseUrl
-          - /api/projects
+          - /api/organizations/
+          - @organization.id
+          - /projects
         headers: @auth
       as: latest
     - title: When I get that project
@@ -43,4 +46,8 @@ spec:
           - @project.id
         headers: @auth
       as: latest
-
+    - title: Then it should have one project
+      expect:
+        list:
+          size: 1
+      in: @latest.body.projects

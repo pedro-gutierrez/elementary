@@ -16,5 +16,8 @@ spec:
       indexes:
         - unique: name
     users: {}
-    projects: {}
+    projects:
+        - unique:
+            - organization
+            - name
     time: {}
