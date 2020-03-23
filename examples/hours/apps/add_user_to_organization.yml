@@ -1,7 +1,6 @@
 kind: app
 name: add_user_to_organization
 spec:
-  debug: true
   routes:
     hours:
       post: /api/organizations/:id/users

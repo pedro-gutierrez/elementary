@@ -61,3 +61,13 @@ spec:
           user: @user.id
           role: @role
       as: latest
+    - title: When I get all users in that organization
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/organizations/
+          - @organization.id
+          - /users
+        headers: @auth
+      as: latest

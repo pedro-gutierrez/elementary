@@ -1,0 +1,8 @@
+kind: app
+name: organization_member
+spec:
+  modules:
+    - organization_member
+    - common_organization
+    - http
+

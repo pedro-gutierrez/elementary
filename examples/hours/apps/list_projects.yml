@@ -1,18 +1,19 @@
 kind: app
-name: list_organization_packages
+name: list_projects
 spec:
   routes:
     hours:
-      get: /api/organizations/:id/packages
+      get: /api/organizations/:id/projects
   settings:
     - hours
   filters:
     - cors
     - auth
     - organization_context
-    - organization_owner
+    - organization_member
   modules:
-    - list_organization_packages
+    - list_projects
+    - common_organization
     - common_store
     - session
     - http

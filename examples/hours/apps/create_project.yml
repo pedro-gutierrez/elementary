@@ -1,7 +1,6 @@
 kind: app
-name: add_project_to_organization
+name: create_project
 spec:
-  debug: true
   routes:
     hours:
       post: /api/organizations/:id/projects
@@ -13,7 +12,7 @@ spec:
     - organization_context
     - organization_owner
   modules:
-    - add_project_to_organization
+    - create_project
     - common_store
     - session
     - http

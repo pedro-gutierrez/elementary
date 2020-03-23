@@ -1,16 +1,19 @@
 kind: app
-name: project
+name: get_package
 spec:
   routes:
     hours:
-      get: /api/projects/:id
+      get: /api/packages/:id
   settings:
     - hours
   filters:
     - cors
     - auth
+    - package_context
+    - organization_owner
   modules:
-    - project
+    - get_package
+    - package_time
     - common_store
     - session
     - http

@@ -22,8 +22,6 @@ spec:
     list:
       store: @store
       find:
-        users:
-          $elemMatch:
-            id: @user.id
-      from: organizations
+        user: @user.id
+      from: memberships
       as: organizations

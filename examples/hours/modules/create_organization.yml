@@ -15,6 +15,15 @@ spec:
             one_of:
               - public
               - private
+    store:
+      membership:
+        membership: created
+      organization:
+        organization: created
+      conflict:
+        one_of:
+          - membership: conflict
+          - organization: conflict
   update:
     create:
       model:
@@ -22,9 +31,25 @@ spec:
         name: @data.body.name
         visibility: @data.body.visibility
       cmds:
-        store: create
+        store: create_membership
+    membership:
+      cmds:
+        store: create_organization
+    organization:
+      cmds:
+        return: created
   encoders:
-    create:
+    create_membership:
+      store: @store
+      insert:
+        id:
+          uuid: {}
+        organization: @id
+        user: @user.id
+        role: owner
+      into: memberships
+      as: membership
+    create_organization:
       store: @store
       insert:
         id: @id
@@ -32,8 +57,6 @@ spec:
         created:
           now: {}
         owner: @user.id
-        users:
-          - id: @user.id
-            role: owner
         visibility: @visibility
       into: organizations
+      as: organization

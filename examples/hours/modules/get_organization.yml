@@ -8,34 +8,16 @@ spec:
   update:
     get:
       - when:
-          encoder: is_member
+          encoder: is_visible
         model:
           data: @model.organization
-        cmds:
-          return: data
-      - when:
-          encoder: is_public
-        model:
-          data:
-            drop:
-              - users
-            from: @model.organization
         cmds:
           return: data
       - cmds:
           return: not_found
   encoders:
-    is_member:
-      match: @model.organization.users
-      with:
-        list:
-          with:
-            id: @model.user.id
-    is_public:
-      equal:
-        - @model.organization.visibility
-        - public
     is_visible:
       one_of:
         - encoder: is_public
         - encoder: is_member
+

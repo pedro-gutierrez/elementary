@@ -1,0 +1,8 @@
+kind: app
+name: project_context
+spec:
+  modules:
+    - project_context
+    - common_organization
+    - http
+

@@ -1,0 +1,7 @@
+kind: app
+name: organization_owner
+spec:
+  modules:
+    - organization_owner
+    - common_organization
+    - http

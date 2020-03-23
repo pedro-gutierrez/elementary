@@ -1,10 +1,9 @@
 kind: module
-name: package
+name: get_package
 spec:
   decoders:
     http:
       get:
-        method: GET
         params:
           id:
             any: text

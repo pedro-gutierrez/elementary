@@ -1,5 +1,5 @@
 kind: module
-name: add_project_to_organization
+name: create_project
 spec:
   decoders:
     http:

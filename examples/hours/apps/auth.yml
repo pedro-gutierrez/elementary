@@ -1,0 +1,7 @@
+kind: app
+name: auth
+spec:
+  modules:
+    - auth
+    - http
+

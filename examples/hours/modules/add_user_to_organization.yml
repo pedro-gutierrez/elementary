@@ -4,9 +4,6 @@ spec:
   decoders:
     http:
       create:
-        params:
-          id:
-            any: text
         body:
           user:
             any: text
@@ -20,40 +17,20 @@ spec:
       user:
         user:
           any: object
-      invited: updated
   update:
     create:
       model:
         member: @data.body.user
         memberRole: @data.body.role
       cmds:
-        either:
-          - when:
-              encoder: is_owner
-            return: unauthorized
-          - when:
-              encoder: is_member
-            return: conflict
-          - store: find_user
-    not_found:
-      cmds:
-        return: not_found
+        store: find_user
     user:
       cmds:
         store: create
-    invited:
+    not_found:
       cmds:
-        return: created
+        return: not_found
   encoders:
-    is_owner:
-      match: @organization.owner
-      with: @member
-    is_member:
-      match: @organization.users
-      with:
-        list:
-          with:
-            id: @member
     find_user:
       store: @store
       fetch:
@@ -62,11 +39,10 @@ spec:
       as: user
     create:
       store: @store
-      update:
-        $push:
-          users:
-            id: @member
-            role: @memberRole
-      where:
-        id: @organization.id
-      into: organizations
+      insert:
+        id:
+          uuid: {}
+        organization: @organization.id
+        user: @member
+        role: @memberRole
+      into: memberships

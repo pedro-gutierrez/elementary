@@ -1,5 +1,5 @@
 kind: module
-name: add_package_to_organization
+name: create_package
 spec:
   decoders:
     http:
@@ -29,4 +29,5 @@ spec:
               now: {}
             organization: @organization.id
             timeLeft: @package.time
+            owner: @user.id
       into: packages

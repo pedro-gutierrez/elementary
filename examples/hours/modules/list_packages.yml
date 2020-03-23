@@ -1,5 +1,5 @@
 kind: module
-name: list_organization_users
+name: list_packages
 spec:
   decoders:
     http:
@@ -8,6 +8,6 @@ spec:
   update:
     list:
       model:
-        data: @data.organization.users
+        data: @data.organization.packages
       cmds:
         return: data

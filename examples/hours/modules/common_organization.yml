@@ -1,0 +1,40 @@
+kind: module
+name: common_organization
+spec:
+  decoders:
+    store:
+      organization:
+        organization:
+          any: object
+      memberships:
+        memberships:
+          any: list
+  encoders:
+    find_organization:
+      store: @store
+      fetch:
+        id: @organization
+      from: organizations
+      as: organization
+    find_memberships:
+      store: @store
+      find:
+        organization: @organization.id
+        user: @user.id
+      from: memberships
+      as: memberships
+    is_owner:
+      equal:
+        - @model.organization.owner
+        - @model.user.id
+    is_member:
+      match: @model.memberships
+      with:
+        list:
+          with:
+            organization: @model.organization.id
+            user: @model.user.id
+    is_public:
+      equal:
+        - @model.organization.visibility
+        - public

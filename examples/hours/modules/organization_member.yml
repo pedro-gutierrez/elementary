@@ -8,17 +8,7 @@ spec:
   update:
     check:
       - when:
-          match: @model.organization.users
-          with:
-            list:
-              with:
-                id: @model.user.id
+          encoder: is_member
         model: {}
       - cmds:
           stop: unauthorized
-  encoders:
-    unauthorized:
-      status: 401
-      headers:
-        content-type: application/json
-      body: {}

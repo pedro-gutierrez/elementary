@@ -10,25 +10,20 @@ spec:
     store:
       not_found:
         organization: not_found
-      organization:
-        organization:
-          any: object
   update:
     find:
       model:
-        id: @data.params.id
+        organization: @data.params.id
       cmds:
-        store: fetch
+        store: find_organization
     organization:
       model:
         organization: @data.organization
+      cmds:
+        store: find_memberships
+    memberships:
+      model:
+        memberships: @data.memberships
     not_found:
       cmd:
         return: not_found
-  encoders:
-    fetch:
-      store: @store
-      fetch:
-        id: @id
-      from: organizations
-      as: organization

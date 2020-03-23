@@ -1,0 +1,53 @@
+kind: module
+name: package_context
+spec:
+  decoders:
+    http:
+      find:
+        params:
+          id:
+            any: text
+    store:
+      not_found:
+        one_of:
+          - package: not_found
+          - organization: not_found
+      package:
+        package:
+          any: object
+      memberships:
+        memberships:
+          any: list
+      organization:
+        organization:
+          any: object
+  update:
+    find:
+      model:
+        id: @data.params.id
+      cmds:
+        store: find_package
+    package:
+      model:
+        package: @data.package
+        organization: @data.package.organization
+      cmds:
+        store: find_organization
+    organization:
+      model:
+        organization: @data.organization
+      cmds:
+        store: find_memberships
+    memberships:
+      model:
+        memberships: @data.memberships
+    not_found:
+      cmd:
+        stop: not_found
+  encoders:
+    find_package:
+      store: @store
+      fetch:
+        id: @id
+      from: packages
+      as: package

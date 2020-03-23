@@ -1,5 +1,5 @@
 kind: module
-name: list_organization_projects
+name: list_projects
 spec:
   decoders:
     http:
