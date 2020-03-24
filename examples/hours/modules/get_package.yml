@@ -3,23 +3,10 @@ name: get_package
 spec:
   decoders:
     http:
-      get:
-        params:
-          id:
-            any: text
-    store:
-      package:
-        package:
-          any: object
+      get_allocated_time:
+        any: object
   update:
-    get:
-      model:
-        id: @data.params.id
-      cmds:
-        store: fetch
-    package:
-      model:
-        package: @data.package
+    get_allocated_time:
       cmds:
         store: package_allocated_time
     package_allocated_time:
@@ -38,10 +25,3 @@ spec:
                     - @allocatedTime
       cmds:
         return: data
-  encoders:
-    fetch:
-      store: @store
-      fetch:
-        id: @id
-      from: packages
-      as: package
