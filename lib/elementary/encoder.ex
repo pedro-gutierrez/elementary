@@ -246,6 +246,22 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"at_least" => exprs} = spec, context, encoders) do
+    with {:ok, [num1, num2]} when is_number(num1) and is_number(num2) <-
+           encode_specs(exprs, context, encoders) do
+      {:ok, num1 >= num2}
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"less_than" => exprs} = spec, context, encoders) do
+    with {:ok, [num1, num2]} when is_number(num1) and is_number(num2) <-
+           encode_specs(exprs, context, encoders) do
+      {:ok, num1 < num2}
+    end
+    |> result(spec, context)
+  end
+
   def encode(
         %{"switch" => expr, "case" => clauses, "default" => default} = spec,
         context,
