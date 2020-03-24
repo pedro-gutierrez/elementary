@@ -17,14 +17,27 @@ defmodule Elementary.Decoder do
 
   def decode(data, data, _), do: {:ok, data}
 
-  def decode(spec, data, context) when is_binary(spec) do
-    case Elementary.Encoder.encode(spec, context) do
-      {:ok, ^data} ->
+  def decode(spec, data, _) when is_number(spec) and is_number(data) do
+    case spec == data do
+      true ->
         {:ok, data}
 
-      _ ->
+      false ->
         decode_error(spec, data)
     end
+  end
+
+  def decode(spec, data, context) when is_binary(spec) do
+    with {:ok, encoded} <- encode(spec, context) do
+      case encoded == data do
+        true ->
+          {:ok, data}
+
+        false ->
+          decode_error(spec, data)
+      end
+    end
+    |> result(spec)
   end
 
   def decode(%{"any" => "text"} = spec, data, _) when is_binary(data) do
