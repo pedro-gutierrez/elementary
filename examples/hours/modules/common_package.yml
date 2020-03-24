@@ -29,7 +29,7 @@ spec:
               $sum: $allocatedTime
       from: memberships
       as: package_allocated_time
-    package_has_time_left:
-      at_least:
+    package_free_time:
+      diff:
         - @package.totalTime
         - @allocated_time

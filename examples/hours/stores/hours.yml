@@ -1,7 +1,6 @@
 kind: store
 name: hours
 spec:
-  debug: true
   url:
     env: MONGO_URL
   collections:

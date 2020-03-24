@@ -1,7 +1,6 @@
 kind: app
 name: project_context
 spec:
-  debug: true
   modules:
     - project_context
     - common_organization

@@ -2,6 +2,16 @@ kind: test
 name: packages
 spec:
   steps:
+    - title: Given details for a package with that time
+      package:
+        id:
+          uuid: {}
+        name:
+          format: "Package with {{time}} hours"
+          params:
+            time: @time
+        totalTime: @time
+        rate: 20
     - title: Given details for package 50h
       package:
         id:
@@ -16,6 +26,11 @@ spec:
         name: 60h
         totalTime: 60
         rate: 24
+    - title: Given that package
+      steps:
+        - Given details for a package with that time
+        - When I add that package to that organization
+        - Then I should have a 201
     - title: Given package 50h
       steps:
         - Given details for package 50h

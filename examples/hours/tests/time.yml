@@ -2,6 +2,8 @@ kind: test
 name: time
 spec:
   steps:
+    - title: Given 0 hours
+      time: 0.0
     - title: Given 2 hours
       time: 2.0
     - title: Given 8 hours

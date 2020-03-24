@@ -1,7 +1,6 @@
 kind: app
 name: add_time_to_project
 spec:
-  debug: true
   routes:
     hours:
       post: /api/projects/:id/time

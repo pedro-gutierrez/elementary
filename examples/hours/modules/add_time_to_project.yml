@@ -21,7 +21,7 @@ spec:
     create:
       model:
         package: @data.body.package
-        time: @data.body.time
+        requested_time: @data.body.time
         id: @data.body.id
       cmds:
         store: find_package
@@ -36,7 +36,9 @@ spec:
       cmds:
         either:
           - when:
-              encoder: package_has_time_left
+              at_least:
+                - encoder: package_free_time
+                - @requested_time
             store: create
           - return: conflict
   encoders:
@@ -50,5 +52,5 @@ spec:
         owner: @user.id
         created:
           now: {}
-        allocatedTime: @time
+        allocatedTime: @requested_time
       into: memberships
