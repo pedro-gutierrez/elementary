@@ -1,21 +1,20 @@
 kind: app
-name: get_package
+name: add_time_to_project
 spec:
+  debug: true
   routes:
     hours:
-      get: /api/packages/:id
+      post: /api/projects/:id/time
   settings:
     - hours
   filters:
     - cors
     - auth
-    - package_context
+    - project_context
     - organization_owner
   modules:
-    - get_package
-    - package_time
+    - add_time_to_project
     - common_package
     - common_store
     - session
     - http
-

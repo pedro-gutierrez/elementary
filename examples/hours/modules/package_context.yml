@@ -24,7 +24,7 @@ spec:
   update:
     find:
       model:
-        id: @data.params.id
+        package: @data.params.id
       cmds:
         store: find_package
     package:
@@ -42,12 +42,5 @@ spec:
       model:
         memberships: @data.memberships
     not_found:
-      cmd:
+      cmds:
         stop: not_found
-  encoders:
-    find_package:
-      store: @store
-      fetch:
-        id: @id
-      from: packages
-      as: package

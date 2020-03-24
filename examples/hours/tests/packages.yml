@@ -7,14 +7,14 @@ spec:
         id:
           uuid: {}
         name: 50h
-        time: 50
+        totalTime: 50
         rate: 36
     - title: Given details for package 60h
       package:
         id:
           uuid: {}
         name: 60h
-        time: 60
+        totalTime: 60
         rate: 24
     - title: Given package 50h
       steps:
@@ -59,9 +59,13 @@ spec:
           - @package.id
         headers: @auth
       as: latest
-    - title: Then it should have no packages
-      expect:
-        without:
-          - packages
-      in: @latest.body
-
+    - title: When I get all packages in that project
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/projects/
+          - @project.id
+          - /packages
+        headers: @auth
+      as: latest

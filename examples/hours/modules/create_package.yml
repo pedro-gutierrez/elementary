@@ -9,7 +9,7 @@ spec:
             any: text
           name:
             any: text
-          time:
+          totalTime:
             any: number
           rate:
             any: number
@@ -28,6 +28,5 @@ spec:
           - created:
               now: {}
             organization: @organization.id
-            timeLeft: @package.time
             owner: @user.id
       into: packages

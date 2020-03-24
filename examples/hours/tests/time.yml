@@ -6,8 +6,32 @@ spec:
       time: 2.0
     - title: Given 8 hours
       time: 8.0
+    - title: Given 10 hours
+      time: 10.0
     - title: Given 40 hours
       time: 40.0
+    - title: Given that time is added to that project
+      steps:
+        - When I add that time to that project
+        - Then I should have a 201
+    - title: When I add that time to that project
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/projects/
+          - @project.id
+          - /time
+        headers:
+          merge:
+            - @json
+            - @auth
+        body:
+          id:
+            uuid: {}
+          time: @time
+          package: @package.id
+      as: latest
     - title: Given I worked that time on that project
       steps:
         - When I work on that project
@@ -42,8 +66,15 @@ spec:
             - @json
             - @auth
       as: latest
-    - title: Then it should have that time left
+    - title: Then it should have that free time
       expect:
-        body:
-          timeLeft: @time
-      in: @latest
+        freeTime: @time
+      in: @latest.body
+    - title: Then it should have that total time
+      expect:
+        totalTime: @time
+      in: @latest.body
+    - title: Then it should have that allocated time
+      expect:
+        allocatedTime: @time
+      in: @latest.body

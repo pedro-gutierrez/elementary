@@ -1,0 +1,54 @@
+kind: module
+name: add_time_to_project
+spec:
+  decoders:
+    http:
+      create:
+        body:
+          id:
+            any: text
+          package:
+            any: text
+          time:
+            any: number
+    store:
+      not_found:
+        package: not_found
+      package:
+        package:
+          any: object
+  update:
+    create:
+      model:
+        package: @data.body.package
+        time: @data.body.time
+        id: @data.body.id
+      cmds:
+        store: find_package
+    package:
+      model:
+        package: @data.package
+      cmds:
+        store: package_allocated_time
+    package_allocated_time:
+      model:
+        allocated_time: @data.package_allocated_time.allocatedTime
+      cmds:
+        either:
+          - when:
+              encoder: package_has_time_left
+            store: create
+          - return: conflict
+  encoders:
+    create:
+      store: @store
+      insert:
+        id: @id
+        package: @package.id
+        organization: @organization.id
+        project: @project.id
+        owner: @user.id
+        created:
+          now: {}
+        allocatedTime: @time
+      into: memberships

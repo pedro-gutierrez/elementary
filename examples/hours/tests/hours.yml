@@ -310,7 +310,24 @@ spec:
         - Then I should have a 401
         - When I get that project
         - Then I should have a 401
-
+    - title: Owners should add time to projects
+      tags:
+        - wip
+        - debug
+      steps:
+        - Given the store is empty
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given project iot
+        - Given package 50h
+        - Given 10 hours
+        - Given that time is added to that project
+        - When I get that package
+        - Then I should have a 200
+        - Given 40 hours
+        - Then it should have that free time
+        - Given 10 hours
+        - Then it should have that allocated time
           ##- title: Employer should assign packages to projects
           ##  steps:
           ##    - Given the store is empty

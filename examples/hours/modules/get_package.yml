@@ -21,16 +21,21 @@ spec:
       model:
         package: @data.package
       cmds:
-        store: package_time
-    package_time:
+        store: package_allocated_time
+    package_allocated_time:
       model:
         data:
-          merge:
-            - @model.package
-            - timeLeft:
-                diff:
-                  - @model.package.time
-                  - @data.package_time.timeLogged
+          let:
+            package: @model.package
+            allocatedTime: @data.package_allocated_time.allocatedTime
+          in:
+            merge:
+              - @package
+              - allocatedTime: @allocatedTime
+                freeTime:
+                  diff:
+                    - @package.totalTime
+                    - @allocatedTime
       cmds:
         return: data
   encoders:

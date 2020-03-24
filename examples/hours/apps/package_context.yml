@@ -1,8 +1,10 @@
 kind: app
 name: package_context
 spec:
+  debug: true
   modules:
     - package_context
     - common_organization
+    - common_package
     - http
 
