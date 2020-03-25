@@ -26,10 +26,17 @@ spec:
       cmds:
         store: find_package
     package:
-      model:
-        package: @data.package
-      cmds:
-        store: package_allocated_time
+      - when:
+          equal:
+            - @model.organization.id
+            - @model.project.organization
+            - @data.package.organization
+        model:
+          package: @data.package
+        cmds:
+          store: package_allocated_time
+      - cmds:
+          return: unauthorized
     package_allocated_time:
       model:
         allocated_time: @data.package_allocated_time.allocatedTime

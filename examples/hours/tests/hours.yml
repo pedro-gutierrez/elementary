@@ -325,6 +325,33 @@ spec:
         - Then it should have that free time
         - Given 10 hours
         - Then it should have that allocated time
+    - title: Members should not add time to projects
+      steps:
+        - Given the store is empty
+        - Given Bob is registered and logged in
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given Bob is the current user
+        - Given role contractor
+        - Given that user belongs to that organization
+        - Given project iot
+        - Given package 50h
+        - Given I am logged in as Bob
+        - Given 10 hours
+        - When I add that time to that project
+        - Then I should have a 401
+    - title: Anonymous users should not add time to projects
+      steps:
+        - Given the store is empty
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given role contractor
+        - Given project iot
+        - Given package 50h
+        - Given I am logged out
+        - Given 10 hours
+        - When I add that time to that project
+        - Then I should have a 401
     - title: Should not allocate more time than available in the package
       steps:
         - Given the store is empty
@@ -336,6 +363,24 @@ spec:
         - Given 10 hours
         - When I add that time to that project
         - Then I should have a 409
+        - When I get that package
+        - Then I should have a 200
+        - Given 8 hours
+        - Then it should have that free time
+        - Given 0 hours
+        - Then it should have that allocated time
+    - title: Should not allocate time from packages outside the organization
+      steps:
+        - Given the store is empty
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given project iot
+        - Given organization CodeMutiny
+        - Given 8 hours
+        - Given that package
+        - Given 2 hours
+        - When I add that time to that project
+        - Then I should have a 401
         - When I get that package
         - Then I should have a 200
         - Given 8 hours
