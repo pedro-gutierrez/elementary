@@ -387,70 +387,101 @@ spec:
         - Then it should have that free time
         - Given 0 hours
         - Then it should have that allocated time
-          ##- title: Employer should assign packages to projects
-          ##  steps:
-          ##    - Given the store is empty
-          ##    - Given Alice is registered and logged in
-          ##    - Given project iot
-          ##    - Given package 50h
-          ##    - Given that package is assigned to that project
-          ##    - When I assign that package to that project
-          ##    - Then I should have a 409
-          ##- title: A project should not have more than one active package
-          ##  steps:
-          ##    - Given the store is empty
-          ##    - Given Alice is registered and logged in
-          ##    - Given project iot
-          ##    - Given package 50h
-          ##    - Given that package is assigned to that project
-          ##    - Given package 60h
-          ##    - When I assign that package to that project
-          ##    - Then I should have a 409
-          ##- title: Employees should not not assign packages to projects
-          ##  steps:
-          ##    - Given the store is empty
-          ##    - Given Alice is registered and logged in
-          ##    - Given project iot
-          ##    - Given package 50h
-          ##    - Given Bob is registered and logged in
-          ##    - When I assign that package to that project
-          ##    - Then I should have a 401
-          ##- title: Anonymous users should not assign packages to projects
-          ##  steps:
-          ##    - Given the store is empty
-          ##    - Given Alice is registered and logged in
-          ##    - Given project iot
-          ##    - Given package 50h
-          ##    - Given I am logged out
-          ##    - When I assign that package to that project
-          ##    - Then I should have a 401
-          ##- title: Employer should assign users to projects
-          ##  steps:
-          ##    - Given the store is empty
-          ##    - Given Bob is registered and logged in
-          ##    - Given Alice is registered and logged in
-          ##    - Given project iot
-          ##    - Given Bob is the current user
-          ##    - Given that user is assigned to that project
-          ##    - When I assign that user to that project
-          ##    - Then I should have a 409
-          ##- title: Employees should not not assign users to projects
-          ##  steps:
-          ##    - Given the store is empty
-          ##    - Given Alice is registered and logged in
-          ##    - Given project iot
-          ##    - Given Bob is registered and logged in
-          ##    - When I assign that user to that project
-          ##    - Then I should have a 401
-          ##- title: Anonymous users should not not assign users to projects
-          ##  steps:
-          ##    - Given the store is empty
-          ##    - Given Alice is registered and logged in
-          ##    - Given project iot
-          ##    - Given Bob is registered and logged in
-          ##    - Given I am logged out
-          ##    - When I assign that user to that project
-          ##    - Then I should have a 401
+    - title: Owners should add users to projects
+      steps:
+        - Given the store is empty
+        - Given Bob is registered and logged in
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given Bob is the current user
+        - Given role contractor
+        - Given project iot
+        - Given that user belongs to that organization
+        - Given that user belongs to that project
+        - When I add that user to that project
+        - Then I should have a 409
+        - When I get all users in that project
+        - Then I should have a 200
+        - Then I should have one item
+    - title: Should not add users to projects from other organizations
+      steps:
+        - Given the store is empty
+        - Given Bob is registered and logged in
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given project iot
+        - Given organization CodeMutiny
+        - Given Bob is the current user
+        - Given role contractor
+        - Given that user belongs to that organization
+        - When I add that user to that project
+        - Then I should have a 401
+    - title: Members should not add users to projects
+      steps:
+        - Given the store is empty
+        - Given Bob is registered and logged in
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given Bob is the current user
+        - Given role contractor
+        - Given project iot
+        - Given that user belongs to that organization
+        - Given I am logged in as Bob
+        - When I add that user to that project
+        - Then I should have a 401
+        - When I get all users in that project
+        - Then I should have a 200
+        - Then I should have no items
+    - title: Anonymous users should not add users to projects
+      steps:
+        - Given the store is empty
+        - Given Bob is registered and logged in
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given Bob is the current user
+        - Given role contractor
+        - Given project iot
+        - Given that user belongs to that organization
+        - Given I am logged out
+        - When I add that user to that project
+        - Then I should have a 401
+        - When I get all users in that project
+        - Then I should have a 401
+    - title: Members should see users from other projects
+      steps:
+        - Given the store is empty
+        - Given Bob is registered and logged in
+        - Given Charlie is registered and logged in
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given role contractor
+        - Given project iot
+        - Given Bob is the current user
+        - Given that user belongs to that organization
+        - Given that user belongs to that project
+        - Given project fullpass
+        - Given Charlie is the current user
+        - Given that user belongs to that organization
+        - Given that user belongs to that project
+        - Given I am logged in as Bob
+        - Given iot is the current project
+        - When I get all users in that project
+        - Then I should have a 200
+        - Then I should have one item
+        - Given fullpass is the current project
+        - When I get all users in that project
+        - Then I should have a 200
+        - Then I should have one item
+        - Given I am logged in as Charlie
+        - Given iot is the current project
+        - When I get all users in that project
+        - Then I should have a 200
+        - Then I should have one item
+        - Given fullpass is the current project
+        - When I get all users in that project
+        - Then I should have a 200
+        - Then I should have one item
+
           ##- title: Employer should log time on their projects
           ##  steps:
           ##    - Given the store is empty

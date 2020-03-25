@@ -1,5 +1,5 @@
 kind: app
-name: user_assignments
+name: add_user_to_project
 spec:
   routes:
     hours:
@@ -9,8 +9,10 @@ spec:
   filters:
     - cors
     - auth
+    - project_context
+    - organization_owner
   modules:
-    - user_assignments
+    - add_user_to_project
     - common_store
     - session
     - http

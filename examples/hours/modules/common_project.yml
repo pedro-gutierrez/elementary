@@ -1,0 +1,10 @@
+kind: module
+name: common_project
+spec:
+  encoders:
+    find_project_members:
+      store: @store
+      find:
+        project: @project.id
+      from: memberships
+      as: project_members

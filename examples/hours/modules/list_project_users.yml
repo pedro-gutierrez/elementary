@@ -1,0 +1,20 @@
+kind: module
+name: list_project_users
+spec:
+  decoders:
+    http:
+      get:
+        any: object
+    store:
+      project_members:
+        project_members:
+          any: list
+  update:
+    get:
+      cmds:
+        store: find_project_members
+    project_members:
+      model:
+        data: @data.project_members
+      cmds:
+        return: data

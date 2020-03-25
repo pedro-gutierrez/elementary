@@ -2,15 +2,36 @@ kind: test
 name: projects
 spec:
   steps:
+    - title: Given that user belongs to that project
+      steps:
+        - When I add that user to that project
+        - Then I should have a 201
     - title: Given details for project iot
-      project:
+      iot:
         object:
           id:
             uuid: {}
           name: iot
+    - title: Given iot is the current project
+      project: @iot
+    - title: Given details for project fullpass
+      fullpass:
+        object:
+          id:
+            uuid: {}
+          name: fullpass
+    - title: Given fullpass is the current project
+      project: @fullpass
     - title: Given project iot
       steps:
         - Given details for project iot
+        - Given iot is the current project
+        - When I create that project
+        - Then I should have a 201
+    - title: Given project fullpass
+      steps:
+        - Given details for project fullpass
+        - Given fullpass is the current project
         - When I create that project
         - Then I should have a 201
     - title: When I create that project
@@ -51,3 +72,28 @@ spec:
         list:
           size: 1
       in: @latest.body.projects
+    - title: When I add that user to that project
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/projects/
+          - @project.id
+          - /users
+        headers:
+          merge:
+            - @auth
+            - @json
+        body:
+          user: @user.id
+      as: latest
+    - title: When I get all users in that project
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/projects/
+          - @project.id
+          - /users
+        headers: @auth
+      as: latest

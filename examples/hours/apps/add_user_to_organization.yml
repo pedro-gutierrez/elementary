@@ -13,6 +13,7 @@ spec:
     - organization_owner
   modules:
     - add_user_to_organization
+    - common_organization
     - common_store
     - session
     - http

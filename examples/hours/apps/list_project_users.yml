@@ -1,0 +1,19 @@
+kind: app
+name: list_project_users
+spec:
+  routes:
+    hours:
+      get: /api/projects/:id/users
+  settings:
+    - hours
+  filters:
+    - cors
+    - auth
+    - project_context
+    - organization_member
+  modules:
+    - list_project_users
+    - common_project
+    - common_store
+    - session
+    - http
