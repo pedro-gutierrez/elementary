@@ -384,6 +384,14 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"format_date" => date, "pattern" => pattern} = spec, context, encoders) do
+    with {:ok, date} <- encode(date, context, encoders),
+         {:ok, pattern} <- encode(pattern, context, encoders) do
+      Elementary.Calendar.format_date(date, pattern)
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"format_date" => fields} = spec, context, encoders) do
     with {:ok, fields} <- encode(fields, context, encoders) do
       Elementary.Calendar.format_date(fields)
@@ -401,6 +409,20 @@ defmodule Elementary.Encoder do
   def encode(%{"year_from" => date} = spec, context, encoders) do
     with {:ok, date} <- encode(date, context, encoders) do
       Elementary.Calendar.year(date)
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"day_from" => date} = spec, context, encoders) do
+    with {:ok, date} <- encode(date, context, encoders) do
+      Elementary.Calendar.day(date)
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"text_from" => value} = spec, context, encoders) do
+    with {:ok, value} <- encode(value, context, encoders) do
+      {:ok, "#{inspect(value)}"}
     end
     |> result(spec, context)
   end

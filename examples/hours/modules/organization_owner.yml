@@ -8,7 +8,7 @@ spec:
   update:
     check:
       - when:
-          encoder: is_owner
+          encoder: is_organization_owner
         model: {}
       - cmds:
           stop: unauthorized

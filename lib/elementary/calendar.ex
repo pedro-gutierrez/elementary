@@ -34,6 +34,10 @@ defmodule Elementary.Calendar do
     |> date()
   end
 
+  def format_date(datetime, pattern) do
+    {:ok, NimbleStrftime.format(datetime, pattern)}
+  end
+
   def format_date(fields) do
     with {:ok, date} <- date(fields) do
       {:ok, DateTime.to_iso8601(date)}
@@ -55,6 +59,7 @@ defmodule Elementary.Calendar do
 
   def month(%DateTime{month: month}), do: {:ok, month}
   def year(%DateTime{year: year}), do: {:ok, year}
+  def day(%DateTime{day: day}), do: {:ok, day}
 
   def time_in(amount, :hour) do
     {:ok, DateTime.utc_now() |> DateTime.add(3600 * amount, :second)}

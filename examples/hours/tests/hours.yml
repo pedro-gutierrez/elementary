@@ -15,8 +15,8 @@ spec:
     - organizations
     - packages
     - projects
-    - assignments
     - time
+    - tasks
   init:
     baseUrl:
       url: @hours
@@ -481,6 +481,43 @@ spec:
         - When I get all users in that project
         - Then I should have a 200
         - Then I should have one item
+    - title: Project members should add tasks to projects
+      steps:
+        - Given the store is empty
+        - Given Bob is registered and logged in
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given 10 hours
+        - Given that package
+        - Given project iot
+        - Given role contractor
+        - Given Bob is the current user
+        - Given that user belongs to that organization
+        - Given that user belongs to that project
+        - Given 10 hours
+        - Given that time is added to that project
+        - Given I am logged in as Bob
+        - Given today
+        - Given 2 hours
+        - Given some task
+        - When I add that task to that project
+        - Then I should have a 201
+        - When I get all my tasks
+        - Then I should have a 200
+        - Then I should have one item
+        - When I get my tasks for that project
+        - Then I should have a 200
+        - Then I should have one item
+        - When I get my tasks for that date
+        - Then I should have a 200
+        - Then I should have one item
+        - When I get my tasks for that project and date
+        - Then I should have a 200
+        - Then I should have one item
+
+
+
+
 
           ##- title: Employer should log time on their projects
           ##  steps:

@@ -19,5 +19,5 @@ spec:
     is_visible:
       one_of:
         - encoder: is_public
-        - encoder: is_member
+        - encoder: is_organization_member
 

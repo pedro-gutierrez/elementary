@@ -274,7 +274,8 @@ defmodule Elementary.Http do
         "method" => "#{req.method}",
         "url" => req.url,
         "headers" => Enum.into(req.headers, %{}),
-        "body" => req.body
+        "body" => req.body,
+        "query" => req.params
       })
     end
 

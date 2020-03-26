@@ -1,0 +1,18 @@
+kind: app
+name: add_task_to_project
+spec:
+  routes:
+    hours:
+      post: /api/projects/:id/tasks
+  settings:
+    - hours
+  filters:
+    - cors
+    - auth
+    - project_context
+    - project_member
+  modules:
+    - add_task_to_project
+    - common_store
+    - session
+    - http

@@ -1,0 +1,15 @@
+kind: module
+name: common_user
+spec:
+  decoders:
+    store:
+      user_memberships:
+        user_memberships:
+          any: list
+  encoders:
+    find_user_memberships:
+      store: @store
+      find:
+        user: @user.id
+      from: memberships
+      as: user_memberships

@@ -4,6 +4,7 @@ spec:
   modules:
     - package_context
     - common_organization
+    - common_user
     - common_package
     - http
 

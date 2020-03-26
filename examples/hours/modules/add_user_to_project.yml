@@ -13,10 +13,10 @@ spec:
           any: object
       not_found:
         user: not_found
-      is_member:
+      is_in_organization:
         new_user_memberships:
           non_empty: list
-      is_not_member:
+      is_not_in_organization:
         new_user_memberships:
           empty: list
   update:
@@ -33,10 +33,10 @@ spec:
         member: @data.user
       cmds:
         store: find_new_user_memberships
-    is_not_member:
+    is_not_in_organization:
       cmds:
         return: unauthorized
-    is_member:
+    is_in_organization:
       cmds:
         store: create
   encoders:

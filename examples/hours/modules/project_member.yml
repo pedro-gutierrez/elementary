@@ -1,5 +1,5 @@
 kind: module
-name: organization_member
+name: project_member
 spec:
   decoders:
     http:
@@ -8,7 +8,7 @@ spec:
   update:
     check:
       - when:
-          encoder: is_organization_member
+          encoder: is_project_member
         model: {}
       - cmds:
           stop: unauthorized

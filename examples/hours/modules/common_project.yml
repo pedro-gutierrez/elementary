@@ -8,3 +8,10 @@ spec:
         project: @project.id
       from: memberships
       as: project_members
+    is_project_member:
+      match: @model.user_memberships
+      with:
+        list:
+          with:
+            project: @model.project.id
+            user: @model.user.id

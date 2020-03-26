@@ -6,9 +6,6 @@ spec:
       organization:
         organization:
           any: object
-      user_memberships:
-        user_memberships:
-          any: list
   encoders:
     find_organization:
       store: @store
@@ -16,18 +13,11 @@ spec:
         id: @organization
       from: organizations
       as: organization
-    find_user_memberships:
-      store: @store
-      find:
-        organization: @organization.id
-        user: @user.id
-      from: memberships
-      as: user_memberships
-    is_owner:
+    is_organization_owner:
       equal:
         - @model.organization.owner
         - @model.user.id
-    is_member:
+    is_organization_member:
       match: @model.user_memberships
       with:
         list:

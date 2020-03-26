@@ -1,0 +1,153 @@
+kind: test
+name: tasks
+spec:
+  steps:
+    - title: Given some task
+      task:
+        id:
+          uuid: {}
+        description: "Some task"
+        year:
+          text_from:
+            year_from: @date
+        month:
+          text_from:
+              month_from: @date
+        day:
+          text_from:
+            day_from: @date
+        time: @time
+    - title: Given that task is added to that project
+      steps:
+        - When I add that task to that project
+        - Then I should have a 201
+    - title: When I add that task to that project
+      http:
+        method: post
+        url:
+          - @baseUrl
+          - /api/projects/
+          - @project.id
+          - /tasks
+        headers:
+          merge:
+            - @json
+            - @auth
+        body: @task
+      as: latest
+    - title: When I get all my tasks
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/tasks
+        headers: @auth
+      as: latest
+    - title: When I get my tasks for that project
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/tasks
+        headers: @auth
+        query:
+          project: @project.id
+      as: latest
+    - title: When I get my tasks for that date
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/tasks
+        headers: @auth
+        query:
+          day:
+            day_from: @date
+          month:
+            month_from: @date
+          year:
+            year_from: @date
+      as: latest
+    - title: When I get my tasks for that project and date
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/tasks
+        headers: @auth
+        query:
+          object:
+            project: @project.id
+          day:
+            text_from:
+              day_from: @date
+          month:
+            text_from:
+              month_from: @date
+          year:
+            text_from:
+              year_from: @date
+      as: latest
+    - title: When I get all tasks in that project
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/projects/
+          - @project.id
+          - /tasks
+        headers: @auth
+      as: latest
+    - title: When I get all tasks in that project for that user
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/projects/
+          - @project.id
+          - /tasks
+        headers: @auth
+        query:
+          user: @user.id
+      as: latest
+    - title: When I get all tasks in that project for that day
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/projects/
+          - @project.id
+          - /tasks
+        headers: @auth
+        query:
+          day:
+            text_from:
+              day_from: @date
+          month:
+            text_from:
+              month_from: @date
+          year:
+            text_from:
+              year_from: @date
+      as: latest
+    - title: When I get all tasks in that project for that day
+      http:
+        method: get
+        url:
+          - @baseUrl
+          - /api/projects/
+          - @project.id
+          - /tasks
+        headers: @auth
+        query:
+          user: @user.id
+          day:
+            text_from:
+              day_from: @date
+          month:
+            text_from:
+              month_from: @date
+          year:
+            text_from:
+              year_from: @date
+      as: latest

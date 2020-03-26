@@ -4,5 +4,6 @@ spec:
   modules:
     - organization_context
     - common_organization
+    - common_user
     - http
 

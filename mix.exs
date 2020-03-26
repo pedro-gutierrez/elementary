@@ -23,6 +23,7 @@ defmodule Elementary.MixProject do
         :jason,
         :mongodb_driver,
         :mustache,
+        :nimble_strftime,
         :ranch,
         :uuid,
         :yaml_elixir
@@ -41,6 +42,7 @@ defmodule Elementary.MixProject do
       {:jason, "~> 1.1.2"},
       {:mongodb_driver, "~> 0.6"},
       {:mustache, "~> 0.3.0"},
+      {:nimble_strftime, "~> 0.1.0"},
       {:uuid, "~> 1.1"},
       {:yaml_elixir, "~> 2.4.0"}
     ]

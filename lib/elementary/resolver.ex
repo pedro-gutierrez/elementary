@@ -15,7 +15,7 @@ defmodule Elementary.Resolver do
 
   defp resolve(specs, %{"kind" => "app", "spec" => spec0} = spec) do
     Enum.each(spec0["filters"] || [], fn mod ->
-      Spec.find!(specs, "module", mod)
+      Spec.find!(specs, "app", mod)
     end)
 
     spec0 = resolve_and_merge(spec0, specs, "settings", "settings")
