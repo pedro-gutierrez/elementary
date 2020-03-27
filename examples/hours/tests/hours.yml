@@ -622,5 +622,39 @@ spec:
         - When I get all tasks in that project
         - Then I should have a 401
     - title: Anonymous users should not list tasks from projects
+      steps:
+        - Given the store is empty
+        - Given Bob is registered and logged in
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given 10 hours
+        - Given that package
+        - Given project iot
+        - Given role contractor
+        - Given Bob is the current user
+        - Given that user belongs to that organization
+        - Given that user belongs to that project
+        - Given I am logged in as Bob
+        - Given 0 hours
+        - Given today
+        - Given some task
+        - Given that task is added to that project
+        - Given I am logged out
+        - When I get all tasks in that project
+        - Then I should have a 401
     - title: Owners should not list tasks from projects in other organizations
-
+      steps:
+        - Given the store is empty
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given 10 hours
+        - Given that package
+        - Given project iot
+        - Given 0 hours
+        - Given today
+        - Given some task
+        - Given that task is added to that project
+        - Given Bob is registered and logged in
+        - Given organization CodeMutiny
+        - When I get all tasks in that project
+        - Then I should have a 401
