@@ -9,9 +9,13 @@ spec:
       from: memberships
       as: project_members
     is_project_member:
-      match: @model.user_memberships
-      with:
-        list:
+      one_of:
+        - equal:
+            - @model.organization.owner
+            - @model.user.id
+        - match: @model.user_memberships
           with:
-            project: @model.project.id
-            user: @model.user.id
+            list:
+              with:
+                project: @model.project.id
+                user: @model.user.id

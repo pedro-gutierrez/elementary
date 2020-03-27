@@ -514,7 +514,7 @@ spec:
         - When I get my tasks for that project and date
         - Then I should have a 200
         - Then I should have one item
-    - title: Non Project members should not add tasks to projects
+    - title: Organisation owners should add tasks to projects
       steps:
         - Given the store is empty
         - Given Alice is registered and logged in
@@ -528,7 +528,9 @@ spec:
         - Given 2 hours
         - Given some task
         - When I add that task to that project
-        - Then I should have a 401
+        - Then I should have a 201
+        - When I get all my tasks
+        - Then I should have a 200
     - title: Anonymous users should not add tasks to projects
       steps:
         - Given the store is empty
@@ -546,9 +548,6 @@ spec:
         - When I add that task to that project
         - Then I should have a 401
     - title: Should not allow tasks with invalid time
-      tags:
-        - wip
-        - debug
       steps:
         - Given the store is empty
         - Given Bob is registered and logged in
@@ -572,32 +571,56 @@ spec:
         - Given some task
         - When I add that task to that project
         - Then I should have a 400
-    - title: Members should not add tasks to projects with not enough time
+    - title: Members should list tasks from projects they belong to
+      steps:
+        - Given the store is empty
+        - Given Bob is registered and logged in
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given 10 hours
+        - Given that package
+        - Given project iot
+        - Given role contractor
+        - Given Bob is the current user
+        - Given that user belongs to that organization
+        - Given that user belongs to that project
+        - Given I am logged in as Bob
+        - Given 0 hours
+        - Given today
+        - Given some task
+        - Given that task is added to that project
+        - Given I am logged in as Alice
+        - When I get all tasks in that project
+        - Then I should have a 200
+        - Then I should have one item
+        - Given I am logged in as Bob
+        - When I get all tasks in that project
+        - Then I should have a 200
+        - Then I should have one item
+    - title: Members should not list tasks from projects they don't belong to
+      steps:
+        - Given the store is empty
+        - Given Bob is registered and logged in
+        - Given Charlie is registered and logged in
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given 10 hours
+        - Given that package
+        - Given project iot
+        - Given role contractor
+        - Given Bob is the current user
+        - Given that user belongs to that organization
+        - Given that user belongs to that project
+        - Given Charlie is the current user
+        - Given that user belongs to that organization
+        - Given I am logged in as Bob
+        - Given 0 hours
+        - Given today
+        - Given some task
+        - Given that task is added to that project
+        - Given I am logged in as Charlie
+        - When I get all tasks in that project
+        - Then I should have a 401
+    - title: Anonymous users should not list tasks from projects
+    - title: Owners should not list tasks from projects in other organizations
 
-
-          ##- title: Should not log time against unassigned projects
-          ##  steps:
-          ##    - Given the store is empty
-          ##    - Given Alice is registered and logged in
-          ##    - Given project iot
-          ##    - Given package 50h
-          ##    - Given that package is assigned to that project
-          ##    - Given Bob is registered and logged in
-          ##    - Given 2 hours
-          ##    - When I work on that project
-          ##    - Then I should have a 401
-          ##- title: Projects and packages should sum up time logged
-          ##  steps:
-          ##    - Given the store is empty
-          ##    - Given Alice is registered and logged in
-          ##    - Given project iot
-          ##    - Given that user is assigned to that project
-          ##    - Given package 50h
-          ##    - Given that package is assigned to that project
-          ##    - Given 2 hours
-          ##    - Given I worked that time on that project
-          ##    - Given 8 hours
-          ##    - Given I worked that time on that project
-          ##    - Given 40 hours
-          ##    - When I get that package
-          ##    - Then it should have that time left
