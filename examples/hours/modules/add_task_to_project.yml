@@ -16,7 +16,7 @@ spec:
           year:
             any: text
           time:
-            any: number
+            non_negative: number
     store:
       not_found:
         package: not_found

@@ -514,39 +514,67 @@ spec:
         - When I get my tasks for that project and date
         - Then I should have a 200
         - Then I should have one item
+    - title: Non Project members should not add tasks to projects
+      steps:
+        - Given the store is empty
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given 10 hours
+        - Given that package
+        - Given project iot
+        - Given 10 hours
+        - Given that time is added to that project
+        - Given today
+        - Given 2 hours
+        - Given some task
+        - When I add that task to that project
+        - Then I should have a 401
+    - title: Anonymous users should not add tasks to projects
+      steps:
+        - Given the store is empty
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given 10 hours
+        - Given that package
+        - Given project iot
+        - Given 10 hours
+        - Given that time is added to that project
+        - Given today
+        - Given 2 hours
+        - Given some task
+        - Given I am logged out
+        - When I add that task to that project
+        - Then I should have a 401
+    - title: Should not allow tasks with invalid time
+      tags:
+        - wip
+        - debug
+      steps:
+        - Given the store is empty
+        - Given Bob is registered and logged in
+        - Given Alice is registered and logged in
+        - Given organization Floostack
+        - Given 10 hours
+        - Given that package
+        - Given project iot
+        - Given role contractor
+        - Given Bob is the current user
+        - Given that user belongs to that organization
+        - Given that user belongs to that project
+        - Given I am logged in as Bob
+        - Given 0 hours
+        - Given today
+        - Given some task
+        - When I add that task to that project
+        - Then I should have a 201
+        - Given minus 1 hours
+        - Given today
+        - Given some task
+        - When I add that task to that project
+        - Then I should have a 400
+    - title: Members should not add tasks to projects with not enough time
 
 
-
-
-
-          ##- title: Employer should log time on their projects
-          ##  steps:
-          ##    - Given the store is empty
-          ##    - Given Alice is registered and logged in
-          ##    - Given project iot
-          ##    - Given that user is assigned to that project
-          ##    - Given package 50h
-          ##    - Given that package is assigned to that project
-          ##    - Given 2 hours
-          ##    - Given I worked that time on that project
-          ##- title: Employees should log time
-          ##  steps:
-          ##    - Given the store is empty
-          ##    - Given Bob is registered and logged in
-          ##    - Given Alice is registered and logged in
-          ##    - Given project iot
-          ##    - Given package 50h
-          ##    - Given that package is assigned to that project
-          ##    - Given Bob is the current user
-          ##    - Given that user is assigned to that project
-          ##    - Given I am logged out
-          ##    - Given a password for Bob
-          ##    - Given I am logged in
-          ##    - Given 2 hours
-          ##    - Given I worked that time on that project
-          ##    - When I get the time logged by that user
-          ##    - Then I should have a 200
-          ##    - Then I should have one item
           ##- title: Should not log time against unassigned projects
           ##  steps:
           ##    - Given the store is empty

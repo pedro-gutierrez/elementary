@@ -12,6 +12,8 @@ spec:
       time: 10.0
     - title: Given 40 hours
       time: 40.0
+    - title: Given minus 1 hours
+      time: -1.0
     - title: Given today
       object:
         date:
