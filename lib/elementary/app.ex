@@ -143,7 +143,6 @@ defmodule Elementary.App do
   end
 
   defp error(context, e) do
-    # Logger.error("#{inspect(Keyword.merge(context, error: e))}")
-    {:error, Keyword.merge(context, error: e)}
+    {:error, Keyword.merge(context, error: e) |> Enum.into(%{})}
   end
 end

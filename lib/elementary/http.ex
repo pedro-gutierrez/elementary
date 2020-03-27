@@ -53,26 +53,26 @@ defmodule Elementary.Http do
             {:stop, resp} ->
               reply(req, app, start, resp)
 
-            {:error, req, e} ->
-              resp = encoded_error(mod, e)
-              reply(req, app, start, resp)
-
-            {:error, %{"effect" => @effect, "error" => :decode}} ->
+            {:error, %{error: %{"effect" => "http", "error" => :decode}}} ->
               reply(req, app, start, %{
                 "status" => 400,
                 "body" => %{}
               })
 
+            {:error, req, e} ->
+              resp = encoded_error(e)
+              reply(req, app, start, resp)
+
             {:error, e} ->
-              resp = encoded_error(mod, e)
+              resp = encoded_error(e)
               reply(req, app, start, resp)
 
             {:ok, other} ->
-              resp = encoded_error(mod, error: "invalid_http_response", data: other)
+              resp = encoded_error(%{error: :invalid_http_response, data: other})
               reply(req, app, start, resp)
 
             other ->
-              resp = encoded_error(mod, unexpected: other)
+              resp = encoded_error(%{unexpected: other})
               reply(req, app, start, resp)
           end
 
@@ -90,6 +90,11 @@ defmodule Elementary.Http do
 
         {:ok, req, state}
     end
+  end
+
+  defp encoded_error(err) do
+    Logger.error("#{inspect(err, pretty: true)}")
+    %{"status" => 500, "headers" => %{}, "body" => %{}}
   end
 
   defp resolve_app(_, mod) when is_atom(mod), do: {:ok, mod}
@@ -160,11 +165,6 @@ defmodule Elementary.Http do
     Enum.reduce(h, %{}, fn {k, v}, acc ->
       Map.put(acc, "#{k}", v)
     end)
-  end
-
-  defp encoded_error(app, e) do
-    Logger.error("#{inspect(Keyword.merge(e, app: app), pretty: true)}")
-    %{"status" => 500, "headers" => %{}, "body" => %{}}
   end
 
   defp reply(
