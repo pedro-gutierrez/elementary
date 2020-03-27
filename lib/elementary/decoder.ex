@@ -107,6 +107,16 @@ defmodule Elementary.Decoder do
     end
   end
 
+  def decode(%{"non_negative" => "number"} = spec, data, _) when is_number(data) do
+    case data < 0 do
+      true ->
+        decode_error(spec, data)
+
+      false ->
+        {:ok, data}
+    end
+  end
+
   def decode(%{"text" => transforms} = spec, data, context)
       when is_binary(data) and byte_size(data) > 0 do
     Enum.reduce_while(transforms, nil, fn encoder, _ ->
