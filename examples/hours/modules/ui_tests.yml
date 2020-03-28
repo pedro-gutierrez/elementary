@@ -1,0 +1,35 @@
+kind: module
+name: ui_tests
+spec:
+  init:
+    model:
+      tests: []
+    cmds:
+      http: get-tests
+  decoders:
+    http:
+      tests:
+        tests:
+          status: 200
+          body:
+            any: list
+  update:
+    tests:
+      model:
+        tests: @data.tests.body
+      cmds:
+        ui: {}
+  encoders:
+    get-tests:
+      method: get
+      path: /tests.json
+      as: tests
+    tests-view:
+      tag: div
+      children:
+        loop: @tests
+        with: scenario-view
+    scenario-view:
+      tag: div
+      children:
+        - @title

@@ -11,39 +11,27 @@ spec:
       tag: div
       children:
         - view: title-view
-        - tag: div
-          attrs:
-            class: container
-          children:
-            - view: endpoint-view
-              params:
-                title: Healthcheck
-                subtitle: Returns the availability of the server
+        - view: container-view
+          params:
+            content-view: tests-view
+            content: @
 
     title-view:
       view: hero-view
       params:
         title: @title
-        subtitle: Api docs
-    endpoint-view:
-      tag: article
+        subtitle: Examples
+    container-view:
+      tag: section
       attrs:
-        class: media
+        class: section
       children:
         - tag: div
           attrs:
-            class: media-content
+            class: container
           children:
-            - tag: div
-              attrs:
-                class: content
-              children:
-                - tag: h4
-                  children:
-                    - @title
-                - tag: p
-                  children:
-                    - @subtitle
+            - view: @content-view
+              params: @content
     hero-view:
       tag: section
       attrs:

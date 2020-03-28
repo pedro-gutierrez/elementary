@@ -1,6 +1,7 @@
 kind: settings
 name: web
 spec:
+  debug: false
   telemetry: true
   title: Floohours
   baseUrl:

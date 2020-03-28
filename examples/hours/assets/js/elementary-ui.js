@@ -96,7 +96,7 @@ export default (name, settings, app) => {
         if (err) return error(spec, ctx, err);
         var items = value;
         if (!items || !items.length) return {view: []};
-        var { err, value } = encode(spec.context, ctx);
+        var { err, value } = encode(spec.context || "@", ctx);
         if (err) return error(spec, ctx, err);
         var sharedCtx = value;
         var out = [];
@@ -112,15 +112,16 @@ export default (name, settings, app) => {
     }
 
     function compileViewRef(views, spec, ctx) {
-        var { err, view } = resolve(views, spec.view, ctx);
+        var {err, value} = encode(spec.view, ctx);
+        if (err) return error(spec.view, ctx, "cannot encode referenced view spec");
+        var { err, view } = resolve(views, value, ctx);
         if (err) return error(spec, ctx, err);
         var {err, value} = encode(spec.condition || true, ctx);
         if (err) return error(spec, ctx, err);
         if (!value) return {view: ['div']};
         var {err, value} = encode(spec.params || "@", ctx);
         if (err) return error(spec, ctx, err);
-        var params = Object.assign({}, ctx, value);
-        return compile(views, view, params);
+        return compile(views, view, value);
     }
 
     function attrsWithEvHandlers(attrs, ctx) {
@@ -347,7 +348,7 @@ export default (name, settings, app) => {
         if (spec.text) return compileText(views, spec, ctx);
         if (spec.loop) return compileLoop(views, spec, ctx);
         if (spec.either) return compileEither(views, spec, ctx);
-        if (spec.map) return compileMapbox(views, spec, ctx);
+        //if (spec.map) return compileMapbox(views, spec, ctx);
         if (spec.timestamp) return compileTimestamp(views, spec, ctx);
         if (spec.code) return compileCode(views, spec, ctx);
         if (spec.markdown) return compileMarkdown(views, spec, ctx);

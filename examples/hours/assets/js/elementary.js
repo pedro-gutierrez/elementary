@@ -886,7 +886,7 @@ export default (appUrl, appEffects) => {
                 if (spec.json) return decodeJson(spec, data, ctx);
                 if (spec.size) return decodeSize(spec, data, ctx);
                 if (Array.isArray(spec)) return decodeList({list: spec}, data, ctx);
-                return error(spec, data, "decoder_not_supported");
+                return decodeObject({object: spec}, data, ctx);
             default :
                 return (spec === data) ? { decoded: data } : error(spec, data, "no_match");
         }
@@ -903,11 +903,8 @@ export default (appUrl, appEffects) => {
         return error(null, data, "all_decoders_failed");
     }
 
-    function tryAllDecoders(data, decoders) {
-        if (!data.effect) return error(null, data, "no_effect_in_data");
-        var {err, decoded} = tryDecoders(data, decoders[data.effect]);
-        if (!err) return {decoded};
-        var {err, decoded} = tryDecoders(data, decoders.default);
+    function tryAllDecoders(effect, data, decoders) {
+        var {err, decoded} = tryDecoders(data, decoders[effect]);
         if (!err) return {decoded};
         if (err) return error(null, data, "all_decoders_failed");
     }
@@ -945,15 +942,25 @@ export default (appUrl, appEffects) => {
         for (var i=0; i<effects.length; i++){
             var eff = effects[i];
             var enc = spec[eff];
-            var {err, value} = encode(enc, data, {});
-            if (err) return error(enc, data, "unsupported_encoder");
-            cmds.push({
-                effect: eff,
-                encoder: value
-            });
+            if (isEmpty(enc)) {
+                cmds.push({effect: eff});
+            } else {
+                var {err, value} = encode(enc, data, {});
+                if (err) return error(enc, data, "unsupported_encoder");
+                cmds.push({
+                    effect: eff,
+                    encoder: value
+                });
+            }
         }
 
         return {value: cmds};
+    }
+
+    function isEmpty(obj) {
+        if (!obj || (obj.length && obj.length == 0)) return true;
+        for (var x in obj) { return false; }
+        return true;
     }
 
     function withSettings(m) {
@@ -1008,6 +1015,7 @@ export default (appUrl, appEffects) => {
 
     function selectUpdate(msg, update, ctx) {
         var clauses = update[msg];
+        if (clauses && !Array.isArray(clauses)) return {spec: clauses};
         if (!clauses || !clauses.length) return error(msg, ctx, "no_update_implemented");
         for (var i=0; i<clauses.length; i++) {
             var c = clauses[i];
@@ -1026,9 +1034,15 @@ export default (appUrl, appEffects) => {
     }
 
     function _update(ev) {
-        const { encoders, effects, decoders, update } = state.app;
         const t0 = new Date();
-        var {err, decoded } = tryAllDecoders(ev, decoders);
+        if (!ev.effect) {
+            console.error("[core] no 'effect' key in event", ev);
+            return;
+        }
+        var effect = ev.effect;
+        delete ev.effect;
+        const { encoders, effects, decoders, update } = state.app;
+        var {err, decoded } = tryAllDecoders(effect, ev, decoders);
         if (err) {
             console.error("Decode error", err);
             return;
@@ -1036,7 +1050,10 @@ export default (appUrl, appEffects) => {
         const { msg, data } = decoded;
         log("[core] decoded", decoded);
         const t1= new Date();
-        var ctx = Object.assign({}, state.model, data);
+        var ctx = {
+            model: state.model,
+            data: data
+        };
         var {err, spec} = selectUpdate(msg, update, ctx);
         if (err) {
             console.error("Update error", err);
@@ -1055,7 +1072,7 @@ export default (appUrl, appEffects) => {
             return;
         }
         const t2 = new Date();
-        applyCmds(encoders, state.effects, spec.cmds, state.model);
+        if (spec.cmds) applyCmds(encoders, state.effects, spec.cmds, state.model);
         const t3 = new Date();
         if (state.app.settings.telemetry) {
             console.log("[core]"
@@ -1071,9 +1088,9 @@ export default (appUrl, appEffects) => {
         }, 0)
     }
 
-    function encodeModelWithDefault(spec, defaultValue, context) {
+    function encodeModelWithDefault(spec, defaultValue, ctx) {
         if (!spec) return {value: defaultValue}
-        return encode(model, context);
+        return encode(spec, ctx);
     }
 
     function init(app) {

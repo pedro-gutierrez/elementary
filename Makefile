@@ -2,12 +2,11 @@ define start
 @ELEMENTARY_HOME=${PWD}/examples/$(1) ELEMENTARY_ASSETS=${PWD}/examples/$(1)/assets MONGO_URL=mongodb://localhost/$1 ELEMENTARY_ADMIN_TOKEN=$1-admin-token PORT=$(2) ELEMENTARY_WEBROOT=http://localhost:$(2) iex -S mix
 endef
 
-fullpass:
-	$(call  start,fullpass,4001)
-
 hours:
 	$(call  start,hours,4000)
 
+fullpass:
+	$(call  start,fullpass,4001)
 
 build:
 	@docker build -t pedrogutierrez/elementary:latest .

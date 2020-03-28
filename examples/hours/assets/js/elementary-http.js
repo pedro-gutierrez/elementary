@@ -1,18 +1,18 @@
 export default (name, settings, app) => {
     const { encode, decode, update, tc} = app;
-    
+
     function baseUrl() {
         if (settings.url) return settings.url;
         var {protocol, host} = window.location;
         return `${protocol}//${host}${settings.path||''}`
     }
-    
-    const state = { 
+
+    const state = {
         url: baseUrl()
     };
 
     function error(msg, data){
-        console.error(`[${name}] ${msg}`, data);  
+        console.error(`[${name}] ${msg}`, data);
     }
 
     function debug(msg, data) {
@@ -44,7 +44,7 @@ export default (name, settings, app) => {
         return headers
     }
 
-    const JSON_MIME = 'application/json'; 
+    const JSON_MIME = 'application/json';
 
     function decodeBody(headers, req) {
         var raw = req.responseText;
@@ -90,14 +90,22 @@ export default (name, settings, app) => {
                 withReqHeaders(xhr, settings);
                 withReqHeaders(xhr, value);
                 xhr.onload = function () {
-                    const headers = getHeadersAsObject(xhr);
-                    update({
-                        effect: name,
-                        status: xhr.status,
+                    var headers = getHeadersAsObject(xhr);
+
+                    var data = {
                         headers: headers,
-                        context: value.context,
-                        body: decodeBody(headers, xhr) 
-                    })
+                        status: xhr.status,
+                        body: decodeBody(headers, xhr)
+                    }
+
+                    var as = value.as;
+                    if (as && as.length) {
+                        var payload = data
+                        data = {}
+                        data[as] = payload
+                    }
+                    data.effect = name
+                    update(data);
                 }
                 xhr.send(body);
             });
