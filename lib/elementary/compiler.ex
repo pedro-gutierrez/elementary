@@ -756,6 +756,10 @@ defmodule Elementary.Compiler do
               scenario_started: nil,
               step: nil,
               context: nil,
+              trace: %{
+                scenarios: [],
+                scenario: nil
+              },
               report: %{
                 total: length(scenarios),
                 passed: 0,
@@ -765,10 +769,13 @@ defmodule Elementary.Compiler do
             }, {:continue, :scenario}}
          end
 
-         def handle_continue(:scenario, %{init: init, scenarios: [current | rest]} = state) do
+         def handle_continue(
+               :scenario,
+               %{init: init, trace: trace, scenarios: [current | rest]} = state
+             ) do
            log = debug_fun(current, @debug)
-
-           log.(current["title"])
+           title = current["title"]
+           log.(title)
 
            {:noreply,
             %{
@@ -777,13 +784,14 @@ defmodule Elementary.Compiler do
                 context: init,
                 scenario: current,
                 scenario_started: Elementary.Kit.now(),
-                scenarios: rest
+                scenarios: rest,
+                trace: trace_with_new_scenario(trace)
             }, {:continue, :step}}
          end
 
          def handle_continue(
                :scenario,
-               %{started: started, log: log, report: report, scenarios: []} = state
+               %{started: started, log: log, trace: trace, report: report, scenarios: []} = state
              ) do
            report =
              Map.merge(
@@ -801,6 +809,8 @@ defmodule Elementary.Compiler do
              _ -> Logger.error(msg)
            end
 
+           write_trace(trace, state)
+
            {:stop, :normal, state}
          end
 
@@ -810,49 +820,96 @@ defmodule Elementary.Compiler do
                  log: log,
                  report: report,
                  context: context,
-                 scenario: %{"title" => title, "steps" => [current | rest]} = scenario
+                 trace: trace,
+                 scenario_started: scenario_started,
+                 scenario: %{"title" => scenario_title, "steps" => [current | rest]} = scenario
                } = state
              ) do
+           step_title = current["title"]
+           step_spec = current["spec"]
            started = Elementary.Kit.now()
 
-           case Elementary.Encoder.encode(current["spec"], context) do
-             {:ok, context2} ->
+           case Elementary.Encoder.encode(step_spec, context) do
+             {:ok, output} ->
                elapsed = Elementary.Kit.duration(started, :millisecond)
 
                context =
-                 case is_map(context2) do
-                   true -> Map.merge(context, context2)
+                 case is_map(output) do
+                   true -> Map.merge(context, output)
                    false -> context
                  end
 
                scenario = Map.put(scenario, "steps", rest)
-               log.("#{current["title"]} (#{elapsed}ms)")
-               log.("    #{inspect(context2)}")
+               log.("#{step_title} (#{elapsed}ms)")
+               log.("    #{inspect(output)}")
 
-               {:noreply, %{state | context: context, step: nil, scenario: scenario},
-                {:continue, :step}}
+               step_trace = %{
+                 title: step_title,
+                 status: :success,
+                 time: elapsed,
+                 spec: step_spec,
+                 context: context,
+                 output: output
+               }
+
+               {:noreply,
+                %{
+                  state
+                  | trace: trace_with_step(trace, step_trace),
+                    context: context,
+                    step: nil,
+                    scenario: scenario
+                }, {:continue, :step}}
 
              {:error, e} ->
+               elapsed = Elementary.Kit.duration(started, :millisecond)
+               scenario_elapsed = Elementary.Kit.duration(scenario_started, :millisecond)
                scenario = Map.put(scenario, "steps", [])
                failures = report.failures
-               report = %{report | failures: [title | failures], failed: report.failed + 1}
+
+               report = %{
+                 report
+                 | failures: [scenario_title | failures],
+                   failed: report.failed + 1
+               }
+
+               step_trace = %{
+                 title: step_title,
+                 status: :error,
+                 time: elapsed,
+                 spec: step_spec,
+                 context: context,
+                 output: e
+               }
+
+               scenario_trace = %{
+                 title: scenario_title,
+                 status: :error,
+                 time: scenario_elapsed
+               }
 
                Logger.error(
                  "#{
                    inspect(
-                     %{
-                       step: current["title"],
-                       scenario: title,
-                       error: e,
-                       context: context
-                     },
+                     step_trace,
                      pretty: true
                    )
                  }"
                )
 
-               {:noreply, %{state | report: report, step: nil, scenario: scenario},
-                {:continue, :scenario}}
+               trace =
+                 trace
+                 |> trace_with_step(step_trace)
+                 |> trace_with_scenario(scenario_trace)
+
+               {:noreply,
+                %{
+                  state
+                  | trace: trace,
+                    report: report,
+                    step: nil,
+                    scenario: scenario
+                }, {:continue, :scenario}}
            end
          end
 
@@ -860,6 +917,7 @@ defmodule Elementary.Compiler do
                :step,
                %{
                  report: report,
+                 trace: trace,
                  log: log,
                  scenario_started: started,
                  scenario: %{"title" => title, "steps" => []} = scenario
@@ -868,7 +926,16 @@ defmodule Elementary.Compiler do
            elapsed = Elementary.Kit.duration(started, :millisecond)
            Logger.info("Scenario \"#{title}\" (#{elapsed}ms)")
            report = %{report | passed: report.passed + 1}
-           {:noreply, %{state | report: report}, {:continue, :scenario}}
+
+           scenario_trace = %{
+             title: title,
+             status: :success,
+             time: elapsed
+           }
+
+           {:noreply,
+            %{state | trace: trace_with_scenario(trace, scenario_trace), report: report},
+            {:continue, :scenario}}
          end
 
          def handle_info(:timeout, %{log: log} = state) do
@@ -900,6 +967,35 @@ defmodule Elementary.Compiler do
              _ ->
                fn _ -> :ok end
            end
+         end
+
+         defp trace_with_new_scenario(trace) do
+           %{trace | scenario: %{steps: []}}
+         end
+
+         defp trace_with_scenario(
+                %{scenarios: scenarios, scenario: %{steps: steps}} = trace,
+                scenario_trace
+              ) do
+           %{
+             trace
+             | scenarios: [Map.put(scenario_trace, :steps, Enum.reverse(steps)) | scenarios],
+               scenario: nil
+           }
+         end
+
+         defp trace_with_step(
+                %{scenario: %{steps: steps} = scenario} = trace,
+                step_trace
+              ) do
+           %{trace | scenario: %{scenario | steps: [step_trace | steps]}}
+         end
+
+         defp write_trace(%{scenarios: scenarios} = trace, _) do
+           path = "#{Elementary.Kit.assets()}/tests.json"
+           scenarios = Enum.reverse(scenarios)
+           File.write!(path, Jason.encode!(scenarios))
+           Logger.info("Written #{path}")
          end
        end}
     ]
