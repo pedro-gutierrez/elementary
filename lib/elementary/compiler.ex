@@ -837,7 +837,7 @@ defmodule Elementary.Compiler do
              {:ok, output} ->
                elapsed = Elementary.Kit.duration(started, :millisecond)
 
-               context =
+               new_context =
                  case is_map(output) do
                    true -> Map.merge(context, output)
                    false -> context
@@ -860,7 +860,7 @@ defmodule Elementary.Compiler do
                 %{
                   state
                   | trace: trace_with_step(trace, step_trace),
-                    context: context,
+                    context: new_context,
                     step: nil,
                     scenario: scenario
                 }, {:continue, :step}}
