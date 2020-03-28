@@ -299,7 +299,11 @@ defmodule Elementary.Compiler do
                         ]}
                    end) ++
                      [
-                       {"/[...]", :cowboy_static, {:dir, Elementary.Kit.assets()}}
+                       {"/[...]", :cowboy_static,
+                        {:dir, Elementary.Kit.assets(),
+                         [
+                           {:mimetypes, :cow_mimetypes, :all}
+                         ]}}
                      ])
                   |> Macro.escape()
                 )}
