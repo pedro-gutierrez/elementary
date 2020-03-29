@@ -353,7 +353,7 @@ export default (name, settings, app) => {
         if (spec.code) return compileCode(views, spec, ctx);
         if (spec.markdown) return compileMarkdown(views, spec, ctx);
         if (spec.chart) return compileChart(views, spec, ctx);
-        return error(spec, ctx, "view_not_supported");
+        return compileText(views, {text: spec}, ctx);
     }
 
     function render(view) {

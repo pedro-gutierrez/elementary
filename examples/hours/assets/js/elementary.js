@@ -29,15 +29,9 @@ export default (appUrl, appEffects) => {
     function error(spec, data, reason) {
         return {err: {spec, data, reason}};
     }
+
     function fmt(pattern, args) {
-        var argNum = 0;
-        return pattern.replace(/~a|~s/gi, function(match) {
-            var curArgNum, prop = null;
-            curArgNum = argNum;
-            argNum++;
-            var result = curArgNum >= args.length ? "" : prop ? args[curArgNum][prop] || "" : args[curArgNum];
-            return result;
-        });
+        return Mustache.render(pattern, args)
     };
 
     function flatten(arr) {
@@ -243,13 +237,9 @@ export default (appUrl, appEffects) => {
         }
     }
 
-    function encodeFormatText(spec, data, ctx) {
-        var {pattern, params} = spec.format_text;
-        var {err, value} = encode(pattern, data, ctx);
-        if (err) return error(spec, data, err);
-        var pattern = value;
-        var {err, value} = encodeList(params, data, ctx);
-        return err ? error(spec, data, err) : {value: fmt( pattern, value)};
+    function encodeFormat(spec, data, ctx) {
+        var {err, value} = encode(spec.params || "@", data, ctx);
+        return err ? error(spec, data, err) : {value: fmt(spec.format, value)};
     }
 
 
@@ -561,6 +551,17 @@ export default (appUrl, appEffects) => {
         }
     }
 
+    function encodeCapitalize(spec, data, ctx) {
+        var {err, value} = encode(spec.capitalize, data, ctx);
+        if (err) return error(spec, data, err);
+        switch (typeof(value)) {
+            case "string":
+                return {value: value.charAt(0).toUpperCase() + value.slice(1)};
+            default:
+                return error(spec, value, "not_a_string");
+        }
+    }
+
     function encodeOneOf(spec, data, ctx) {
         for (var i=0; i<spec.one_of.length; i++) {
             var {err, value} = encode(spec.one_of[i], data, ctx);
@@ -689,7 +690,7 @@ export default (appUrl, appEffects) => {
                 if (spec.key) return encodeKey(spec, data, ctx);
                 if (spec.key_path) return encodeKeyPath(spec, data, ctx);
                 if (spec.i18n) return encodeI18n(spec, data, ctx);
-                if (spec.format_text) return encodeFormatText(spec, data, ctx);
+                if (spec.format) return encodeFormat(spec, data, ctx);
                 if (spec.format_date) return encodeFormatDate(spec, data, ctx);
                 if (spec.timestamp) return encodeTimestamp(spec, data, ctx);
                 if (spec.maybe) return encodeMaybe(spec, data, ctx);
@@ -722,6 +723,7 @@ export default (appUrl, appEffects) => {
                 if (spec.size_of) return encodeSizeOf(spec, data, ctx);
                 if (spec.lowercase) return encodeLowerCase(spec, data, ctx);
                 if (spec.uppercase) return encodeUpperCase(spec, data, ctx);
+                if (spec.capitalize) return encodeCapitalize(spec, data, ctx);
                 if (spec.greater_than) return encodeGreaterThan(spec, data, ctx);
                 if (spec.lower_than) return encodeLowerThan(spec, data, ctx);
                 if (!Object.keys(spec).length) return {value: {}};

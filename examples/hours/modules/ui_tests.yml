@@ -28,8 +28,41 @@ spec:
       tag: div
       children:
         loop: @tests
-        with: scenario-view
-    scenario-view:
+        with: scenario-item-view
+    scenario-item-view:
       tag: div
+      attrs:
+        class: box
       children:
-        - @title
+        - tag: h5
+          attrs:
+            class: title is-5
+          children:
+            - @title
+        - tag: div
+          attrs:
+            class: subtitle
+          children:
+            - view: tags-view
+              params:
+                tags:
+                  - label: @status
+                    color: success
+                  - label:
+                      format: "{{ time }}ms"
+                    color: light
+    tags-view:
+      tag: div
+      attrs:
+        class: tags
+      children:
+        loop: @tags
+        with: tag-view
+
+    tag-view:
+      tag: span
+      attrs:
+        class:
+          format: "tag is-{{color}}"
+      children:
+        - capitalize: @label
