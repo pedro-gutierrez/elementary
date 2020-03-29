@@ -51,6 +51,16 @@ spec:
                   - label:
                       format: "{{ time }}ms"
                     color: light
+        - view: steps-view
+    steps-view:
+      tag: div
+      children:
+        loop: @steps
+        with: step-item-view
+    step-item-view:
+      tag: div
+      children:
+        - @title
     tags-view:
       tag: div
       attrs:
@@ -58,7 +68,6 @@ spec:
       children:
         loop: @tags
         with: tag-view
-
     tag-view:
       tag: span
       attrs:
