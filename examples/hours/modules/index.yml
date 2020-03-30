@@ -25,6 +25,8 @@ spec:
                 <meta name="viewport" content="width=device-width, initial-scale=1">
                 <title>{{title}}</title>
                 <link rel="stylesheet" href="css/bulma.min.css"/>
+                <link rel="stylesheet" href="css/fa.min.css"/>
+                <link rel="stylesheet" href="css/theme.css"/>
                 <script src="js/mustache.min.js"></script>
                 <script src="js/elementary-dom.js"></script>
                 <script type="module">

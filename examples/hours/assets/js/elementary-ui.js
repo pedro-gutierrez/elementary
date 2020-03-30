@@ -7,8 +7,8 @@ export default (name, settings, app) => {
     }
 
     function event(eventName, value) {
-        const e = { effect: name, event: eventName };
-        e.value = value || "";
+        const e = { effect: name }
+        e[eventName] = value || "";
         update(e);
     }
 
@@ -142,7 +142,7 @@ export default (name, settings, app) => {
     }
 
     function compileTag(views, spec, ctx) {
-        let { tag, attrs = {}, children } = spec;
+        let { tag, attrs = {}, children = [] } = spec;
         var {err, value} = encode(attrs, ctx);
         if (err) return error(spec, ctx, err);
         var { err, view } = compile(views, children, ctx);

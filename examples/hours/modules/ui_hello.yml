@@ -10,11 +10,93 @@ spec:
     layout-view:
       tag: div
       children:
-        - view: title-view
+        - view: nav-view
         - view: container-view
           params:
             content-view: tests-view
             content: @
+    nav-view:
+      tag: nav
+      attrs:
+        class: navbar is-spaced
+        role: navigation
+        aria-label: main navigation
+      children:
+        - tag: div
+          attrs:
+            class: container
+          children:
+            - tag: div
+              attrs:
+                class: navbar-brand
+              children:
+                - tag: div
+                  attrs:
+                    class: navbar-item
+                  children:
+                    - tag: h4
+                      attrs:
+                        class: title is-4
+                      children:
+                        - tag: span
+                          attrs:
+                            class: icon is-large
+                          children:
+                            - tag: i
+                              attrs:
+                                class: fas fa-stopwatch
+                                style:
+                                  font-size: 1.3em
+                        - @title
+            - tag: div
+              attrs:
+                class: navbar-menu
+              children:
+                - tag: div
+                  attrs:
+                    class: navbar-start
+                - tag: div
+                  attrs:
+                    class: navbar-end
+                  children:
+                    - tag: div
+                      attrs:
+                        class: navbar-item
+                      children:
+                        - view: input-view
+                    - tag: div
+                      attrs:
+                        class: navbar-item
+                      children:
+                        - tag: div
+                          attrs:
+                            class: buttons
+                          children:
+                            - tag: a
+                              attrs:
+                                class: button is-light
+                              children:
+                                - Scenarios
+                            - tag: a
+                              attrs:
+                                class: button is-light
+                              children:
+                                - Steps
+    input-view:
+      tag: div
+      attrs:
+        class: field
+      children:
+        - tag: div
+          attrs:
+            class: control
+          children:
+            - tag: input
+              attrs:
+                onchange: query
+                class: input
+                type: text
+                placeholder: Search
 
     title-view:
       view: hero-view

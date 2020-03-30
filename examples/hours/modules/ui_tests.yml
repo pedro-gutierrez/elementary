@@ -4,6 +4,9 @@ spec:
   init:
     model:
       tests: []
+      mode: scenarios
+      query: ""
+      filtered: []
     cmds:
       http: get-tests
   decoders:
@@ -13,10 +16,36 @@ spec:
           status: 200
           body:
             any: list
+    ui:
+      query:
+        query:
+          any: text
   update:
     tests:
       model:
         tests: @data.tests.body
+        filtered: @data.tests.body
+      cmds:
+        ui: {}
+    query:
+      model:
+        query: @data.query
+        filtered:
+          switch: @model.mode
+          case:
+            steps:
+              pipeline:
+                - map: @model.tests
+                  with: @steps
+                - flatten: {}
+                - filter:
+                    title: @data.query
+            scenarios:
+              pipeline:
+                - filter: @model.tests
+                  with:
+                    title:
+                      like: @data.query
       cmds:
         ui: {}
   encoders:
@@ -27,7 +56,7 @@ spec:
     tests-view:
       tag: div
       children:
-        loop: @tests
+        loop: @filtered
         with: scenario-item-view
     scenario-item-view:
       tag: div
@@ -60,6 +89,19 @@ spec:
     step-item-view:
       tag: div
       children:
+        - view: icon-view
+          params:
+            icon:
+              either:
+                - when:
+                    regex: Given
+                    in: @title
+                  then: fas fa-thumbtack
+                - when:
+                    regex: When
+                    in: @title
+                  then: fas fa-upload
+                - then: fas fa-check
         - @title
     tags-view:
       tag: div
@@ -75,3 +117,11 @@ spec:
           format: "tag is-{{color}}"
       children:
         - capitalize: @label
+    icon-view:
+      tag: span
+      attrs:
+        class: icon
+      children:
+        - tag: i
+          attrs:
+            class: @icon
