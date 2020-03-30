@@ -116,7 +116,7 @@ export default (name, settings, app) => {
         if (err) return error(spec.view, ctx, "cannot encode referenced view spec");
         var { err, view } = resolve(views, value, ctx);
         if (err) return error(spec, ctx, err);
-        var {err, value} = encode(spec.condition || true, ctx);
+        var {err, value} = encode(spec.when|| true, ctx);
         if (err) return error(spec, ctx, err);
         if (!value) return {view: ['div']};
         var {err, value} = encode(spec.params || "@", ctx);

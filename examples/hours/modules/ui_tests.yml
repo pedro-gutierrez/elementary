@@ -31,21 +31,27 @@ spec:
       model:
         query: @data.query
         filtered:
-          switch: @model.mode
-          case:
-            steps:
-              pipeline:
-                - map: @model.tests
-                  with: @steps
-                - flatten: {}
-                - filter:
-                    title: @data.query
-            scenarios:
-              pipeline:
-                - filter: @model.tests
-                  with:
-                    title:
-                      like: @data.query
+          either:
+            - when:
+                equal:
+                  - ""
+                  - @data.query
+              then: @model.tests
+            - switch: @model.mode
+              case:
+                steps:
+                  pipeline:
+                    - map: @model.tests
+                      with: @steps
+                    - flatten: {}
+                    - filter:
+                        title: @data.query
+                scenarios:
+                  pipeline:
+                    - filter: @model.tests
+                      with:
+                        title:
+                          like: @data.query
       cmds:
         ui: {}
   encoders:

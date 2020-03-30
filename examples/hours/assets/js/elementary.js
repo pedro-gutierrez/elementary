@@ -133,6 +133,7 @@ export default (appUrl, appEffects) => {
     }
 
     function encodeEqual(spec, ctx) {
+        console.log("encoding equal", {spec, ctx});
         if (!spec.equal.length) return {value: false};
         var {err, value}= encode(spec.equal[0], ctx);
         if (err) return error(spec, ctx, err);
@@ -170,14 +171,14 @@ export default (appUrl, appEffects) => {
     }
 
     function encodeIsSet(spec, ctx) {
+        console.log("is_set", {spec, ctx});
         if (!ctx) return error(spec, ctx, "Missing context");
         var {err, value} = encode(spec.is_set, ctx);
         if (err) return error(spec, ctx, err);
-        var v = data[value];
-        if (!v) return {value: false};
-        switch (typeof(v)) {
+        if (!value) return {value: false};
+        switch (typeof(value)) {
             case 'string':
-                return v.length ? { value: true }: {value: false};
+                return value.length ? { value: true }: {value: false};
         }
         return {value: true}
     }
@@ -197,16 +198,18 @@ export default (appUrl, appEffects) => {
         for (var i=0; i<spec.either.length; i++) {
             var s = spec.either[i];
             if (!s.when) {
-                var { err, value } = encode(s.then, ctx);
-                if (err) return error(spec, ctx, err);
+                s = s.then || s;
+                var { err, value } = encode(s, ctx);
+                if (err) return error(s, ctx, err);
                 return { value };
             }
 
             var { err, value } = encode(s.when, ctx);
-            if (err) return error(spec, ctx, err);
+            if (err) return error(s.when, ctx, err);
             if (value) {
-                var { err, value } = encode(s.then, ctx);
-                if (err) return error(spec, ctx, err);
+                s = s.then || s;
+                var { err, value } = encode(s, ctx);
+                if (err) return error(s, ctx, err);
                 return { value };
             }
         }
@@ -583,6 +586,7 @@ export default (appUrl, appEffects) => {
     }
 
     function encode(spec, ctx) {
+        if (spec == undefined || spec == null) return error(spec, ctx, "Missing encoding spec");
         switch(typeof(spec)) {
             case "object":
                 if (spec.hasOwnProperty("text")) return encodeText(spec, ctx);
@@ -642,8 +646,6 @@ export default (appUrl, appEffects) => {
                 return { value: spec };
             case "number":
                 return { value: spec };
-            default:
-                return error(spec, ctx, "encoder_not_supported");
         }
     }
 
@@ -791,7 +793,8 @@ export default (appUrl, appEffects) => {
     function decodeLike(spec, data, ctx) {
         var {err, value} = encode(spec.like, ctx);
         if (err) return error(spec, data, err);
-        return data.match(value) ? {decoded: data} : error(spec, data, "no_match");
+        var regex = new RegExp(value, 'i');
+        return data.match(regex) ? {decoded: data} : error(spec, data, "no_match");
     }
 
     function decodeSame(spec, data, ctx) {

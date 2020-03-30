@@ -44,7 +44,7 @@ spec:
                           children:
                             - tag: i
                               attrs:
-                                class: fas fa-stopwatch
+                                class: fas fa-cubes
                                 style:
                                   font-size: 1.3em
                         - @title
@@ -89,7 +89,7 @@ spec:
       children:
         - tag: div
           attrs:
-            class: control
+            class: control has-icons-right
           children:
             - tag: input
               attrs:
@@ -97,7 +97,17 @@ spec:
                 class: input
                 type: text
                 placeholder: Search
-
+            - view: clear-icon-view
+              when:
+                is_set: @query
+    clear-icon-view:
+      tag: span
+      attrs:
+        class: icon is-small is-right
+      children:
+        - tag: i
+          attrs:
+            class: fa fa-times-circle
     title-view:
       view: hero-view
       params:
