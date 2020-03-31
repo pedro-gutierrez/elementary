@@ -126,18 +126,23 @@ export default (name, settings, app) => {
 
     function attrsWithEvHandlers(attrs, ctx) {
         for (var k in attrs) {
-            if (attrs.hasOwnProperty(k) && k.startsWith("on") ) {
-                var spec = attrs[k];
-                attrs[k] = (ev) => {
-                    if (ev.preventDefault) ev.preventDefault();
-                    const specCtx = Object.assign({}, ctx, evProps(ev));
-                    const {err, value} = encode(spec, specCtx);
-                    if (err) {
-                        console.error("Error encoding handler event", k, spec, ev, err);
-                    } else event(value, evValue(ev.target));
+            if (attrs.hasOwnProperty(k)) {
+                if (k.startsWith("on")) {
+                    var spec = attrs[k];
+                    attrs[k] = (ev) => {
+                        if (ev.preventDefault) ev.preventDefault();
+                        const specCtx = Object.assign({}, ctx, evProps(ev));
+                        const {err, value} = encode(spec, specCtx);
+                        if (err) {
+                            console.error("Error encoding handler event", k, spec, ev, err);
+                        } else event(value, evValue(ev.target));
+                    }
+                } else if (k === 'value') {
+                    attrs[k] = new String(attrs[k]);
                 }
             }
         }
+
         return attrs;
     }
 

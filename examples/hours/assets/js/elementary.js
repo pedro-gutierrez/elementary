@@ -133,7 +133,6 @@ export default (appUrl, appEffects) => {
     }
 
     function encodeEqual(spec, ctx) {
-        console.log("encoding equal", {spec, ctx});
         if (!spec.equal.length) return {value: false};
         var {err, value}= encode(spec.equal[0], ctx);
         if (err) return error(spec, ctx, err);
@@ -171,7 +170,6 @@ export default (appUrl, appEffects) => {
     }
 
     function encodeIsSet(spec, ctx) {
-        console.log("is_set", {spec, ctx});
         if (!ctx) return error(spec, ctx, "Missing context");
         var {err, value} = encode(spec.is_set, ctx);
         if (err) return error(spec, ctx, err);
@@ -251,7 +249,6 @@ export default (appUrl, appEffects) => {
     function encodeText(spec, ctx) {
         var {err, value} = encode(spec.text, ctx);
         if (err) return error(spec, ctx, err);
-        //return { value: new String(''+value) };
         return { value: ''+value};
     }
 
@@ -594,7 +591,7 @@ export default (appUrl, appEffects) => {
                 if (Array.isArray(spec)) return encodeList(spec, ctx);
                 if (spec.object) return encodeObject(spec, ctx);
                 if (spec.hasOwnProperty("switch")) return encodeSwitch(spec, ctx);
-                if (spec.key) return encodeKey(spec, ctx);
+                //if (spec.key) return encodeKey(spec, ctx);
                 //if (spec.key_path) return encodeKeyPath(spec, ctx);
                 //if (spec.i18n) return encodeI18n(spec, ctx);
                 if (spec.format) return encodeFormat(spec, ctx);

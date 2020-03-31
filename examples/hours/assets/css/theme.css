@@ -19,5 +19,6 @@
 }
 
 body, body * {
+    font-family: 'IBM Plex Mono', monospace;
     //color:var(--color-pale-sky) !important;
 }

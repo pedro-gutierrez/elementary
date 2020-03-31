@@ -20,6 +20,8 @@ spec:
       query:
         query:
           any: text
+      clear-search:
+        clear-search: ""
   update:
     tests:
       model:
@@ -52,6 +54,12 @@ spec:
                       with:
                         title:
                           like: @data.query
+      cmds:
+        ui: {}
+    clear-search:
+      model:
+        query: ""
+        filtered: @model.tests
       cmds:
         ui: {}
   encoders:

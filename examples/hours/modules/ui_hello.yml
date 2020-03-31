@@ -63,9 +63,10 @@ spec:
                       attrs:
                         class: navbar-item
                       children:
-                        - view: input-view
+                        - view: search-view
                     - tag: div
                       attrs:
+                        key: toggle-view
                         class: navbar-item
                       children:
                         - tag: div
@@ -82,7 +83,7 @@ spec:
                                 class: button is-light
                               children:
                                 - Steps
-    input-view:
+    search-view:
       tag: div
       attrs:
         class: field
@@ -93,10 +94,11 @@ spec:
           children:
             - tag: input
               attrs:
-                onchange: query
+                oninput: query
                 class: input
                 type: text
                 placeholder: Search
+                value: @query
             - view: clear-icon-view
               when:
                 is_set: @query
@@ -108,6 +110,10 @@ spec:
         - tag: i
           attrs:
             class: fa fa-times-circle
+            style:
+              cursor: pointer
+              pointer-events: initial
+            onclick: clear-search
     title-view:
       view: hero-view
       params:
