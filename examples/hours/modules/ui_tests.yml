@@ -85,24 +85,19 @@ spec:
       attrs:
         class: box
       children:
+        - view: tags-view
+          params:
+            tags:
+              - label: @status
+                color: success
+              - label:
+                  format: "{{ time }}ms"
+                color: light
         - tag: h5
           attrs:
             class: title is-5
           children:
             - @title
-        - tag: div
-          attrs:
-            class: subtitle
-          children:
-            - view: tags-view
-              params:
-                tags:
-                  - label: @status
-                    color: success
-                  - label:
-                      format: "{{ time }}ms"
-                    color: light
-        - view: steps-view
     steps-view:
       tag: div
       children:
@@ -128,7 +123,7 @@ spec:
     tags-view:
       tag: div
       attrs:
-        class: tags
+        class: tags is-pulled-right
       children:
         loop: @tags
         with: tag-view
