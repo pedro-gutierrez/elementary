@@ -7,5 +7,10 @@ body, body * {
 }
 
 input {
-    border-color: #565d69 !important;
+    border-color: #3e4657 !important;
 }
+
+.has-icons-right i {
+    color: #3e4657 !important;
+}
+
