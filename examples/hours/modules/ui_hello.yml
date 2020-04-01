@@ -73,16 +73,30 @@ spec:
                           attrs:
                             class: buttons
                           children:
-                            - tag: a
-                              attrs:
-                                class: button is-light
-                              children:
-                                - Scenarios
-                            - tag: a
-                              attrs:
-                                class: button is-light
-                              children:
-                                - Steps
+                            - view: mode-button
+                              params:
+                                mode: scenarios
+                                selected-mode: @mode
+                            - view: mode-button
+                              params:
+                                mode: steps
+                                selected-mode: @mode
+    mode-button:
+      tag: a
+      attrs:
+        onclick:
+          mode: @mode
+        class: 
+          either:
+            - when:
+                equal:
+                  - @mode
+                  - @selected-mode
+              then: button is-light is-primary
+            - button is-light
+      children:
+        - @mode
+
     search-view:
       tag: div
       attrs:

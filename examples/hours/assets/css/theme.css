@@ -1,24 +1,11 @@
-:root {
-    --color-mirage: #171c24;
-    --color-shark: #272a2f;
-    --color-oslo-gray: #868b95;
-    --color-pale-sky: #697384;
-    --color-melrose: #aec6ff;
-    --color-melrose-dark: #4c5873;
-    --color-gull-gray: #a1aab8;
-    --color-bright-gray: #363e49;
-    --color-bright-gray-light: #3d4650;
-    --color-heather: #bec7d5;
-    --color-catskill-white: #ecf0f6;
-    --color-dodger-blue: #3880ff;
-    --color-dodger-blue-light: #5a96ff;
-    --color-periwinkle: #c6dbff;
-    --color-cadet-blue: #abb2bf;
-    --color-white-lilac: #f8f8fc;
-    --easeOutExpo:cubic-bezier(0.19, 1, 0.22, 1)
-}
-
 body, body * {
     font-family: 'IBM Plex Mono', monospace;
-    //color:var(--color-pale-sky) !important;
+}
+
+.button {
+    text-transform: capitalize;
+}
+
+input {
+    border-color: #565d69 !important;
 }

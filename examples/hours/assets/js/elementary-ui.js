@@ -1,24 +1,29 @@
 export default (name, settings, app) => {
-    const { encode, decode, update, tc} = app;
+    const { encode, decode, update, tc } = app;
     const state = {};
 
     function log(msg, data) {
         if (settings.debug) console.log(msg, data);
     }
 
-    function event(eventName, value) {
-        const e = { effect: name }
-        e[eventName] = value || "";
+    function event(spec, value) {
+        var e = { effect: name }
+        if (typeof (spec) == 'object') {
+            e = Object.assign(spec, e);
+        } else {
+            e[spec] = value || "";
+        }
+
         update(e);
     }
 
     function error(spec, data, reason) {
-        return {err: {spec, data, reason }};
+        return { err: { spec, data, reason } };
     }
 
     function evValue(target) {
         var v = target.files || target.value;
-        if (v && typeof(v) === 'string') {
+        if (v && typeof (v) === 'string') {
             v = v.trimLeft();
             return v.length ? v : null;
         } return v;
@@ -33,17 +38,17 @@ export default (name, settings, app) => {
     }
 
     function hash(s) {
-        for(var i=0, h=1; i<s.length; i++)
-            h=Math.imul(h+s.charCodeAt(i)|0, 2654435761);
-        return (h^h>>>17)>>>0;
+        for (var i = 0, h = 1; i < s.length; i++)
+            h = Math.imul(h + s.charCodeAt(i) | 0, 2654435761);
+        return (h ^ h >>> 17) >>> 0;
     };
 
     function resolve(views, spec, ctx) {
-        switch(typeof(spec)) {
+        switch (typeof (spec)) {
             case 'object':
                 const { err, value } = encode(spec, ctx);
                 if (err) return error(spec, ctx, err);
-                if (typeof(value) != 'string') return error(value, ctx, "not_a_string");
+                if (typeof (value) != 'string') return error(value, ctx, "not_a_string");
                 return resolve(views, value, ctx);
             case 'string':
                 const resolved = views[spec];
@@ -57,28 +62,28 @@ export default (name, settings, app) => {
     function compileList(views, items, ctx) {
         if (!items) return { view: [] };
         var out = [];
-        for (var i=0; i<items.length; i++) {
+        for (var i = 0; i < items.length; i++) {
             var item = items[i];
-            const {err, view} = compile(views, item, ctx);
-            if (err) return {err};
+            const { err, view } = compile(views, item, ctx);
+            if (err) return { err };
             out[i] = view;
         }
 
-        return {view: out};
+        return { view: out };
     }
 
     function loopItemName(spec, ctx) {
         if (!spec.as) return null;
-        var {err, value} = encode(spec.as, ctx);
+        var { err, value } = encode(spec.as, ctx);
         if (err) {
-            console.warn("loop item name not resolved", {spec: spec, err: err});
+            console.warn("loop item name not resolved", { spec: spec, err: err });
             return null;
         }
         return value;
     }
 
     function loopItemContext(name, index, item, context) {
-        var ctx = {settings, context};
+        var ctx = { settings, context };
         if (name) {
             ctx[name] = item;
         } else {
@@ -95,31 +100,31 @@ export default (name, settings, app) => {
         var { err, value } = encode(spec.loop, ctx);
         if (err) return error(spec, ctx, err);
         var items = value;
-        if (!items || !items.length) return {view: []};
+        if (!items || !items.length) return { view: [] };
         var { err, value } = encode(spec.context || "@", ctx);
         if (err) return error(spec, ctx, err);
         var sharedCtx = value;
         var out = [];
         var itemName = loopItemName(spec, ctx);
-        for (var i=0; i<items.length; i++) {
+        for (var i = 0; i < items.length; i++) {
             var item = items[i];
             var itemCtx = loopItemContext(itemName, i, item, sharedCtx);
             var { err, view } = compile(views, itemView, itemCtx);
             if (err) return error(spec, ctx, err);
             out.push(view);
         }
-        return {view: out};
+        return { view: out };
     }
 
     function compileViewRef(views, spec, ctx) {
-        var {err, value} = encode(spec.view, ctx);
+        var { err, value } = encode(spec.view, ctx);
         if (err) return error(spec.view, ctx, "cannot encode referenced view spec");
         var { err, view } = resolve(views, value, ctx);
         if (err) return error(spec, ctx, err);
-        var {err, value} = encode(spec.when|| true, ctx);
+        var { err, value } = encode(spec.when || true, ctx);
         if (err) return error(spec, ctx, err);
-        if (!value) return {view: ['div']};
-        var {err, value} = encode(spec.params || "@", ctx);
+        if (!value) return { view: ['div'] };
+        var { err, value } = encode(spec.params || "@", ctx);
         if (err) return error(spec, ctx, err);
         return compile(views, view, value);
     }
@@ -132,7 +137,7 @@ export default (name, settings, app) => {
                     attrs[k] = (ev) => {
                         if (ev.preventDefault) ev.preventDefault();
                         const specCtx = Object.assign({}, ctx, evProps(ev));
-                        const {err, value} = encode(spec, specCtx);
+                        const { err, value } = encode(spec, specCtx);
                         if (err) {
                             console.error("Error encoding handler event", k, spec, ev, err);
                         } else event(value, evValue(ev.target));
@@ -148,16 +153,16 @@ export default (name, settings, app) => {
 
     function compileTag(views, spec, ctx) {
         let { tag, attrs = {}, children = [] } = spec;
-        var {err, value} = encode(attrs, ctx);
+        var { err, value } = encode(attrs, ctx);
         if (err) return error(spec, ctx, err);
         var { err, view } = compile(views, children, ctx);
-        if (err) return {err};
+        if (err) return { err };
         var attrs2 = attrsWithEvHandlers(value, ctx);
-        return { view: [tag, attrs2 ].concat(view) };
+        return { view: [tag, attrs2].concat(view) };
     }
 
     function compileText(views, spec, ctx) {
-        const {err, value} = encode(spec.text, ctx);
+        const { err, value } = encode(spec.text, ctx);
         if (err) return error(spec, ctx, err);
         return { view: value }
     }
@@ -201,7 +206,7 @@ export default (name, settings, app) => {
     //}
 
     function compileTimestamp(view, spec, ctx) {
-        var {err, value} = encode(spec, ctx);
+        var { err, value } = encode(spec, ctx);
         if (err) return error(spec, ctx, err);
         return { view: value };
     }
@@ -237,16 +242,16 @@ export default (name, settings, app) => {
     function compileJson(el) {
         switch (el.type) {
             case 'element':
-                return [ el.tagName, compileJsonAttrs(el.attributes) ]
-                    .concat( el.children.map(compileJson));
+                return [el.tagName, compileJsonAttrs(el.attributes)]
+                    .concat(el.children.map(compileJson));
             case 'text':
                 return el
                     .content
                     .replace("&lt;", "<")
                     .replace("&gt;", ">")
-                    .replace(/&#(\d+);/g, function(match, dec) {
-				        return String.fromCharCode(dec);
-			        })
+                    .replace(/&#(\d+);/g, function (match, dec) {
+                        return String.fromCharCode(dec);
+                    })
 
         }
     }
@@ -263,7 +268,7 @@ export default (name, settings, app) => {
     //    return { view: compileJson(json[0]) };
     //}
 
-    var uniqueId = function() {
+    var uniqueId = function () {
         return 'a' + Math.random().toString(36).substr(2, 16);
     };
 
@@ -346,7 +351,7 @@ export default (name, settings, app) => {
 
 
     function compile(views, spec, ctx) {
-        if (typeof(spec) == "string") return compileText(views, {text: spec}, ctx);
+        if (typeof (spec) == "string") return compileText(views, { text: spec }, ctx);
         if (Array.isArray(spec)) return compileList(views, spec, ctx);
         if (spec.view) return compileViewRef(views, spec, ctx);
         if (spec.tag) return compileTag(views, spec, ctx);
@@ -358,7 +363,7 @@ export default (name, settings, app) => {
         if (spec.code) return compileCode(views, spec, ctx);
         if (spec.markdown) return compileMarkdown(views, spec, ctx);
         if (spec.chart) return compileChart(views, spec, ctx);
-        return compileText(views, {text: spec}, ctx);
+        return compileText(views, { text: spec }, ctx);
     }
 
     function render(view) {
@@ -370,7 +375,7 @@ export default (name, settings, app) => {
     }
 
     function withContext(spec, ctx) {
-        return Object.assign(ctx,{ context: spec.context });
+        return Object.assign(ctx, { context: spec.context });
     }
 
     return (views, v, model) => {
@@ -388,7 +393,7 @@ export default (name, settings, app) => {
         if (settings.telemetry) {
             console.log("[" + name + "]"
                 + "[compile " + c.millis + "ms]"
-                + "[render " + r.millis +"ms]");
+                + "[render " + r.millis + "ms]");
         }
     }
 };
