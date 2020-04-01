@@ -594,7 +594,7 @@ export default (appUrl, appEffects) => {
 
     function encodeMap(spec, ctx) {
         var { err, value } = encode(spec.map, ctx);
-        if (err) return error(spec.filter, ctx, err);
+        if (err) return error(spec.map, ctx, err);
         if (!Array.isArray(value)) return error(spec.map, value, "Not a list");
         var items = value;
 
@@ -623,6 +623,32 @@ export default (appUrl, appEffects) => {
             map: spec.flat_map,
             flatten: true
         }), ctx);
+    }
+
+    function encodeUnique(spec, ctx) {
+        var { err, value } = encode(spec.unique, ctx);
+        if (err) return error(spec.unique, ctx, err);
+        if (!Array.isArray(value)) return error(spec.unique, value, "Not a list");
+
+        var index = {};
+        var items = value;
+        for (var i = 0; i < items.length; i++) {
+
+            var item = items[i];
+            var itemCtx = Object.assign({}, ctx);
+            if (spec.as) {
+                itemCtx[as] = item;
+            } else {
+                itemCtx = Object.assign(ctx, item);
+            }
+
+            var { err, value } = encode(spec.by, itemCtx);
+            if (err) return error(spec.by, itemCtx, err);
+            if (!value || typeof (value) != 'string') return error(value, spec.by, "Unique key is not a string");
+            index[value] = item;
+        }
+
+        return { value: Object.values(index) };
     }
 
     function encode(spec, ctx) {
@@ -678,6 +704,7 @@ export default (appUrl, appEffects) => {
                 if (spec.map) return encodeMap(spec, ctx);
                 if (spec.flat_map) return encodeFlatmap(spec, ctx);
                 if (spec.filter) return encodeFilter(spec, ctx);
+                if (spec.unique) return encodeUnique(spec, ctx);
                 if (!Object.keys(spec).length) return { value: {} };
                 return encodeObject({ object: spec }, ctx)
             case "string":

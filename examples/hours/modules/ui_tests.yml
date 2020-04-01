@@ -91,6 +91,8 @@ spec:
               with:
                 title: 
                   like: @query
+            - unique: @items
+              by: @title
         scenarios:
           pipeline:
             - filter: @tests
