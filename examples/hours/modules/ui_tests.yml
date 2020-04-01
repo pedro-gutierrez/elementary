@@ -36,27 +36,11 @@ spec:
       model:
         query: @data.query
         filtered:
-          either:
-            - when:
-                equal:
-                  - ""
-                  - @data.query
-              then: @model.tests
-            - switch: @model.mode
-              case:
-                steps:
-                  pipeline:
-                    - map: @model.tests
-                      with: @steps
-                    - flatten: {}
-                    - filter:
-                        title: @data.query
-                scenarios:
-                  pipeline:
-                    - filter: @model.tests
-                      with:
-                        title:
-                          like: @data.query
+          encoder: filtered
+          params:
+            tests: @model.tests
+            query: @data.query
+            mode: @model.mode
       cmds:
         ui: {}
     clear-search:
@@ -68,6 +52,12 @@ spec:
     set-mode:
       model:
         mode: @data.mode
+        filtered: 
+          encoder: filtered
+          params:
+            tests: @model.tests
+            query: @model.query
+            mode: @data.mode
       cmds:
         ui: {}
   encoders:
@@ -80,6 +70,29 @@ spec:
       children:
         loop: @filtered
         with: scenario-item-view
+    filtered:
+      either:
+        - when:
+            equal:
+              - ""
+              - @query
+          then: @tests
+        - switch: @mode
+          case:
+            steps:
+              pipeline:
+                - map: @tests
+                  with: @steps
+                - flatten: {}
+                - filter:
+                    title: @query
+            scenarios:
+              pipeline:
+                - filter: @tests
+                  with:
+                    title:
+                      like: @query
+
     scenario-item-view:
       tag: div
       attrs:
