@@ -29,7 +29,12 @@ spec:
     tests:
       model:
         tests: @data.tests.body
-        filtered: @data.tests.body
+        filtered:
+          encoder: filtered
+          params:
+            tests: @data.tests.body
+            query: @model.query
+            mode: @model.mode
       cmds:
         ui: {}
     query:
@@ -39,14 +44,19 @@ spec:
           encoder: filtered
           params:
             tests: @model.tests
-            query: @data.query
+            query: @model.query
             mode: @model.mode
       cmds:
         ui: {}
     clear-search:
       model:
         query: ""
-        filtered: @model.tests
+        filtered:
+          encoder: filtered
+          params:
+            tests: @model.tests
+            query: "" 
+            mode: @model.mode
       cmds:
         ui: {}
     set-mode:
@@ -71,28 +81,22 @@ spec:
         loop: @filtered
         with: scenario-item-view
     filtered:
-      either:
-        - when:
-            equal:
-              - ""
-              - @query
-          then: @tests
-        - switch: @mode
-          case:
-            steps:
-              pipeline:
-                - map: @tests
-                  with: @steps
-                - flatten: {}
-                - filter:
-                    title: @query
-            scenarios:
-              pipeline:
-                - filter: @tests
-                  with:
-                    title:
-                      like: @query
-
+      switch: @mode
+      case:
+        steps:
+          pipeline:
+            - flat_map: @tests
+              with: @steps
+            - filter: @items
+              with:
+                title: 
+                  like: @query
+        scenarios:
+          pipeline:
+            - filter: @tests
+              with:
+                title:
+                  like: @query
     scenario-item-view:
       tag: div
       attrs:
