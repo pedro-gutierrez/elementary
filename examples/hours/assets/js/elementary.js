@@ -223,7 +223,7 @@ export default (appUrl, appEffects) => {
         var encoderCtx = ctx;
         if (spec.params) {
             var { err, value } = encode(spec.params, ctx);
-            if (err) return error(spec.params, ctx, err);
+            if (err) return error(encoder.params, ctx, err);
             encoderCtx = value;
         }
         return encode(enc, encoderCtx);
@@ -564,12 +564,16 @@ export default (appUrl, appEffects) => {
     function encodePipeline(spec, ctx) {
         var specs = spec.pipeline;
         if (!Array.isArray(specs)) return error(spec, ctx, "not a list of specs");
-        var value = ctx;
+        var pCtx = Object.assign({}, ctx);
+        var as = spec.as || "items";
         for (var i = 0; i < specs.length; i++) {
-            var { err, value } = encode(specs[i], value);
-            if (err) return error(specs[i], value, err);
+            var pSpec = specs[i];
+            var { err, value } = encode(pSpec, pCtx);
+            if (err) return error(pSpec, value, err);
+            pCtx[as] = value;
+
         }
-        return { value };
+        return { value: pCtx[as] };
     }
 
     function encodeFilter(spec, ctx) {
@@ -586,6 +590,39 @@ export default (appUrl, appEffects) => {
             }
         }
         return { value: out };
+    }
+
+    function encodeMap(spec, ctx) {
+        var { err, value } = encode(spec.map, ctx);
+        if (err) return error(spec.filter, ctx, err);
+        if (!Array.isArray(value)) return error(spec.map, value, "Not a list");
+        var items = value;
+
+        var out = [];
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var itemCtx = ctx;
+            if (spec.as) {
+                itemCtx[as] = item;
+            } else {
+                itemCtx = Object.assign(ctx, item);
+            }
+            var { err, value } = encode(spec.with, itemCtx);
+            if (err) return error(spec.with, ctx, err);
+            out.push(value);
+        }
+
+        if (spec.flatten == true) {
+            out = out.flat();
+        }
+        return { value: out };
+    }
+
+    function encodeFlatmap(spec, ctx) {
+        return encodeMap(Object.assign(spec, {
+            map: spec.flat_map,
+            flatten: true
+        }), ctx);
     }
 
     function encode(spec, ctx) {
@@ -638,6 +675,8 @@ export default (appUrl, appEffects) => {
                 if (spec.lower_than) return encodeLowerThan(spec, ctx);
                 if (spec.regex) return encodeRegex(spec, ctx);
                 if (spec.pipeline) return encodePipeline(spec, ctx);
+                if (spec.map) return encodeMap(spec, ctx);
+                if (spec.flat_map) return encodeFlatmap(spec, ctx);
                 if (spec.filter) return encodeFilter(spec, ctx);
                 if (!Object.keys(spec).length) return { value: {} };
                 return encodeObject({ object: spec }, ctx)
