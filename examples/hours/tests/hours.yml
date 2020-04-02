@@ -25,7 +25,7 @@ spec:
       content-type: application/json
     visibility: public
   scenarios:
-    - title: Should have a healtcheck
+    - title: Should have a healthcheck
       steps:
         - When I get the health
         - Then I should have a 200
