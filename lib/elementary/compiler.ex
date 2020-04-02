@@ -831,6 +831,8 @@ defmodule Elementary.Compiler do
              ) do
            step_title = current["title"]
            step_spec = current["spec"]
+           scenario_id = id(scenario_title)
+           step_id = id(step_title, scenario_title)
            started = Elementary.Kit.now()
 
            case Elementary.Encoder.encode(step_spec, context) do
@@ -849,6 +851,8 @@ defmodule Elementary.Compiler do
 
                step_trace = %{
                  title: step_title,
+                 id: step_id,
+                 scenario: scenario_id,
                  status: :success,
                  time: elapsed,
                  spec: step_spec,
@@ -879,6 +883,8 @@ defmodule Elementary.Compiler do
 
                step_trace = %{
                  title: step_title,
+                 id: step_id,
+                 scenario: scenario_id,
                  status: :error,
                  time: elapsed,
                  spec: step_spec,
@@ -934,7 +940,8 @@ defmodule Elementary.Compiler do
            scenario_trace = %{
              title: title,
              status: :success,
-             time: elapsed
+             time: elapsed,
+             id: id(title)
            }
 
            {:noreply,
@@ -981,9 +988,14 @@ defmodule Elementary.Compiler do
                 %{scenarios: scenarios, scenario: %{steps: steps}} = trace,
                 scenario_trace
               ) do
+
+          scenario_trace =
+            scenario_trace 
+            |> Map.put(:steps, Enum.reverse(steps))
+
            %{
              trace
-             | scenarios: [Map.put(scenario_trace, :steps, Enum.reverse(steps)) | scenarios],
+             | scenarios: [scenario_trace| scenarios],
                scenario: nil
            }
          end
@@ -1001,6 +1013,17 @@ defmodule Elementary.Compiler do
            File.write!(path, Jason.encode!(scenarios))
            Logger.info("Written #{path}")
          end
+
+         defp id(title) do
+          :sha256
+          |> :crypto.hash(String.downcase(title))
+          |>  Base.encode16
+         end
+
+         defp id(title, parent) do
+          id(parent <> title)
+         end
+
        end}
     ]
   end
