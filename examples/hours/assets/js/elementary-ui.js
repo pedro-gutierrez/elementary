@@ -231,6 +231,27 @@ export default (name, settings, app) => {
     //}
 
 
+    function compileCode(views, spec, ctx) {
+        var { err, value } = encode(spec.code.source, ctx);
+        if (err) return error(spec, ctx, err);
+        var source = value;
+
+        var { err, value } = encode(spec.code.lang || 'json', ctx);
+        if (err) return error(spec, ctx, err);
+        if (value === 'json' && typeof (source) === 'object') {
+            source = JSON.stringify(source, null, 2)
+        }
+        var lang = 'language-' + value;
+        return {
+            view: ['pre', {
+                class: lang
+            }, ['code', {
+                class: lang
+            }, source]]
+        };
+    }
+
+
     function compileJsonAttrs(attrs) {
         var out = {};
         attrs.forEach((a) => {
