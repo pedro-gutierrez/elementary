@@ -13,3 +13,15 @@ input {
 .has-icons-right i {
     color: #3e4657 !important;
 }
+
+.pointer {
+    cursor: pointer;
+}
+
+.tag-normal {
+    width: 70px !important;
+}
+
+.tag-small {
+    width: 50px !important;
+}

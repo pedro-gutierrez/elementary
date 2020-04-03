@@ -7,6 +7,8 @@ spec:
       mode: scenarios
       query: ""
       filtered: []
+      current: ""
+      view: scenarios-view
     cmds:
       http: get-tests
   decoders:
@@ -25,6 +27,12 @@ spec:
       set-mode:
         mode:
           any: text
+      show-scenario:
+        show-scenario:
+          any: object
+      show-step:
+        show-step:
+          any: object
   update:
     tests:
       model:
@@ -55,19 +63,37 @@ spec:
           encoder: filtered
           params:
             tests: @model.tests
-            query: "" 
+            query: ""
             mode: @model.mode
       cmds:
         ui: {}
     set-mode:
       model:
         mode: @data.mode
-        filtered: 
+        filtered:
           encoder: filtered
           params:
             tests: @model.tests
             query: @model.query
             mode: @data.mode
+        view:
+          encoder: view-for-mode
+          params:
+            mode: @data.mode
+      cmds:
+        ui: {}
+    show-scenario:
+      model:
+        mode: scenarios
+        current: @data.show-scenario
+        view: scenario-view
+      cmds:
+        ui: {}
+    show-step:
+      model:
+        mode: steps
+        current: @data.show-step
+        view: step-view
       cmds:
         ui: {}
   encoders:
@@ -75,11 +101,6 @@ spec:
       method: get
       path: /tests.json
       as: tests
-    tests-view:
-      tag: div
-      children:
-        loop: @filtered
-        with: scenario-item-view
     filtered:
       switch: @mode
       case:
@@ -89,7 +110,7 @@ spec:
               with: @steps
             - filter: @items
               with:
-                title: 
+                title:
                   like: @query
         scenarios:
           pipeline:
@@ -97,29 +118,103 @@ spec:
               with:
                 title:
                   like: @query
+    view-for-mode:
+      format: "{{ mode }}-view"
+    scenarios-view:
+      tag: div
+      children:
+        loop: @filtered
+        with: scenario-item-view
+    steps-view:
+      tag: div
+      children:
+        loop: @filtered
+        with: step-item-view
     scenario-item-view:
       tag: div
       attrs:
-        class: box
+        key: @id
+        class: pointer
+        onclick:
+          show-scenario:
+            data: @
+      children:
+        - view: summary-view
+    step-item-view:
+      tag: div
+      attrs:
+        key: @id
+        class: pointer
+        onclick:
+          show-step:
+            data: @
+      children:
+        - view: summary-view
+    scenario-view:
+      tag: div
+      children:
+        - tag: div
+          children:
+            - view: summary-view
+              params: @current
+        - tag: div
+          children:
+            loop: @current.steps
+            with: summary-view
+    summary-view:
+      tag: div
       children:
         - view: tags-view
           params:
             tags:
               - label: @status
                 color: success
+                size: normal
               - label:
                   format: "{{ time }}ms"
                 color: light
-        - tag: h5
+                size: small
+        - tag: h6
           attrs:
-            class: title is-5
+            class: title is-6 is-clearfix
           children:
-            - @title
-    steps-view:
-      tag: div
-      children:
-        loop: @steps
-        with: step-item-view
+            - tag: div
+              attrs:
+                style:
+                  display: flex
+                  align-items: center
+              children:
+                - view: icon-view
+                  params:
+                    icon:
+                      encoder: icon-for-item
+                - tag: span
+                  attrs:
+                    style:
+                      margin-left: 15px
+                  children:
+                    - @title
+    icon-for-item:
+      either:
+        - when:
+            has: steps
+          then: fas fa-list-ol
+        - when:
+            match:
+              title:
+                like: Given
+          then: fas fa-thumbtack
+        - when:
+            match:
+              title:
+                like: When
+          then: fas fa-arrow-up
+        - when:
+            match:
+              title:
+                like: Then
+          then: fas fa-check
+        - then: fas fa-question
     step-item-view:
       tag: div
       children:
@@ -148,14 +243,24 @@ spec:
       tag: span
       attrs:
         class:
-          format: "tag is-{{color}}"
+          format: "tag tag-{{size}} is-{{color}}"
       children:
         - capitalize: @label
     icon-view:
       tag: span
       attrs:
-        class: icon
+        class: icon is-medium
       children:
-        - tag: i
+        - tag: span
           attrs:
-            class: @icon
+            class: fa-stack
+          children:
+            - tag: i
+              attrs:
+                style:
+                  color: "#434C5E"
+                class: fas fa-circle fa-stack-2x
+            - tag: i
+              attrs:
+                class:
+                  format: "fa-stack-1x fa-inverse {{icon}}"

@@ -13,7 +13,7 @@ spec:
         - view: nav-view
         - view: container-view
           params:
-            content-view: tests-view
+            content-view: @view
             content: @
     nav-view:
       tag: nav
@@ -86,7 +86,7 @@ spec:
       attrs:
         onclick:
           mode: @mode
-        class: 
+        class:
           either:
             - when:
                 equal:
