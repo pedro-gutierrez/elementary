@@ -277,9 +277,23 @@ export default (appUrl, appEffects) => {
     //    return error(spec, data, "any spec not supported");
     //}
 
-    //function encodeExpression(spec, data, ctx) {
-    //    return {value: spec.expression};
-    //}
+    function encodeData(spec, data, ctx) {
+        return {value: spec.data};
+    }
+
+    function encodeHas(spec, ctx) {
+        var {err, value} = encode(spec.has, ctx);
+        if (err) return error(spec.has, ctx, err);
+        return {value: ctx.hasOwnProperty(value)};
+    }
+
+    function encodeMatch(spec, ctx) {
+        var {err, value} = encode(spec.match, ctx);
+        if (err) return error(spec.match, ctx, err);
+        var {err, decoded} = decode(value, ctx);
+        return {value: !err};
+    }
+
 
     //function encodeEncoded(spec, data, ctx) {
     //    var {err, value} = encode(spec.encoded, data, ctx);
@@ -672,7 +686,6 @@ export default (appUrl, appEffects) => {
                 if (spec.one_of) return encodeOneOf(spec, ctx);
                 if (spec.effect) return encodeCmd(spec, ctx);
                 if (spec.encoder) return encodeUsingEncoder(spec, ctx);
-                //if (spec.encode) return encodeUsingExpression(spec, ctx);
                 if (spec.percent) return encodePercent(spec, ctx);
                 if (spec.is_set) return encodeIsSet(spec, ctx);
                 if (spec.not) return encodeNot(spec, ctx);
@@ -687,8 +700,6 @@ export default (appUrl, appEffects) => {
                 if (spec.merged_list) return encodeMergedList(spec, ctx);
                 if (spec.merge) return encodeMergedObject(spec, ctx);
                 if (spec.iterate) return encodeIterate(spec, ctx);
-                //if (spec.expression) return encodeExpression(spec, ctx);
-                //if (spec.encoded) return encodeEncoded(spec, ctx);
                 if (spec.prettify) return encodePrettify(spec, ctx);
                 if (spec.percent) return encodePercent(spec, ctx);
                 if (spec.divide) return encodeDivide(spec, ctx);
@@ -705,6 +716,9 @@ export default (appUrl, appEffects) => {
                 if (spec.flat_map) return encodeFlatmap(spec, ctx);
                 if (spec.filter) return encodeFilter(spec, ctx);
                 if (spec.unique) return encodeUnique(spec, ctx);
+                if (spec.data) return encodeData(spec, ctx);
+                if (spec.has) return encodeHas(spec, ctx);
+                if (spec.match) return encodeMatch(spec, ctx);
                 if (!Object.keys(spec).length) return { value: {} };
                 return encodeObject({ object: spec }, ctx)
             case "string":
