@@ -154,13 +154,30 @@ spec:
       tag: div
       children:
         - tag: div
+          attrs:
+            class: pointer
+            onclick:
+              show-scenario:
+                data: @current
           children:
             - view: summary-view
               params: @current
         - tag: div
           children:
             loop: @current.steps
-            with: summary-view
+            with: step-item-view
+    step-view:
+      tag: div
+      children:
+        - tag: div
+          attrs:
+            class: pointer
+            onclick:
+              show-scenario:
+                data: @current
+          children:
+            - view: summary-view
+              params: @current
     summary-view:
       tag: div
       children:
@@ -215,23 +232,6 @@ spec:
                 like: Then
           then: fas fa-check
         - then: fas fa-question
-    step-item-view:
-      tag: div
-      children:
-        - view: icon-view
-          params:
-            icon:
-              either:
-                - when:
-                    regex: Given
-                    in: @title
-                  then: fas fa-thumbtack
-                - when:
-                    regex: When
-                    in: @title
-                  then: fas fa-upload
-                - then: fas fa-check
-        - @title
     tags-view:
       tag: div
       attrs:
