@@ -988,14 +988,13 @@ defmodule Elementary.Compiler do
                 %{scenarios: scenarios, scenario: %{steps: steps}} = trace,
                 scenario_trace
               ) do
-
-          scenario_trace =
-            scenario_trace 
-            |> Map.put(:steps, Enum.reverse(steps))
+           scenario_trace =
+             scenario_trace
+             |> Map.put(:steps, Enum.reverse(steps))
 
            %{
              trace
-             | scenarios: [scenario_trace| scenarios],
+             | scenarios: [scenario_trace | scenarios],
                scenario: nil
            }
          end
@@ -1015,15 +1014,14 @@ defmodule Elementary.Compiler do
          end
 
          defp id(title) do
-          :sha256
-          |> :crypto.hash(String.downcase(title))
-          |>  Base.encode16
+           :sha256
+           |> :crypto.hash(String.downcase(title))
+           |> Base.encode16()
          end
 
          defp id(title, parent) do
-          id(parent <> title)
+           id(parent <> title)
          end
-
        end}
     ]
   end
