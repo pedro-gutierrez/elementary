@@ -3,10 +3,41 @@ name: ui_hello
 spec:
   init:
     cmds:
-      ui: layout-view
+      ui: downloading-view
   decoders: {}
   update: {}
   encoders:
+    downloading-view:
+      view: loading-view
+      params:
+        title: @title
+        subtitle: Downloading data
+    loading-view:
+      tag: section
+      attrs:
+        class: section is-large
+        style:
+          text-align: center
+      children:
+        - tag: div
+          attrs:
+            class: icon is-large
+          children:
+            - tag: i
+              attrs:
+                class: fas fa-cubes
+                style:
+                  font-size: 2.5em
+        - tag: h4
+          attrs:
+            class: title is-4 is-capitalized
+          children:
+            - @title
+        - tag: h6
+          attrs:
+            class: subtitle is-6
+          children:
+            - @subtitle
     layout-view:
       tag: div
       children:

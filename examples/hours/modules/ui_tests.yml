@@ -50,7 +50,7 @@ spec:
             query: @model.query
             mode: @model.mode
       cmds:
-        ui: {}
+        ui: layout-view
     query:
       model:
         query: @data.query
