@@ -333,7 +333,7 @@ spec:
           children:
             - tag: nav
               attrs:
-                class: breadcrumb has-arrow-separator
+                class: breadcrumb
                 aria-label: breadcrumbs
               children:
                 - tag: ul
@@ -343,7 +343,6 @@ spec:
                         label: @mode
                         onclick:
                           mode: @mode
-                        icon: fas fa-home
                     - view: breadcrumb-item-view
                       when:
                         is_set: @scenario
@@ -351,7 +350,6 @@ spec:
                         label: @scenario.title
                         onclick:
                           show-scenario: @scenario.id
-                        icon: fas fa-list-ol
                     - view: breadcrumb-item-view
                       when:
                         is_set: @step
@@ -359,9 +357,6 @@ spec:
                         label: @step.title
                         onclick:
                           show-step: @step.id
-                        icon:
-                          encoder: icon-for-item
-                          params: @step
 
     breadcrumb-item-view:
       tag: li
@@ -371,5 +366,4 @@ spec:
             onclick: @onclick
             href: "#"
           children:
-            - view: icon-view
             - @label

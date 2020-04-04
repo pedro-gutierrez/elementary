@@ -3,12 +3,13 @@ body, body * {
 }
 
 nav.navbar {
+    border-bottom: 1px dashed #3e4657;
 }
 
 nav.navbar input {
     background-color: #242933 !important;
-    border-color: #242933 !important;
-    padding: 18px 18px 18px 18px;
+    border: 0 !important;
+    padding: 19px 18px 19px 18px;
     color: #D8DEE9 !important;
 }
 
@@ -40,12 +41,12 @@ input {
     width: 50px !important;
 }
 
-.breadcrumb {
-    font-size: 0.8rem;
+.breadcrumb li a, .breadcrumb li::before {
+    color: #3e4657 !important;
 }
 
-.breadcrumb li a, .breadcrumb *::before {
-    color: #3e4657 !important;
+.breadcrumb li a:hover {
+    color: #88C0D0 !important;
 }
 
 .breadcrumb a span {
