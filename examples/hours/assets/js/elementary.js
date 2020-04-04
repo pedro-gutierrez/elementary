@@ -178,11 +178,7 @@ export default (appUrl, appEffects) => {
         var { err, value } = encode(spec.is_set, ctx);
         if (err) return error(spec, ctx, err);
         if (!value) return { value: false };
-        switch (typeof (value)) {
-            case 'string':
-                return value.length ? { value: true } : { value: false };
-        }
-        return { value: true }
+        return {value: !isEmpty(value)};
     }
 
     function encodeNot(spec, ctx) {
