@@ -98,12 +98,19 @@ spec:
         ui: {}
     show-step:
       model:
-        mode: steps
-        step:
-          resolve:
-            - model.indexed
-            - @data.show-step
-        view: step-view
+        let:
+          step:
+            resolve:
+              - model.indexed
+              - @data.show-step
+        in:
+          mode: steps
+          step: @step
+          view: step-view
+          scenario:
+            resolve:
+              - model.indexed
+              - @step.scenario
       cmds:
         ui: {}
   encoders:
@@ -195,8 +202,6 @@ spec:
           children:
             - view: summary-view
               params: @step
-        - view: back-to-scenario-view
-          params: @step
     summary-view:
       tag: div
       children:
@@ -234,18 +239,6 @@ spec:
                   margin-left: 15px
               children:
                 - @title
-
-    back-to-scenario-view:
-      tag: div
-      attrs:
-        class: pointer
-        onclick:
-          show-scenario: @scenario
-      children:
-        - view: item-title-view
-          params:
-            icon: fas fa-list-ol
-            title: View scenario
     icon-for-item:
       either:
         - when:
