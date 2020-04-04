@@ -393,6 +393,14 @@ export default (appUrl, appEffects) => {
         }
     }
 
+    function encodeLet(spec, ctx) {
+        var {err, value} = encode(spec.let, ctx);
+        if (err) return error(spec.let, ctx, err);
+        var letCtx = Object.assign({}, ctx, value);
+        return encode(spec.in, letCtx);
+    }
+
+
 
 
     //function encodeEncoded(spec, data, ctx) {
@@ -822,6 +830,7 @@ export default (appUrl, appEffects) => {
                 if (spec.combine) return encodeCombine(spec, ctx);
                 if (spec.index) return encodeIndex(spec, ctx);
                 if (spec.resolve) return encodeResolve(spec, ctx);
+                if (spec.let) return encodeLet(spec, ctx);
                 if (!Object.keys(spec).length) return { value: {} };
                 return encodeObject({ object: spec }, ctx)
             case "string":

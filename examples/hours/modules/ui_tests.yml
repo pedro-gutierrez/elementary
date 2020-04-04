@@ -167,6 +167,8 @@ spec:
         - view: summary-view
     scenario-view:
       tag: div
+      attrs:
+        key: @scenario.id
       children:
         - tag: div
           attrs:
@@ -182,6 +184,8 @@ spec:
             with: step-item-view
     step-view:
       tag: div
+      attrs:
+        key: @step.id
       children:
         - tag: div
           attrs:
@@ -191,8 +195,8 @@ spec:
           children:
             - view: summary-view
               params: @step
-              ##- view: back-to-scenario-view
-              ##  params: @scenario
+        - view: back-to-scenario-view
+          params: @step
     summary-view:
       tag: div
       children:
@@ -233,12 +237,15 @@ spec:
 
     back-to-scenario-view:
       tag: div
+      attrs:
+        class: pointer
+        onclick:
+          show-scenario: @scenario
       children:
         - view: item-title-view
           params:
             icon: fas fa-list-ol
-            title: @title
-            id: @id
+            title: View scenario
     icon-for-item:
       either:
         - when:
