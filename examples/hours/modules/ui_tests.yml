@@ -3,6 +3,7 @@ name: ui_tests
 spec:
   init:
     model:
+      delay: 0
       tests: []
       indexed: {}
       mode: scenarios
@@ -12,7 +13,8 @@ spec:
       scenario: {}
       step: {}
     cmds:
-      http: get-tests
+      ui: downloading-view
+      events: ready
   decoders:
     http:
       tests:
@@ -36,30 +38,36 @@ spec:
         show-step:
           any: text
     events:
-      loaded:
-        loaded:
+      ready:
+        ready:
+          any: object
+      downloaded:
+        downloaded:
           any: object
       indexed:
         indexed:
           any: object
   update:
+    ready:
+      cmds:
+        http: get-tests
     tests:
       model:
         tests: @data.tests.body
       cmds:
         ui: indexing-view
-        events: loaded
-    loaded:
+        events: downloaded
+    downloaded:
       model:
         let:
           tests: @model.tests
         in:
           indexed:
-            encoder: indexed
+            encoder: index-data
             params:
               scenarios: @tests
           filtered:
-            encoder: filtered
+            encoder: filter-data
             params:
               tests: @tests
               query: @model.query
@@ -136,22 +144,27 @@ spec:
       cmds:
         ui: {}
   encoders:
-    loaded:
-      loaded: {}
+    ready:
+      ready: {}
+      delay: @delay
+    downloaded:
+      downloaded: {}
+      delay: @delay
     indexed:
       indexed: {}
+      delay: @delay
     get-tests:
       method: get
       path: /tests.json
       as: tests
-    indexed:
+    index-data:
       pipeline:
         - flat_map: @scenarios
           with: @steps
         - combine: @items
           with: @scenarios
         - index: {}
-    filtered:
+    filter-data:
       switch: @mode
       case:
         steps:

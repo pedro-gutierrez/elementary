@@ -5,8 +5,12 @@ export default (name, settings, app) => {
         if (err) {
             console.error("Encode error", err);
         } else {
+            var delay = 0;
+            if (value.delay && typeof(value.delay) == 'number') {
+                delay = value.delay;
+            }
             value.effect = name;
-            setTimeout(() => { update(value); }, 0);
+            setTimeout(() => { update(value); }, delay);
         }
     }
 };
