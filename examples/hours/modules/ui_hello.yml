@@ -11,6 +11,7 @@ spec:
       tag: div
       children:
         - view: nav-view
+        - view: breadcrumbs-view
         - view: container-view
           params:
             content-view: @view
@@ -134,16 +135,12 @@ spec:
         title: @title
         subtitle: Examples
     container-view:
-      tag: section
+      tag: div
       attrs:
-        class: section
+        class: container
       children:
-        - tag: div
-          attrs:
-            class: container
-          children:
-            - view: @content-view
-              params: @content
+        - view: @content-view
+          params: @content
     hero-view:
       tag: section
       attrs:

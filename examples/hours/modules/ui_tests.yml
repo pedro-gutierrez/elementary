@@ -9,6 +9,8 @@ spec:
       query: ""
       filtered: []
       view: scenarios-view
+      scenario: {}
+      step: {}
     cmds:
       http: get-tests
   decoders:
@@ -84,6 +86,8 @@ spec:
           encoder: view-for-mode
           params:
             mode: @data.mode
+        scenario: {}
+        step: {}
       cmds:
         ui: {}
     show-scenario:
@@ -292,3 +296,48 @@ spec:
               attrs:
                 class:
                   format: "fa-stack-1x fa-inverse {{icon}}"
+    breadcrumbs-view:
+      tag: section
+      attrs:
+        class: section
+      children:
+        - tag: div
+          attrs:
+            class: container
+          children:
+            - tag: nav
+              attrs:
+                class: breadcrumb has-bullet-separator
+                aria-label: breadcrumbs
+              children:
+                - tag: ul
+                  children:
+                    - view: breadcrumb-item-view
+                      params:
+                        label: @mode
+                        onclick:
+                          mode: @mode
+                    - view: breadcrumb-item-view
+                      when:
+                        is_set: @scenario
+                      params:
+                        label: @scenario.title
+                        onclick:
+                          show-scenario: @scenario.id
+                    - view: breadcrumb-item-view
+                      when:
+                        is_set: @step
+                      params:
+                        label: @step.title
+                        onclick:
+                          show-step: @step.id
+
+    breadcrumb-item-view:
+      tag: li
+      children:
+        - tag: a
+          attrs:
+            onclick: @onclick
+            href: "#"
+          children:
+            - @label

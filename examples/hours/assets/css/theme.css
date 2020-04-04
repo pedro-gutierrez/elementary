@@ -25,3 +25,15 @@ input {
 .tag-small {
     width: 50px !important;
 }
+
+.breadcrumb li a, .breadcrumb *::before {
+    color: #3e4657 !important;
+}
+
+.breadcrumb li a:hover {
+    color: #76b6c9 !important;
+}
+
+.breadcrumb li a {
+    text-transform: capitalize;
+}
