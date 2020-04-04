@@ -4,10 +4,10 @@ spec:
   init:
     model:
       tests: []
+      indexed: {}
       mode: scenarios
       query: ""
       filtered: []
-      current: ""
       view: scenarios-view
     cmds:
       http: get-tests
@@ -29,14 +29,18 @@ spec:
           any: text
       show-scenario:
         show-scenario:
-          any: object
+          any: text
       show-step:
         show-step:
-          any: object
+          any: text
   update:
     tests:
       model:
         tests: @data.tests.body
+        indexed:
+          encoder: indexed
+          params:
+            scenarios: @data.tests.body
         filtered:
           encoder: filtered
           params:
@@ -85,14 +89,20 @@ spec:
     show-scenario:
       model:
         mode: scenarios
-        current: @data.show-scenario
+        scenario:
+          resolve:
+            - model.indexed
+            - @data.show-scenario
         view: scenario-view
       cmds:
         ui: {}
     show-step:
       model:
         mode: steps
-        current: @data.show-step
+        step:
+          resolve:
+            - model.indexed
+            - @data.show-step
         view: step-view
       cmds:
         ui: {}
@@ -101,6 +111,13 @@ spec:
       method: get
       path: /tests.json
       as: tests
+    indexed:
+      pipeline:
+        - flat_map: @scenarios
+          with: @steps
+        - combine: @items
+          with: @scenarios
+        - index: {}
     filtered:
       switch: @mode
       case:
@@ -136,8 +153,7 @@ spec:
         key: @id
         class: pointer
         onclick:
-          show-scenario:
-            data: @
+          show-scenario: @id
       children:
         - view: summary-view
     step-item-view:
@@ -146,8 +162,7 @@ spec:
         key: @id
         class: pointer
         onclick:
-          show-step:
-            data: @
+          show-step: @id
       children:
         - view: summary-view
     scenario-view:
@@ -157,14 +172,13 @@ spec:
           attrs:
             class: pointer
             onclick:
-              show-scenario:
-                data: @current
+              show-scenario: @scenario.id
           children:
             - view: summary-view
-              params: @current
+              params: @scenario
         - tag: div
           children:
-            loop: @current.steps
+            loop: @scenario.steps
             with: step-item-view
     step-view:
       tag: div
@@ -173,11 +187,12 @@ spec:
           attrs:
             class: pointer
             onclick:
-              show-scenario:
-                data: @current
+              show-step: @step.id
           children:
             - view: summary-view
-              params: @current
+              params: @step
+              ##- view: back-to-scenario-view
+              ##  params: @scenario
     summary-view:
       tag: div
       children:
@@ -191,26 +206,39 @@ spec:
                   format: "{{ time }}ms"
                 color: light
                 size: small
-        - tag: h6
+        - view: item-title-view
+          params:
+            icon:
+              encoder: icon-for-item
+            title: @title
+            id: @id
+    item-title-view:
+      tag: h6
+      attrs:
+        class: title is-6 is-clearfix
+      children:
+        - tag: div
           attrs:
-            class: title is-6 is-clearfix
+            style:
+              display: flex
+              align-items: center
           children:
-            - tag: div
+            - view: icon-view
+            - tag: span
               attrs:
                 style:
-                  display: flex
-                  align-items: center
+                  margin-left: 15px
               children:
-                - view: icon-view
-                  params:
-                    icon:
-                      encoder: icon-for-item
-                - tag: span
-                  attrs:
-                    style:
-                      margin-left: 15px
-                  children:
-                    - @title
+                - @title
+
+    back-to-scenario-view:
+      tag: div
+      children:
+        - view: item-title-view
+          params:
+            icon: fas fa-list-ol
+            title: @title
+            id: @id
     icon-for-item:
       either:
         - when:

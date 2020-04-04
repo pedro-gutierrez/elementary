@@ -38,6 +38,16 @@ export default (appUrl, appEffects) => {
         return [].concat(...arr)
     }
 
+    function getIn(paths, ctx){
+        var value = ctx;
+        for (var i = 0; i < paths.length; i++) {
+            var path = paths[i];
+            if (!value.hasOwnProperty(path)) return error(path, value, "Missing key");
+            value = value[path];
+        }
+        return {value};
+    }
+
     function encodeObject(spec, ctx) {
         var out = {};
         for (var k in spec.object) {
@@ -50,18 +60,12 @@ export default (appUrl, appEffects) => {
         return { value: out };
     }
 
+
     function encodeKey(spec, ctx) {
         if (!ctx) return error(spec, ctx, "Missing context");
         if (!spec.key.length) return error(spec, ctx, "Invalid key spec");
         if (spec.key === "@") return { value: ctx };
-        var paths = spec.key.substring(1).split(".");
-        var value = ctx;
-        for (var i = 0; i < paths.length; i++) {
-            var path = paths[i];
-            if (!value.hasOwnProperty(path)) return error(path, value, "Missing key");
-            value = value[path];
-        }
-        return { value };
+        return getIn(spec.key.substring(1).split("."), ctx);
     }
 
     function encodeList(items, ctx) {
@@ -293,6 +297,102 @@ export default (appUrl, appEffects) => {
         var {err, decoded} = decode(value, ctx);
         return {value: !err};
     }
+
+    function encodeCombine(spec, ctx) {
+        var path = isEmpty(spec.combine) ? "@items" : spec.combine;
+
+        var {err, value} = encode(path, ctx);
+        if (err) return error(path, ctx, err);
+        var source = value;
+
+        var {err, value} = encode(spec.with, ctx);
+        if (err) return error(spec.with, ctx, err);
+        var dest = value;
+
+        var sourceType = typeOf(source);
+        var destType = typeOf(dest);
+
+        if (sourceType != destType) return error(spec, ctx, {
+            reason: "Type mismatch",
+            data: dest,
+            actualType: dest,
+            expectedType: sourceType
+        });
+
+        switch(sourceType) {
+            case "object" :
+                return {value: Object.assign(source, dest)}
+            case "list" :
+                return {value: source.concat(dest)};
+            default:
+                return {value: source + dest}
+        }
+    }
+
+    function encodeIndex(spec, ctx) {
+        var path = isEmpty(spec.index) ? "@items" : spec.index;
+        var {err, value} = encode(path, ctx);
+        if (err) return error(path, ctx, err);
+        var source = value;
+
+        var sourceType = typeOf(source);
+        if (sourceType != "list") return error(spec, ctx, {
+            reason: "Type mismatch",
+            data: source,
+            actualType: sourceType,
+            expectedType: "list"
+        });
+
+        var indexExpr = isEmpty(spec.with) ? "@item.id" : spec.with;
+
+        var out = {}
+        for( var i=0; i<source.length; i++) {
+
+            var item = source[i];
+            var itemCtx = Object.assign({}, ctx);
+            itemCtx[spec.as || "item"] = item;
+
+            var {err, value} = encode(indexExpr, itemCtx);
+            if(err) return error(indexExpr, itemCtx, err);
+
+            var key = value;
+            var keyType = typeOf(key);
+            if( keyType != 'text') return error(indexExpr, itemCtx, {
+                reason: "Type mismatch",
+                data: value,
+                actualType: typeOf(value),
+                expectedType: "text"
+            });
+            out[key] = item;
+        }
+        return {value: out};
+
+    }
+
+
+    function encodeResolve(spec, ctx) {
+        var {err, value} = encode(spec.resolve, ctx);
+        if (err) return error(spec.resolve, ctx, err);
+        var path = value;
+        var pathType = typeOf(path);
+        switch (pathType) {
+            case 'list':
+                path = "@" + path.join(".");
+                return encodeKey({key: path}, ctx);
+
+            case 'text':
+                return getIn([path], ctx);
+
+            default:
+                return error(spec, ctx, {
+                    reason: "Type mismatch",
+                    data: path,
+                    expectedType: ['list', 'text'],
+                    actualType: pathType
+                });
+        }
+    }
+
 
 
     //function encodeEncoded(spec, data, ctx) {
@@ -719,6 +819,9 @@ export default (appUrl, appEffects) => {
                 if (spec.data) return encodeData(spec, ctx);
                 if (spec.has) return encodeHas(spec, ctx);
                 if (spec.match) return encodeMatch(spec, ctx);
+                if (spec.combine) return encodeCombine(spec, ctx);
+                if (spec.index) return encodeIndex(spec, ctx);
+                if (spec.resolve) return encodeResolve(spec, ctx);
                 if (!Object.keys(spec).length) return { value: {} };
                 return encodeObject({ object: spec }, ctx)
             case "string":
