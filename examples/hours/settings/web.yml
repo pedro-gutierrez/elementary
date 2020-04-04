@@ -3,6 +3,6 @@ name: web
 spec:
   debug: true
   telemetry: true
-  title: timeboxed
+  title: Timeboxed
   baseUrl:
     env: ELEMENTARY_WEBROOT

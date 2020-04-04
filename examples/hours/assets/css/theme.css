@@ -2,8 +2,22 @@ body, body * {
     font-family: 'IBM Plex Mono', monospace;
 }
 
+nav.navbar {
+}
+
+nav.navbar input {
+    background-color: #242933 !important;
+    border-color: #242933 !important;
+    padding: 18px 18px 18px 18px;
+    color: #D8DEE9 !important;
+}
+
 .button {
     text-transform: capitalize;
+}
+
+.footer {
+    background-color: #242933;
 }
 
 input {
@@ -26,14 +40,25 @@ input {
     width: 50px !important;
 }
 
+.breadcrumb {
+    font-size: 0.8rem;
+}
+
 .breadcrumb li a, .breadcrumb *::before {
     color: #3e4657 !important;
 }
 
-.breadcrumb li a:hover {
-    color: #76b6c9 !important;
+.breadcrumb a span {
+    margin-right: 7px;
+    padding: 3px 7px 3px 7px;
 }
 
 .breadcrumb li a {
     text-transform: capitalize;
+}
+
+.icon-outline-rounded {
+    border: 1px solid;
+    border-radius: 50%;
+    padding: 7px 10px 7px 10px;
 }

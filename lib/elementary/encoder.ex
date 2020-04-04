@@ -587,6 +587,12 @@ defmodule Elementary.Encoder do
     end
   end
 
+  def encode(%{"capitalize" => text}, context, encoders) do
+    with {:ok, text} when is_binary(text) <- encode(text, context, encoders) do
+      {:ok, String.capitalize(text)}
+    end
+  end
+
   def encode(%{"trim" => text}, context, encoders) do
     with {:ok, text} when is_binary(text) <- encode(text, context, encoders) do
       {:ok, String.trim(text)}

@@ -81,7 +81,7 @@ spec:
       model:
         query: @data.query
         filtered:
-          encoder: filtered
+          encoder: filter-data
           params:
             tests: @model.tests
             query: @model.query
@@ -92,7 +92,7 @@ spec:
       model:
         query: ""
         filtered:
-          encoder: filtered
+          encoder: filter-data
           params:
             tests: @model.tests
             query: ""
@@ -103,7 +103,7 @@ spec:
       model:
         mode: @data.mode
         filtered:
-          encoder: filtered
+          encoder: filter-data
           params:
             tests: @model.tests
             query: @model.query
@@ -124,6 +124,7 @@ spec:
             - model.indexed
             - @data.show-scenario
         view: scenario-view
+        step: {}
       cmds:
         ui: {}
     show-step:
@@ -316,21 +317,11 @@ spec:
     icon-view:
       tag: span
       attrs:
-        class: icon is-medium
+        class: icon-outline-rounded
       children:
-        - tag: span
+        - tag: i
           attrs:
-            class: fa-stack
-          children:
-            - tag: i
-              attrs:
-                style:
-                  color: "#434C5E"
-                class: fas fa-circle fa-stack-2x
-            - tag: i
-              attrs:
-                class:
-                  format: "fa-stack-1x fa-inverse {{icon}}"
+            class: @icon
     breadcrumbs-view:
       tag: section
       attrs:
@@ -342,7 +333,7 @@ spec:
           children:
             - tag: nav
               attrs:
-                class: breadcrumb has-bullet-separator
+                class: breadcrumb has-arrow-separator
                 aria-label: breadcrumbs
               children:
                 - tag: ul
@@ -352,6 +343,7 @@ spec:
                         label: @mode
                         onclick:
                           mode: @mode
+                        icon: fas fa-home
                     - view: breadcrumb-item-view
                       when:
                         is_set: @scenario
@@ -359,6 +351,7 @@ spec:
                         label: @scenario.title
                         onclick:
                           show-scenario: @scenario.id
+                        icon: fas fa-list-ol
                     - view: breadcrumb-item-view
                       when:
                         is_set: @step
@@ -366,6 +359,9 @@ spec:
                         label: @step.title
                         onclick:
                           show-step: @step.id
+                        icon:
+                          encoder: icon-for-item
+                          params: @step
 
     breadcrumb-item-view:
       tag: li
@@ -375,4 +371,5 @@ spec:
             onclick: @onclick
             href: "#"
           children:
+            - view: icon-view
             - @label

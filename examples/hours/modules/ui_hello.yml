@@ -24,20 +24,8 @@ spec:
         style:
           text-align: center
       children:
-        - tag: div
-          attrs:
-            class: icon is-large
-          children:
-            - tag: i
-              attrs:
-                class: fas fa-cubes
-                style:
-                  font-size: 2.5em
-        - tag: h4
-          attrs:
-            class: title is-4 is-capitalized
-          children:
-            - @title
+        - view: large-app-icon-view
+        - view: app-title-view
         - tag: h6
           attrs:
             class: subtitle is-6
@@ -52,6 +40,66 @@ spec:
           params:
             content-view: @view
             content: @
+        - view: footer-view
+    app-title-view:
+      tag: h4
+      attrs:
+        class: title is-4 is-capitalized
+      children:
+        - @title
+    app-icon-view:
+      tag: span
+      attrs:
+        class:
+          format: "icon is-{{ icon-size }}"
+      children:
+        - tag: i
+          attrs:
+            class: fas fa-cubes
+            style:
+              font-size:
+                format: "{{ font-size }}em"
+    large-app-icon-view:
+      view: app-icon-view
+      params:
+        icon-size: large
+        font-size: 2.5
+    small-app-icon-view:
+      view: app-icon-view
+      params:
+        icon-size: medium
+        font-size: 1.5
+    footer-view:
+      tag: footer
+      attrs:
+        class: footer
+      children:
+        - tag: section
+          attrs:
+            class: section content has-text-centered
+          children:
+            - tag: p
+              children:
+                - view: small-app-icon-view
+                - view: app-title-view
+                - view: credits-view
+    credits-view:
+      tag: p
+      attrs:
+        class: subtitle is-size-7
+      children:
+        - "Powered by "
+        - tag: a
+          attrs:
+            href: https://elixir-lang.org
+          children:
+            - Elixir
+        - " + "
+        - tag: a
+          attrs:
+            href: https://github.com/pedro-gutierrez/elementary
+          children:
+            - Elementary
     nav-view:
       tag: nav
       attrs:
@@ -133,8 +181,8 @@ spec:
                 equal:
                   - @mode
                   - @selected-mode
-              then: button is-light is-primary
-            - button is-light
+              then: button is-light is-primary is-outlined
+            - button is-light is-outlined
       children:
         - @mode
 
