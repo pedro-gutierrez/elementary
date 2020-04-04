@@ -155,9 +155,9 @@ export default (name, settings, app) => {
     function compileTag(views, spec, ctx) {
         let { tag, attrs = {}, children = [] } = spec;
         var { err, value } = encode(attrs, ctx);
-        if (err) return error(spec, ctx, err);
+        if (err) return error(spec, attrs, err);
         var { err, view } = compile(views, children, ctx);
-        if (err) return { err };
+        if (err) return error(spec, children, err);
         var attrs2 = attrsWithEvHandlers(value, ctx);
         return { view: [tag, attrs2].concat(view) };
     }
