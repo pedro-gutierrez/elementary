@@ -35,20 +35,38 @@ spec:
       show-step:
         show-step:
           any: text
+    events:
+      loaded:
+        loaded:
+          any: object
+      indexed:
+        indexed:
+          any: object
   update:
     tests:
       model:
         tests: @data.tests.body
-        indexed:
-          encoder: indexed
-          params:
-            scenarios: @data.tests.body
-        filtered:
-          encoder: filtered
-          params:
-            tests: @data.tests.body
-            query: @model.query
-            mode: @model.mode
+      cmds:
+        ui: indexing-view
+        events: loaded
+    loaded:
+      model:
+        let:
+          tests: @model.tests
+        in:
+          indexed:
+            encoder: indexed
+            params:
+              scenarios: @tests
+          filtered:
+            encoder: filtered
+            params:
+              tests: @tests
+              query: @model.query
+              mode: @model.mode
+      cmds:
+        events: indexed
+    indexed:
       cmds:
         ui: layout-view
     query:
@@ -118,6 +136,10 @@ spec:
       cmds:
         ui: {}
   encoders:
+    loaded:
+      loaded: {}
+    indexed:
+      indexed: {}
     get-tests:
       method: get
       path: /tests.json

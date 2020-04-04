@@ -11,7 +11,12 @@ spec:
       view: loading-view
       params:
         title: @title
-        subtitle: Downloading data
+        subtitle: Downloading scenarios
+    indexing-view:
+      view: loading-view
+      params:
+        title: @title
+        subtitle: Indexing
     loading-view:
       tag: section
       attrs:
@@ -78,8 +83,12 @@ spec:
                               attrs:
                                 class: fas fa-cubes
                                 style:
-                                  font-size: 1.3em
-                        - @title
+                                  font-size: 1.5em
+                        - tag: span
+                          attrs:
+                            class: is-capitalized
+                          children:
+                            - @title
             - tag: div
               attrs:
                 class: navbar-menu
