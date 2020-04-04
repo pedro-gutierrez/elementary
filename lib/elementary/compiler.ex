@@ -1014,9 +1014,7 @@ defmodule Elementary.Compiler do
          end
 
          defp id(title) do
-           :sha256
-           |> :crypto.hash(String.downcase(title))
-           |> Base.encode16()
+           "#{:erlang.phash2(title)}"
          end
 
          defp id(title, parent) do
