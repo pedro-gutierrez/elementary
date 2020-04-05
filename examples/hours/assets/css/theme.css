@@ -63,3 +63,16 @@ input {
     border-radius: 50%;
     padding: 7px 10px 7px 10px;
 }
+
+.item-view {
+    padding: 5px 5px 5px 5px;
+}
+
+.item-view:hover {
+    border: 1px dashed #3e4657;
+    background-color: rgba(45, 49, 59, 0.43);
+}
+
+.item-view h5 {
+    font-weight: normal !important;
+}

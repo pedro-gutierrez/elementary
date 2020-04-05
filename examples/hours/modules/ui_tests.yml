@@ -198,7 +198,7 @@ spec:
       tag: div
       attrs:
         key: @id
-        class: pointer
+        class: pointer item-view
         onclick:
           show-scenario: @id
       children:
@@ -207,7 +207,7 @@ spec:
       tag: div
       attrs:
         key: @id
-        class: pointer
+        class: item-view pointer
         onclick:
           show-step: @id
       children:
@@ -219,7 +219,7 @@ spec:
       children:
         - tag: div
           attrs:
-            class: pointer
+            class: item-view pointer
             onclick:
               show-scenario: @scenario.id
           children:
@@ -242,7 +242,7 @@ spec:
           children:
             - view: summary-view
               params: @step
-    summary-view:
+    summary-view-old:
       tag: div
       children:
         - view: tags-view
@@ -257,14 +257,51 @@ spec:
                 size: small
         - view: item-title-view
           params:
-            icon:
-              encoder: icon-for-item
+            tag:
+              encoder: tag-label-for-item
             title: @title
             id: @id
-    item-title-view:
-      tag: h6
+    summary-view:
+      tag: nav
       attrs:
-        class: title is-6 is-clearfix
+        class: level
+      children:
+        - tag: div
+          attrs:
+            class: level-left
+          children:
+            - tag: div
+              attrs:
+                class: level-item
+              children:
+                - view: item-title-view
+                  params:
+                    tag:
+                      encoder: tag-label-for-item
+                    title: @title
+                    id: @id
+        - tag: div
+          attrs:
+            class: level-right
+          children:
+            - tag: div
+              attrs:
+                class: level-item
+              children:
+                - view: tags-view
+                  params:
+                    tags:
+                      - label: @status
+                        color: success
+                        size: normal
+                      - label:
+                          format: "{{ time }}ms"
+                        color: light
+                        size: small
+    item-title-view:
+      tag: h5
+      attrs:
+        class: title is-5 is-clearfix
       children:
         - tag: div
           attrs:
@@ -272,38 +309,26 @@ spec:
               display: flex
               align-items: center
           children:
-            - view: icon-view
+            - view: tag-view
+              params:
+                #size: normal
+                label: @tag
             - tag: span
               attrs:
                 style:
                   margin-left: 15px
               children:
                 - @title
-    icon-for-item:
+    tag-label-for-item:
       either:
         - when:
             has: steps
-          then: fas fa-list-ol
-        - when:
-            match:
-              title:
-                like: Given
-          then: fas fa-thumbtack
-        - when:
-            match:
-              title:
-                like: When
-          then: fas fa-arrow-up
-        - when:
-            match:
-              title:
-                like: Then
-          then: fas fa-check
-        - then: fas fa-question
+          then: Scenario
+        - then: Step
     tags-view:
       tag: div
       attrs:
-        class: tags is-pulled-right
+        class: tags
       children:
         loop: @tags
         with: tag-view
@@ -314,14 +339,6 @@ spec:
           format: "tag tag-{{size}} is-{{color}}"
       children:
         - capitalize: @label
-    icon-view:
-      tag: span
-      attrs:
-        class: icon-outline-rounded
-      children:
-        - tag: i
-          attrs:
-            class: @icon
     breadcrumbs-view:
       tag: section
       attrs:
