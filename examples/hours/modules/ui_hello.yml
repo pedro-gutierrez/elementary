@@ -175,8 +175,8 @@ spec:
                 equal:
                   - @mode
                   - @selected-mode
-              then: button is-light is-primary is-outlined
-            - button is-light is-outlined
+              then: button is-light is-primary is-outlined is-capitalized
+            - button is-light is-outlined is-capitalized
       children:
         - @mode
 
@@ -217,12 +217,16 @@ spec:
         title: @title
         subtitle: Examples
     container-view:
-      tag: div
+      tag: section
       attrs:
-        class: container
+        class: section
       children:
-        - view: @content-view
-          params: @content
+        - tag: div
+          attrs:
+            class: container
+          children:
+            - view: @content-view
+              params: @content
     hero-view:
       tag: section
       attrs:

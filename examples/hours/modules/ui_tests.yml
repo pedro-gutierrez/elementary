@@ -186,11 +186,15 @@ spec:
       format: "{{ mode }}-view"
     scenarios-view:
       tag: div
+      attrs:
+        class: columns is-12 is-multiline
       children:
         loop: @filtered
         with: scenario-item-view
     steps-view:
       tag: div
+      attrs:
+        class: columns is-12 is-multiline
       children:
         loop: @filtered
         with: step-item-view
@@ -198,7 +202,7 @@ spec:
       tag: div
       attrs:
         key: @id
-        class: pointer item-view
+        class: pointer column is-one-third item-view
         onclick:
           show-scenario: @id
       children:
@@ -207,7 +211,7 @@ spec:
       tag: div
       attrs:
         key: @id
-        class: item-view pointer
+        class: pointer column is-full
         onclick:
           show-step: @id
       children:
@@ -215,20 +219,11 @@ spec:
     scenario-view:
       tag: div
       attrs:
+        class: columns is-12 is-multiline
         key: @scenario.id
       children:
-        - tag: div
-          attrs:
-            class: item-view pointer
-            onclick:
-              show-scenario: @scenario.id
-          children:
-            - view: summary-view
-              params: @scenario
-        - tag: div
-          children:
-            loop: @scenario.steps
-            with: step-item-view
+        loop: @scenario.steps
+        with: step-item-view
     step-view:
       tag: div
       attrs:
@@ -242,9 +237,18 @@ spec:
           children:
             - view: summary-view
               params: @step
-    summary-view-old:
+    summary-view:
       tag: div
+      attrs:
+        class: box column is-radiusless is-shadowless
+        style:
+          border: "1px dashed #3e4657"
       children:
+        - tag: h5
+          attrs:
+            class: title is-5 has-text-weight-normal
+          children:
+            - @title
         - view: tags-view
           params:
             tags:
@@ -255,76 +259,6 @@ spec:
                   format: "{{ time }}ms"
                 color: light
                 size: small
-        - view: item-title-view
-          params:
-            tag:
-              encoder: tag-label-for-item
-            title: @title
-            id: @id
-    summary-view:
-      tag: nav
-      attrs:
-        class: level
-      children:
-        - tag: div
-          attrs:
-            class: level-left
-          children:
-            - tag: div
-              attrs:
-                class: level-item
-              children:
-                - view: item-title-view
-                  params:
-                    tag:
-                      encoder: tag-label-for-item
-                    title: @title
-                    id: @id
-        - tag: div
-          attrs:
-            class: level-right
-          children:
-            - tag: div
-              attrs:
-                class: level-item
-              children:
-                - view: tags-view
-                  params:
-                    tags:
-                      - label: @status
-                        color: success
-                        size: normal
-                      - label:
-                          format: "{{ time }}ms"
-                        color: light
-                        size: small
-    item-title-view:
-      tag: h5
-      attrs:
-        class: title is-5 is-clearfix
-      children:
-        - tag: div
-          attrs:
-            style:
-              display: flex
-              align-items: center
-          children:
-            - view: tag-view
-              params:
-                #size: normal
-                label: @tag
-            - tag: span
-              attrs:
-                style:
-                  margin-left: 15px
-              children:
-                - @title
-    tag-label-for-item:
-      either:
-        - when:
-            has: steps
-          then: Scenario
-        - then: Step
     tags-view:
       tag: div
       attrs:
@@ -380,6 +314,7 @@ spec:
       children:
         - tag: a
           attrs:
+            class: is-capitalized
             onclick: @onclick
             href: "#"
           children:
