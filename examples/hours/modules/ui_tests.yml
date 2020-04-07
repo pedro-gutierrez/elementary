@@ -229,14 +229,31 @@ spec:
       attrs:
         key: @step.id
       children:
-        - tag: div
+        - view: step-section-view
+          params:
+            title: Output
+            code: @step.output
+        - view: step-section-view
+          params:
+            title: Spec
+            code: @step.spec
+        - view: step-section-view
+          params:
+            title: Data
+            code: @step.context
+    step-section-view:
+      tag: div
+      attrs:
+        style:
+          margin-bottom: 25px
+      children:
+        - tag: h5
           attrs:
-            class: pointer
-            onclick:
-              show-step: @step.id
+            class: title is-5
           children:
-            - view: summary-view
-              params: @step
+            - @title
+        - code:
+            source: @code
     summary-view:
       tag: div
       attrs:
