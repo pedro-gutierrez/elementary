@@ -132,11 +132,13 @@ spec:
                         - tag: span
                           attrs:
                             class: is-capitalized
+                            style:
+                              vertical-align: text-top
                           children:
                             - @title
             - tag: div
               attrs:
-                class: navbar-menu is-active
+                class: navbar-menu is-active is-shadowless
               children:
                 - tag: div
                   attrs:
