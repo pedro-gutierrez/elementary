@@ -42,7 +42,14 @@ export default (appUrl, appEffects) => {
         var value = ctx;
         for (var i = 0; i < paths.length; i++) {
             var path = paths[i];
-            if (!value.hasOwnProperty(path)) return error(path, value, "Missing key");
+            if (!value.hasOwnProperty(path)) {
+                if (path === "$" && typeOf(value) === "object") {
+                    return {value: Object.values(value)}
+                }
+
+                return error(path, value, "Missing key");
+
+            }
             value = value[path];
         }
         return {value};
@@ -294,36 +301,6 @@ export default (appUrl, appEffects) => {
         return {value: !err};
     }
 
-    function encodeCombine(spec, ctx) {
-        var path = isEmpty(spec.combine) ? "@items" : spec.combine;
-
-        var {err, value} = encode(path, ctx);
-        if (err) return error(path, ctx, err);
-        var source = value;
-
-        var {err, value} = encode(spec.with, ctx);
-        if (err) return error(spec.with, ctx, err);
-        var dest = value;
-
-        var sourceType = typeOf(source);
-        var destType = typeOf(dest);
-
-        if (sourceType != destType) return error(spec, ctx, {
-            reason: "Type mismatch",
-            data: dest,
-            actualType: dest,
-            expectedType: sourceType
-        });
-
-        switch(sourceType) {
-            case "object" :
-                return {value: Object.assign(source, dest)}
-            case "list" :
-                return {value: source.concat(dest)};
-            default:
-                return {value: source + dest}
-        }
-    }
 
     function encodeIndex(spec, ctx) {
         var path = isEmpty(spec.index) ? "@items" : spec.index;
@@ -444,17 +421,17 @@ export default (appUrl, appEffects) => {
     //    return {value: out};
     //}
 
-    function encodeMergedList(spec, ctx) {
+    function encodeConcat(spec, ctx) {
         var lists = [];
-        for (var i = 0; i < spec.merged_list.length; i++) {
-            var { err, value } = encode(spec.merged_list[i], ctx);
+        for (var i = 0; i < spec.concat.length; i++) {
+            var { err, value } = encode(spec.concat[i], ctx);
             if (err) return error(spec, ctx, err);
             lists[i] = value;
         }
         return { value: flatten(lists) }
     }
 
-    function encodeMergedObject(spec, ctx) {
+    function encodeMerge(spec, ctx) {
         var objs = [];
         for (var i = 0; i < spec.merge.length; i++) {
             var { err, value } = encode(spec.merge[i], ctx);
@@ -695,8 +672,9 @@ export default (appUrl, appEffects) => {
     }
 
     function encodeFilter(spec, ctx) {
-        var { err, value } = encode(spec.filter, ctx);
-        if (err) return error(spec.filter, ctx, err);
+        var itemsSpec = isEmpty(spec.filter) ? "@items" : spec.filter;
+        var { err, value } = encode(itemsSpec, ctx);
+        if (err) return error(itemsSpec, ctx, err);
         if (!Array.isArray(value)) return error(spec.filter, value, "Not a list");
         var items = value;
 
@@ -711,20 +689,16 @@ export default (appUrl, appEffects) => {
     }
 
     function encodeMap(spec, ctx) {
-        var { err, value } = encode(spec.map, ctx);
-        if (err) return error(spec.map, ctx, err);
+        var itemsSpec = isEmpty(spec.map) ? "@items" : spec.map;
+        var { err, value } = encode(itemsSpec, ctx);
+        if (err) return error(itemsSpec, ctx, err);
         if (!Array.isArray(value)) return error(spec.map, value, "Not a list");
         var items = value;
 
         var out = [];
         for (var i = 0; i < items.length; i++) {
-            var item = items[i];
-            var itemCtx = ctx;
-            if (spec.as) {
-                itemCtx[as] = item;
-            } else {
-                itemCtx = Object.assign(ctx, item);
-            }
+            var itemCtx = Object.assign({}, ctx);
+            itemCtx[spec.as || 'item'] = items[i];
             var { err, value } = encode(spec.with, itemCtx);
             if (err) return error(spec.with, ctx, err);
             out.push(value);
@@ -736,8 +710,40 @@ export default (appUrl, appEffects) => {
         return { value: out };
     }
 
+    function encodeCombine(spec, ctx) {
+        var path = isEmpty(spec.combine) ? "@items" : spec.combine;
+
+        var {err, value} = encode(path, ctx);
+        if (err) return error(path, ctx, err);
+        var source = value;
+
+        var {err, value} = encode(spec.with, ctx);
+        if (err) return error(spec.with, ctx, err);
+        var dest = value;
+
+        var sourceType = typeOf(source);
+        var destType = typeOf(dest);
+
+        if (sourceType != destType) return error(spec, ctx, {
+            reason: "Type mismatch",
+            data: dest,
+            actualType: dest,
+            expectedType: sourceType
+        });
+
+        switch(sourceType) {
+            case "object" :
+                return {value: Object.assign(source, dest)}
+            case "list" :
+                return {value: source.concat(dest)};
+            default:
+                return {value: source + dest}
+        }
+    }
+
     function encodeFlatmap(spec, ctx) {
-        return encodeMap(Object.assign(spec, {
+        console.log("encode Flat map", {spec, ctx});
+        return encodeMap(Object.assign({}, spec, {
             map: spec.flat_map,
             flatten: true
         }), ctx);
@@ -801,8 +807,8 @@ export default (appUrl, appEffects) => {
                 if (spec.last) return encodeLast(spec, ctx);
                 if (spec.split) return encodeSplit(spec, ctx);
                 if (spec.join) return encodeJoin(spec, ctx);
-                if (spec.merged_list) return encodeMergedList(spec, ctx);
-                if (spec.merge) return encodeMergedObject(spec, ctx);
+                if (spec.concat) return encodeConcat(spec, ctx);
+                if (spec.merge) return encodeMerge(spec, ctx);
                 if (spec.iterate) return encodeIterate(spec, ctx);
                 if (spec.prettify) return encodePrettify(spec, ctx);
                 if (spec.percent) return encodePercent(spec, ctx);
@@ -936,6 +942,28 @@ export default (appUrl, appEffects) => {
         }
     }
 
+    function decodeWith(spec, data, ctx) {
+        if (!data) return error(spec, data, "no_data");
+        var dataType = typeOf(data);
+        switch (dataType) {
+            case "list":
+                for (var i=0; i<data.length; i++) {
+                    var item = data[i];
+                    var {err, decoded} = decode(spec.with, item, ctx);
+                    if (!err && decoded) return {decoded: data}
+                }
+
+                return error(spec, data, "no_match");
+
+            case "object":
+                return decodeObject({object: spec.with}, data, ctx);
+
+            default:
+                return error(spec, data, {error: "type_mistmatch", actual: dataType, expected: ["list", "object"]});
+        }
+
+    }
+
     function decodeOne(spec, data, ctx) {
         function _(i) {
             if (i == spec.one_of.length) return error(spec, data, "no_match")
@@ -985,6 +1013,7 @@ export default (appUrl, appEffects) => {
         var { err, value } = encode(spec.like, ctx);
         if (err) return error(spec, data, err);
         var regex = new RegExp(value, 'i');
+        if (typeof(data) != 'string') data = ""+data;
         return data.match(regex) ? { decoded: data } : error(spec, data, "no_match");
     }
 
@@ -1000,6 +1029,7 @@ export default (appUrl, appEffects) => {
                 if (spec.object) return decodeObject(spec, data, ctx);
                 if (spec.any) return decodeAny(spec, data, ctx);
                 if (spec.list) return decodeList(spec, data, ctx);
+                if (spec.with) return decodeWith(spec, data, ctx);
                 if (spec.other_than) return decodeOtherThan(spec, data, ctx);
                 if (spec.one_of) return decodeOne(spec, data, ctx);
                 if (spec.json) return decodeJson(spec, data, ctx);

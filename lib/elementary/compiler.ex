@@ -941,7 +941,8 @@ defmodule Elementary.Compiler do
              title: title,
              status: :success,
              time: elapsed,
-             id: id(title)
+             id: id(title),
+             tags: scenario["tags"] || []
            }
 
            {:noreply,

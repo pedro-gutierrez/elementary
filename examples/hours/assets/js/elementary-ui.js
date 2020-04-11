@@ -37,6 +37,21 @@ export default (name, settings, app) => {
         }
     }
 
+    function debounced(delay, fn) {
+        let timerId;
+        return function (...args) {
+            console.log("delaying event", {args: args});
+            if (timerId) {
+                clearTimeout(timerId);
+            }
+            timerId = setTimeout(() => {
+                fn(...args);
+                timerId = null;
+            }, delay);
+        }
+    }
+
+
     function hash(s) {
         for (var i = 0, h = 1; i < s.length; i++)
             h = Math.imul(h + s.charCodeAt(i) | 0, 2654435761);
@@ -138,10 +153,12 @@ export default (name, settings, app) => {
                     if (err) {
                         console.error("Error encoding value for event handler", k, spec, err);
                     } else {
-                        attrs[k] = (ev) => {
+
+                        const handler = (ev) => {
                             if (ev.preventDefault) ev.preventDefault();
                             event(value, evValue(ev.target));
                         }
+                        attrs[k] = handler
                     }
                 } else if (k === 'value') {
                     attrs[k] = new String(attrs[k]);

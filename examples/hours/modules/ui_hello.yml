@@ -175,8 +175,8 @@ spec:
                 equal:
                   - @mode
                   - @selected-mode
-              then: button is-light is-primary is-outlined is-capitalized
-            - button is-light is-outlined is-capitalized
+              then: button is-primary is-capitalized
+            - button is-capitalized
       children:
         - @mode
 

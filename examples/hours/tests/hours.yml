@@ -30,6 +30,9 @@ spec:
         - When I get the health
         - Then I should have a 200
     - title: Users should register once
+      tags:
+        - register
+        - password
       steps:
         - Given the store is empty
         - Given Alice is registered
@@ -37,6 +40,9 @@ spec:
         - Then I should have a 409
         - Given that user has a password
     - title: Should see public users
+      tags:
+        - users
+        - search
       steps:
         - Given the store is empty
         - Given Bob is registered and logged in
@@ -597,7 +603,7 @@ spec:
         - When I get all tasks in that project
         - Then I should have a 200
         - Then I should have one item
-    - title: Members should not list tasks from projects they don't belong to
+    - title: Members should not list tasks from projects they don\'t belong to
       steps:
         - Given the store is empty
         - Given Bob is registered and logged in

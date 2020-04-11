@@ -66,15 +66,11 @@ spec:
             encoder: index-data
             params:
               scenarios: @tests
-          filtered:
-            encoder: filter-data
-            params:
-              tests: @tests
-              query: @model.query
-              mode: @model.mode
       cmds:
         events: indexed
     indexed:
+      model:
+        filtered: @model.indexed.$
       cmds:
         ui: layout-view
     query:
@@ -83,20 +79,14 @@ spec:
         filtered:
           encoder: filter-data
           params:
-            tests: @model.tests
+            steps: @model.indexed.$
             query: @model.query
-            mode: @model.mode
       cmds:
         ui: {}
     clear-search:
       model:
         query: ""
-        filtered:
-          encoder: filter-data
-          params:
-            tests: @model.tests
-            query: ""
-            mode: @model.mode
+        filtered: @model.indexed.$
       cmds:
         ui: {}
     set-mode:
@@ -161,26 +151,44 @@ spec:
     index-data:
       pipeline:
         - flat_map: @scenarios
-          with: @steps
-        - combine: @items
-          with: @scenarios
+          as: scenario
+          with:
+            map: @scenario.steps
+            as: step
+            with:
+              merge:
+                - @step
+                - tags: @scenario.tags
+        - filter: {}
+          with:
+            spec:
+              http:
+                any: object
+        - map: {}
+          as: step
+          with:
+            merge:
+              - @step
+              - tags:
+                  concat:
+                    - @step.tags
+                    - text: @step.output.latest.status
         - index: {}
     filter-data:
-      switch: @mode
-      case:
-        steps:
-          pipeline:
-            - flat_map: @tests
-              with: @steps
-            - filter: @items
+      filter: @steps
+      with:
+        one_of:
+          - tags:
               with:
-                title:
-                  like: @query
-        scenarios:
-          pipeline:
-            - filter: @tests
-              with:
-                title:
+                like: @query
+          - spec:
+              http:
+                url:
+                  with:
+                    like: @query
+          - output:
+              latest:
+                status:
                   like: @query
     view-for-mode:
       format: "{{ mode }}-view"
@@ -258,24 +266,27 @@ spec:
       tag: div
       attrs:
         class: box column is-radiusless is-shadowless
-        style:
-          border: "1px dashed #3e4657"
       children:
         - tag: h5
           attrs:
-            class: title is-5 has-text-weight-normal
+            class: has-text-weight-normal
           children:
             - @title
         - view: tags-view
           params:
             tags:
-              - label: @status
-                color: success
-                size: normal
-              - label:
-                  format: "{{ time }}ms"
-                color: light
-                size: small
+              pipeline:
+                - map: @tags
+                  with:
+                    label: @item
+                    color: light
+                    size: normal
+                - combine: {}
+                  with:
+                    - label:
+                        format: "{{ time }}ms"
+                      color: light
+                      size: small
     tags-view:
       tag: div
       attrs:
