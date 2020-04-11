@@ -178,14 +178,11 @@ spec:
       filter: @steps
       with:
         one_of:
+          - title:
+              like: @query
           - tags:
               with:
                 like: @query
-          - spec:
-              http:
-                url:
-                  with:
-                    like: @query
           - output:
               latest:
                 status:
