@@ -6,12 +6,10 @@ spec:
       delay: 0
       tests: []
       indexed: {}
-      mode: scenarios
       query: ""
       filtered: []
-      view: scenarios-view
-      scenario: {}
-      step: {}
+      view: steps-view
+      step: ""
     cmds:
       ui: downloading-view
       events: ready
@@ -28,15 +26,12 @@ spec:
           any: text
       clear-search:
         clear-search: ""
-      set-mode:
-        mode:
-          any: text
-      show-scenario:
-        show-scenario:
-          any: text
       show-step:
         show-step:
           any: text
+      show-steps:
+        show-steps:
+          any: object
     events:
       ready:
         ready:
@@ -89,49 +84,18 @@ spec:
         filtered: @model.indexed.$
       cmds:
         ui: {}
-    set-mode:
-      model:
-        mode: @data.mode
-        filtered:
-          encoder: filter-data
-          params:
-            tests: @model.tests
-            query: @model.query
-            mode: @data.mode
-        view:
-          encoder: view-for-mode
-          params:
-            mode: @data.mode
-        scenario: {}
-        step: {}
-      cmds:
-        ui: {}
-    show-scenario:
-      model:
-        mode: scenarios
-        scenario:
-          resolve:
-            - model.indexed
-            - @data.show-scenario
-        view: scenario-view
-        step: {}
-      cmds:
-        ui: {}
     show-step:
       model:
-        let:
-          step:
-            resolve:
-              - model.indexed
-              - @data.show-step
-        in:
-          mode: steps
-          step: @step
-          view: step-view
-          scenario:
-            resolve:
-              - model.indexed
-              - @step.scenario
+        step:
+          resolve:
+            - model.indexed
+            - @data.show-step
+        view: step-view
+      cmds:
+        ui: {}
+    show-steps:
+      model:
+        view: steps-view
       cmds:
         ui: {}
   encoders:
@@ -171,8 +135,9 @@ spec:
               - @step
               - tags:
                   concat:
-                    - @step.tags
+                    - @step.spec.http.method
                     - text: @step.output.latest.status
+                    - @step.tags
         - index: {}
     filter-data:
       filter: @steps
@@ -187,15 +152,11 @@ spec:
               latest:
                 status:
                   like: @query
-    view-for-mode:
-      format: "{{ mode }}-view"
-    scenarios-view:
-      tag: div
-      attrs:
-        class: columns is-12 is-multiline
-      children:
-        loop: @filtered
-        with: scenario-item-view
+
+    search-enabled:
+      equal:
+        - steps-view
+        - @view
     steps-view:
       tag: div
       attrs:
@@ -203,61 +164,64 @@ spec:
       children:
         loop: @filtered
         with: step-item-view
-    scenario-item-view:
-      tag: div
-      attrs:
-        key: @id
-        class: pointer column is-one-third item-view
-        onclick:
-          show-scenario: @id
-      children:
-        - view: summary-view
     step-item-view:
       tag: div
       attrs:
         key: @id
-        class: pointer column is-full
+        class: column is-one-third item-view
         onclick:
           show-step: @id
+        style:
+          cursor: pointer
       children:
         - view: summary-view
-    scenario-view:
-      tag: div
-      attrs:
-        class: columns is-12 is-multiline
-        key: @scenario.id
-      children:
-        loop: @scenario.steps
-        with: step-item-view
     step-view:
       tag: div
       attrs:
         key: @step.id
       children:
+        - tag: p
+          attrs:
+            style:
+              margin-bottom: 10px
+          children:
+            - tag: a
+              attrs:
+                class: link
+                onclick:
+                  show-steps: {}
+              children:
+                - Back
+
+        - view: summary-view
+          params: @step
         - view: step-section-view
           params:
-            title: Output
-            code: @step.output
+            title: Request
+            code:
+              take: [method, url, query, headers, body]
+              from: @step.output.latest.request
         - view: step-section-view
           params:
-            title: Spec
-            code: @step.spec
-        - view: step-section-view
-          params:
-            title: Data
-            code: @step.context
+            title: Response
+            code:
+              take: [status, headers, body]
+              from: @step.output.latest
     step-section-view:
       tag: div
       attrs:
+        class: box column is-radiusless is-shadowless
         style:
           margin-bottom: 25px
       children:
-        - tag: h5
-          attrs:
-            class: title is-5
-          children:
-            - @title
+        - view: tag-view
+          params:
+            label: @title
+            color: light
+            size: normal
         - code:
+            style:
+              class: has-background-white
             source: @code
     summary-view:
       tag: div
@@ -287,6 +251,8 @@ spec:
     tags-view:
       tag: div
       attrs:
+        style:
+          margin-top: 5px
         class: tags
       children:
         loop: @tags
@@ -298,49 +264,3 @@ spec:
           format: "tag tag-{{size}} is-{{color}}"
       children:
         - capitalize: @label
-    breadcrumbs-view:
-      tag: section
-      attrs:
-        class: section
-      children:
-        - tag: div
-          attrs:
-            class: container
-          children:
-            - tag: nav
-              attrs:
-                class: breadcrumb
-                aria-label: breadcrumbs
-              children:
-                - tag: ul
-                  children:
-                    - view: breadcrumb-item-view
-                      params:
-                        label: @mode
-                        onclick:
-                          mode: @mode
-                    - view: breadcrumb-item-view
-                      when:
-                        is_set: @scenario
-                      params:
-                        label: @scenario.title
-                        onclick:
-                          show-scenario: @scenario.id
-                    - view: breadcrumb-item-view
-                      when:
-                        is_set: @step
-                      params:
-                        label: @step.title
-                        onclick:
-                          show-step: @step.id
-
-    breadcrumb-item-view:
-      tag: li
-      children:
-        - tag: a
-          attrs:
-            class: is-capitalized
-            onclick: @onclick
-            href: "#"
-          children:
-            - @label

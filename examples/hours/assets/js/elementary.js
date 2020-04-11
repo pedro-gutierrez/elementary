@@ -775,6 +775,35 @@ export default (appUrl, appEffects) => {
         return { value: Object.values(index) };
     }
 
+    function encodeTake(spec, ctx) {
+        var {err, value} = encode(spec.take, ctx);
+        if (err) return error(spec.take, ctx, err);
+        if (!typeOf(value) === "list") return error(spec.take, ctx, {
+            error: "type_mistmatch",
+            actual: value,
+            expected: "list"
+        });
+
+        var keys = value;
+
+        var {err, value} = encode(spec.from, ctx);
+        if (!typeOf(value) === "object") return error(spec.take, ctx, {
+            error: "type_mistmatch",
+            actual: value,
+            expected: "object"
+        });
+
+        var source = value;
+
+        var out = {}
+        for (var i=0; i<keys.length; i++) {
+            var key = keys[i];
+            out[key] = value[key];
+        }
+
+        return {value: out};
+    }
+
     function encode(spec, ctx) {
         if (spec == undefined || spec == null) return error(spec, ctx, "Missing encoding spec");
         switch (typeof (spec)) {
@@ -833,6 +862,7 @@ export default (appUrl, appEffects) => {
                 if (spec.index) return encodeIndex(spec, ctx);
                 if (spec.resolve) return encodeResolve(spec, ctx);
                 if (spec.let) return encodeLet(spec, ctx);
+                if (spec.take) return encodeTake(spec, ctx);
                 if (!Object.keys(spec).length) return { value: {} };
                 return encodeObject({ object: spec }, ctx)
             case "string":

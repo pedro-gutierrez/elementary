@@ -87,27 +87,6 @@ export default (name, settings, app) => {
         return { view: out };
     }
 
-    function loopItemName(spec, ctx) {
-        if (!spec.as) return null;
-        var { err, value } = encode(spec.as, ctx);
-        if (err) {
-            console.warn("loop item name not resolved", { spec: spec, err: err });
-            return null;
-        }
-        return value;
-    }
-
-    function loopItemContext(name, index, item, context) {
-        var ctx = { settings, context };
-        if (name) {
-            ctx[name] = item;
-        } else {
-            Object.assign(ctx, item)
-        };
-        ctx.$index = index;
-        return ctx;
-    }
-
     function compileLoop(views, spec, ctx) {
         var { err, view } = resolve(views, spec.with, ctx);
         if (err) return error(spec, ctx, err);
@@ -116,14 +95,20 @@ export default (name, settings, app) => {
         if (err) return error(spec, ctx, err);
         var items = value;
         if (!items || !items.length) return { view: [] };
-        var { err, value } = encode(spec.context || "@", ctx);
+        var { err, value } = encode(spec.params || "@", ctx);
         if (err) return error(spec, ctx, err);
         var sharedCtx = value;
         var out = [];
-        var itemName = loopItemName(spec, ctx);
+
+        var alias = spec.as;
         for (var i = 0; i < items.length; i++) {
             var item = items[i];
-            var itemCtx = loopItemContext(itemName, i, item, sharedCtx);
+            var itemCtx = Object.assign({}, settings, sharedCtx);
+            if (alias) {
+                itemCtx[alias] = item;
+            } else {
+                itemCtx = Object.assign(itemCtx, item);
+            }
             var { err, view } = compile(views, itemView, itemCtx);
             if (err) return error(spec, ctx, err);
             out.push(view);
@@ -259,13 +244,19 @@ export default (name, settings, app) => {
         if (value === 'json' && typeof (source) === 'object') {
             source = JSON.stringify(source, null, 2)
         }
+
+        var style = {};
+        if (spec.code.style) {
+            var {err, value} = encode(spec.code.style, ctx);
+            if (err) return error(spec, ctx, err);
+            style = value;
+        }
+
         var lang = 'language-' + value;
+        style.class = style.class ? (style.class + " " + lang) : lang;
         return {
-            view: ['pre', {
-                class: lang
-            }, ['code', {
-                class: lang
-            }, source]]
+            view: ['pre', style, [
+                'code', {}, source]]
         };
     }
 

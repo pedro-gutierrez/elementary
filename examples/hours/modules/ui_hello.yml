@@ -35,7 +35,6 @@ spec:
       tag: div
       children:
         - view: nav-view
-        - view: breadcrumbs-view
         - view: container-view
           params:
             content-view: @view
@@ -107,63 +106,52 @@ spec:
       children:
         - tag: div
           attrs:
-            class: navbar-brand
+            class: container
           children:
             - tag: div
               attrs:
-                class: navbar-item
+                class: navbar-brand
               children:
-                - tag: h4
+                - tag: div
                   attrs:
-                    class: title is-4
+                    class: navbar-item
                   children:
-                    - tag: span
+                    - tag: h4
                       attrs:
-                        class: icon is-large
+                        class: title is-4
                       children:
-                        - tag: i
+                        - tag: span
                           attrs:
-                            class: fas fa-cubes
-                            style:
-                              font-size: 1.5em
-                    - tag: span
-                      attrs:
-                        class: is-capitalized
-                      children:
-                        - @title
-        - tag: div
-          attrs:
-            class: navbar-menu
-          children:
+                            class: icon is-large
+                          children:
+                            - tag: i
+                              attrs:
+                                class: fas fa-cubes
+                                style:
+                                  font-size: 1.5em
+                        - tag: span
+                          attrs:
+                            class: is-capitalized
+                          children:
+                            - @title
             - tag: div
               attrs:
-                class: navbar-start
-            - tag: div
-              attrs:
-                class: navbar-end
+                class: navbar-menu is-active
               children:
                 - tag: div
                   attrs:
-                    class: navbar-item
-                  children:
-                    - view: search-view
+                    class: navbar-start
                 - tag: div
                   attrs:
-                    key: toggle-view
-                    class: navbar-item
+                    class: navbar-end
                   children:
                     - tag: div
                       attrs:
-                        class: buttons
+                        class: navbar-item
                       children:
-                        - view: mode-button
-                          params:
-                            mode: scenarios
-                            selected-mode: @mode
-                        - view: mode-button
-                          params:
-                            mode: steps
-                            selected-mode: @mode
+                        - view: search-view
+                          when:
+                            encoder: search-enabled
     mode-button:
       tag: a
       attrs:
