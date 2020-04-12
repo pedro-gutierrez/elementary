@@ -286,9 +286,9 @@ export default (name, settings, app) => {
         }
     }
 
-    function compileJsons(els) {
-        return els.map(compileJson);
-    }
+    //function compileJsons(els) {
+    //    return els.map(compileJson);
+    //}
 
     //function compileMarkdown(views, spec, ctx) {
     //    var {err, value} = encode(spec.markdown, ctx);
@@ -297,10 +297,6 @@ export default (name, settings, app) => {
     //    var json = window.himalaya.parse(html);
     //    return { view: compileJson(json[0]) };
     //}
-
-    var uniqueId = function () {
-        return 'a' + Math.random().toString(36).substr(2, 16);
-    };
 
     //var chartTypes = {
     //    line: Chartist.Line,

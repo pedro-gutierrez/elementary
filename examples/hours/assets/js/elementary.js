@@ -1,14 +1,15 @@
-export default (appUrl, appEffects) => {
-    const config = (window.elementary || {})
-    const state = {}
+export default (appUrl, appEffects, deps) => {
 
-    function sleep(sleepDuration) {
-        var now = new Date().getTime();
-        while (new Date().getTime() < now + sleepDuration) { /* do nothing */ }
-    }
+    var {Mustache, moment} = deps;
+
+    const state = {}
 
     function elapsed(t1, t2) {
         return t2.getTime() - t1.getTime();
+    }
+
+    function hasProp(obj, prop) {
+        return Object.prototype.hasOwnProperty.call(obj, prop);
     }
 
     function tc(fun) {
@@ -32,7 +33,7 @@ export default (appUrl, appEffects) => {
 
     function fmt(pattern, args) {
         return Mustache.render(pattern, args)
-    };
+    }
 
     function flatten(arr) {
         return [].concat(...arr)
@@ -42,7 +43,7 @@ export default (appUrl, appEffects) => {
         var value = ctx;
         for (var i = 0; i < paths.length; i++) {
             var path = paths[i];
-            if (!value.hasOwnProperty(path)) {
+            if (!hasProp(value, path)) {
                 if (path === "$" && typeOf(value) === "object") {
                     return {value: Object.values(value)}
                 }
@@ -58,7 +59,7 @@ export default (appUrl, appEffects) => {
     function encodeObject(spec, ctx) {
         var out = {};
         for (var k in spec.object) {
-            if (spec.object.hasOwnProperty(k)) {
+            if (hasProp(spec.object, k)) {
                 const { err, value } = encode(spec.object[k], ctx);
                 if (err) return error(spec.object[k], ctx, err);
                 out[k] = value;
@@ -66,7 +67,6 @@ export default (appUrl, appEffects) => {
         }
         return { value: out };
     }
-
 
     function encodeKey(spec, ctx) {
         if (!ctx) return error(spec, ctx, "Missing context");
@@ -127,19 +127,19 @@ export default (appUrl, appEffects) => {
         var { pattern, date } = spec.format_date;
         var { err, value } = encode(pattern, ctx);
         if (err) return error(spec, ctx, err);
-        var pattern = value;
-        var { err, value } = encode(date, ctx);
-        if (err) return error(spec, ctx, err);
+        pattern = value;
+        var { err: dateErr, value: dateValue } = encode(date, ctx);
+        if (dateErr) return error(spec, ctx, dateErr);
         switch (pattern) {
             case "relative":
-                return { value: moment(value).fromNow() };
+                return { value: moment(dateValue).fromNow() };
             default:
-                return { value: moment(value).format(pattern) };
+                return { value: moment(dateValue).format(pattern) };
         }
     }
 
     function encodeMaybe(spec, ctx) {
-        const { err, value } = encode(spec.maybe, ctx);
+        const { value } = encode(spec.maybe, ctx);
         return { value };
     }
 
@@ -150,9 +150,9 @@ export default (appUrl, appEffects) => {
         var expected = value;
         for (var i = 1; i < spec.equal.length; i++) {
             var s = spec.equal[i];
-            var { err, value } = encode(s, ctx);
-            if (err) return error(spec, ctx, err);
-            if (value != expected) return { value: false };
+            var { err: equalErr, value: equalValue } = encode(s, ctx);
+            if (equalErr) return error(spec, ctx, equalErr);
+            if (equalValue!= expected) return { value: false };
         }
 
         return { value: true };
@@ -191,7 +191,7 @@ export default (appUrl, appEffects) => {
     function encodeNot(spec, ctx) {
         var { err, value } = encode(spec.not, ctx);
         if (err) return error(spec, ctx, err);
-        if (!typeof (value) === 'boolean') return error(spec, ctx, {
+        if (typeof (value) != 'boolean') return error(spec, ctx, {
             value: value,
             reason: "not_a_boolean"
         });
@@ -209,16 +209,16 @@ export default (appUrl, appEffects) => {
                 return { value };
             }
 
-            var { err, value } = encode(s.when, ctx);
-            if (err) return error(s.when, ctx, err);
-            if (value) {
+            var { err: whenErr, value: whenValue } = encode(s.when, ctx);
+            if (whenErr) return error(s.when, ctx, whenErr);
+            if (whenValue) {
                 s = s.then || s;
-                var { err, value } = encode(s, ctx);
-                if (err) return error(s, ctx, err);
-                return { value };
+                var { err: thenErr, value: thenValue} = encode(s, ctx);
+                if (thenErr) return error(s, ctx, thenErr);
+                return { thenValue };
             }
         }
-        return error(spec, data, "No clause matched");
+        return error(spec, ctx, "No clause matched");
     }
 
     function encodeUsingEncoder(spec, ctx) {
@@ -229,9 +229,9 @@ export default (appUrl, appEffects) => {
         if (!enc) return error(spec, ctx, "No such encoder: " + encName);
         var encoderCtx = ctx;
         if (spec.params) {
-            var { err, value } = encode(spec.params, ctx);
-            if (err) return error(encoder.params, ctx, err);
-            encoderCtx = value;
+            var { err: paramsErr, value: paramsValue } = encode(spec.params, ctx);
+            if (paramsErr) return error(spec.params, ctx, paramsErr);
+            encoderCtx = paramsValue;
         }
         return encode(enc, encoderCtx);
     }
@@ -269,9 +269,9 @@ export default (appUrl, appEffects) => {
         var { err, value } = encode(spec.percent.num, ctx);
         if (err) return error(spec, ctx, err);
         var num = value;
-        var { err, value } = encode(spec.percent.den, ctx);
-        if (err) return error(spec, ctx, err);
-        var den = value;
+        var { err: denErr, value: denValue } = encode(spec.percent.den, ctx);
+        if (denErr) return error(spec.percent.den, ctx, denErr);
+        var den = denValue;
         if (!den) return { value: 0 };
         return { value: Math.floor(num / den) * 100 };
     }
@@ -284,21 +284,21 @@ export default (appUrl, appEffects) => {
     //    return error(spec, data, "any spec not supported");
     //}
 
-    function encodeData(spec, data, ctx) {
+    function encodeData(spec) {
         return {value: spec.data};
     }
 
     function encodeHas(spec, ctx) {
         var {err, value} = encode(spec.has, ctx);
         if (err) return error(spec.has, ctx, err);
-        return {value: ctx.hasOwnProperty(value)};
+        return {value: hasProp(ctx, value)};
     }
 
     function encodeMatch(spec, ctx) {
         var {err, value} = encode(spec.match, ctx);
         if (err) return error(spec.match, ctx, err);
-        var {err, decoded} = decode(value, ctx);
-        return {value: !err};
+        var {err: decodeErr } = decode(value, ctx);
+        return {value: !decodeErr};
     }
 
 
@@ -325,10 +325,10 @@ export default (appUrl, appEffects) => {
             var itemCtx = Object.assign({}, ctx);
             itemCtx[spec.as || "item"] = item;
 
-            var {err, value} = encode(indexExpr, itemCtx);
-            if(err) return error(indexExpr, itemCtx, err);
+            var {err: indexErr, value: indexValue} = encode(indexExpr, itemCtx);
+            if(indexErr) return error(indexExpr, itemCtx, indexErr);
 
-            var key = value;
+            var key = indexValue;
             var keyType = typeOf(key);
             if( keyType != 'text') return error(indexExpr, itemCtx, {
                 reason: "Type mismatch",
@@ -447,16 +447,6 @@ export default (appUrl, appEffects) => {
         return { value: JSON.stringify(value, null, 2) };
     }
 
-    function encodePercent(spec, ctx) {
-        var { err, value } = encode(spec.percent.den, ctx);
-        if (err) return error(spec, ctx, err);
-        if (!value) return error(spec, data, "denominator is zero");
-        var den = value;
-        var { err, value } = encode(spec.percent.num, ctx);
-        if (err) return error(spec, ctx, err);
-        return { value: Math.round(100 * value / den) };
-    }
-
     function encodeSum(spec, ctx) {
         var { err, value } = encodeList(spec.sum, ctx);
         if (err) return error(spec, ctx, err);
@@ -473,24 +463,28 @@ export default (appUrl, appEffects) => {
     function encodeDivide(spec, ctx) {
         var { err, value } = encodeList(spec.divide, ctx);
         if (err) return error(spec, ctx, err);
-        if (!value || value.length < 2) return error(spec, item, "not_enough_arguments");
+        if (!value || value.length < 2) return error(spec, ctx, {
+            error: "not_enough_arguments",
+            actual: value,
+            expect: {type: "list", min_length: 2}
+        });
         var num = value[0];
         for (var i = 1; i < value.length; i++) {
             if (typeof (value[i]) != 'number') return error(spec, value, "not_a_number");
             if (!value[i]) return error(spec, value, "division_by_zero");
             num = num / value[i];
         }
-        if (!spec.hasOwnProperty("decimals")) return { value: num };
+        if (!hasProp(spec, "decimals")) return { value: num };
         return { value: num.toFixed(spec.decimals) };
     }
 
     var sizeEncoders = {
-        "undefined": (d) => { return 0 },
+        "undefined": () => { return 0 },
         "list": (d) => { return d.length },
         "object": (d) => { return Object.keys(d).length },
         "string": (d) => { return d.length },
         "number": (d) => { return d.number },
-        "boolean": (d) => { return 0 }
+        "boolean": () => { return 0 }
     }
 
     function encodeSizeOf(spec, ctx) {
@@ -551,9 +545,9 @@ export default (appUrl, appEffects) => {
         if (err) return error(spec, ctx, err);
         var cmd = { effect: value };
         if (spec.encoder) {
-            var { err, value } = encode(spec.encoder, ctx);
-            if (err) return error(spec.encoder, ctx, err);
-            cmd.encoder = value;
+            var { err: encoderErr, value: encoderValue } = encode(spec.encoder, ctx);
+            if (encoderErr) return error(spec.encoder, ctx, encoderErr);
+            cmd.encoder = encoderValue;
         }
         return { value: cmd };
     }
@@ -562,13 +556,13 @@ export default (appUrl, appEffects) => {
         var { err, value } = encode(spec.using, ctx);
         if (err) return error(spec, ctx, err);
         var sep = value;
-        var { err, value } = encode(spec.split, ctx);
-        if (err) return error(spec, ctx, err);
-        switch (typeof (value)) {
+        var { err: splitErr, value: splitValue } = encode(spec.split, ctx);
+        if (splitErr) return error(spec.split, ctx, splitErr);
+        switch (typeof (splitValue)) {
             case "string":
-                return { value: value.split(sep) };
+                return { value: splitValue.split(sep) };
             default:
-                return error(spec, value, "not_a_string");
+                return error(spec, splitValue, "not_a_string");
         }
     }
 
@@ -576,17 +570,17 @@ export default (appUrl, appEffects) => {
         var { err, value } = encode(spec.using, ctx);
         if (err) return error(spec, ctx, err);
         var sep = value;
-        var { err, value } = encode(spec.join, ctx);
-        if (err) return error(spec, ctx, err);
-        if (!Array.isArray(value)) return error(spec, value, "not_a_list");
-        return { value: value.join(sep) };
+        var { err: joinErr, value: joinValue } = encode(spec.join, ctx);
+        if (joinErr) return error(spec, ctx, joinErr);
+        if (!Array.isArray(joinValue)) return error(spec.join, joinValue, "not_a_list");
+        return { value: joinValue.join(sep) };
     }
 
     function encodeHead(spec, ctx) {
         var { err, value } = encode(spec.head, ctx);
         if (err) return error(spec, ctx, err);
         if (!Array.isArray(value)) return error(spec, value, "not_a_list");
-        const [head, _] = value;
+        const [head] = value;
         if (!head) return error(spec, value, "empty_list");
         return { value: head };
 
@@ -596,7 +590,7 @@ export default (appUrl, appEffects) => {
         var { err, value } = encode(spec.tail, ctx);
         if (err) return error(spec, ctx, err);
         if (!Array.isArray(value)) return error(spec, value, "not_a_list");
-        const [_, ...tail] = value;
+        const [, ...tail] = value;
         if (!tail) return error(spec, value, "empty_list");
         return { value: tail };
     }
@@ -613,29 +607,28 @@ export default (appUrl, appEffects) => {
         var { err, value } = encode(spec['char'], ctx);
         if (err) return error(spec, ctx, err);
         var c = value;
-        var { err, value } = encode(spec['in'], ctx);
-        if (err) return error(spec, ctx, err);
-        return { value: value.charAt(c) };
+        var inSpec = spec['in'];
+        var { err: inErr, value: inValue } = encode(inSpec, ctx);
+        if (inErr) return error(inSpec, ctx, inErr);
+        return { value: inValue.charAt(c) };
     }
 
     function encodeGreaterThan(spec, ctx) {
         if (spec.greater_than.length < 2) return error(spec, ctx, "not_enough_arguments");
-        var { err, value } = encode(spec.greater_than[0], ctx);
+        var { err, value: v1 } = encode(spec.greater_than[0], ctx);
         if (err) return error(spec, ctx, err);
-        var v1 = value;
-        var { err, value } = encode(spec.greater_than[1], ctx);
-        if (err) return error(spec, ctx, err);
-        return { value: v1 > value };
+        var { err: err2, value: v2 } = encode(spec.greater_than[1], ctx);
+        if (err2) return error(spec, ctx, err2);
+        return { value: v1 > v2};
     }
 
     function encodeLowerThan(spec, ctx) {
         if (spec.lower_than.length < 2) return error(spec, ctx, "not_enough_arguments");
-        var { err, value } = encode(spec.lower_than[0], ctx);
+        var { err, value: v1 } = encode(spec.lower_than[0], ctx);
         if (err) return error(spec, ctx, err);
-        var v1 = value;
-        var { err, value } = encode(spec.lower_than[1], ctx);
-        if (err) return error(spec, ctx, err);
-        return { value: v1 < value };
+        var { err: err2, value: v2 } = encode(spec.lower_than[1], ctx);
+        if (err2) return error(spec, ctx, err2);
+        return { value: v1 < v2 };
     }
 
     function encodeRegex(spec, ctx) {
@@ -651,9 +644,9 @@ export default (appUrl, appEffects) => {
         if (!clause) {
             return error(spec, ctx, "no clause matched");
         }
-        var { err, value } = encode(clause, ctx);
-        if (err) return error(clause, ctx, err);
-        return { value };
+        var { err: clauseErr, value: clauseValue} = encode(clause, ctx);
+        if (clauseErr) return error(clause, ctx, clauseErr);
+        return { value: clauseValue };
     }
 
     function encodePipeline(spec, ctx) {
@@ -680,8 +673,8 @@ export default (appUrl, appEffects) => {
 
         var out = [];
         for (var i = 0; i < items.length; i++) {
-            var { err, decoded } = decode(spec.with, items[i], ctx);
-            if (!err && decoded) {
+            var { err: withErr, decoded } = decode(spec.with, items[i], ctx);
+            if (!withErr && decoded) {
                 out.push(items[i]);
             }
         }
@@ -699,9 +692,9 @@ export default (appUrl, appEffects) => {
         for (var i = 0; i < items.length; i++) {
             var itemCtx = Object.assign({}, ctx);
             itemCtx[spec.as || 'item'] = items[i];
-            var { err, value } = encode(spec.with, itemCtx);
-            if (err) return error(spec.with, ctx, err);
-            out.push(value);
+            var { err: withErr, value: withValue } = encode(spec.with, itemCtx);
+            if (withErr) return error(spec.with, ctx, withErr);
+            out.push(withValue);
         }
 
         if (spec.flatten == true) {
@@ -713,13 +706,11 @@ export default (appUrl, appEffects) => {
     function encodeCombine(spec, ctx) {
         var path = isEmpty(spec.combine) ? "@items" : spec.combine;
 
-        var {err, value} = encode(path, ctx);
+        var {err, value: source} = encode(path, ctx);
         if (err) return error(path, ctx, err);
-        var source = value;
 
-        var {err, value} = encode(spec.with, ctx);
-        if (err) return error(spec.with, ctx, err);
-        var dest = value;
+        var {err: withErr, value: dest} = encode(spec.with, ctx);
+        if (withErr) return error(spec.with, ctx, withErr);
 
         var sourceType = typeOf(source);
         var destType = typeOf(dest);
@@ -761,15 +752,15 @@ export default (appUrl, appEffects) => {
             var item = items[i];
             var itemCtx = Object.assign({}, ctx);
             if (spec.as) {
-                itemCtx[as] = item;
+                itemCtx[spec.as] = item;
             } else {
                 itemCtx = Object.assign(ctx, item);
             }
 
-            var { err, value } = encode(spec.by, itemCtx);
-            if (err) return error(spec.by, itemCtx, err);
-            if (!value || typeof (value) != 'string') return error(value, spec.by, "Unique key is not a string");
-            index[value] = item;
+            var { err: byErr, value: byValue} = encode(spec.by, itemCtx);
+            if (byErr) return error(spec.by, itemCtx, byErr);
+            if (!byValue || typeof (byValue) != 'string') return error(byValue, spec.by, "Unique key is not a string");
+            index[byValue] = item;
         }
 
         return { value: Object.values(index) };
@@ -786,19 +777,20 @@ export default (appUrl, appEffects) => {
 
         var keys = value;
 
-        var {err, value} = encode(spec.from, ctx);
-        if (!typeOf(value) === "object") return error(spec.take, ctx, {
+        var {err: fromErr, value: fromValue} = encode(spec.from, ctx);
+        if (fromErr) return error(spec.from, ctx, fromErr);
+        if (!typeOf(fromValue) === "object") return error(spec.from, ctx, {
             error: "type_mistmatch",
-            actual: value,
+            actual: fromValue,
             expected: "object"
         });
 
-        var source = value;
+        var source = fromValue;
 
         var out = {}
         for (var i=0; i<keys.length; i++) {
             var key = keys[i];
-            out[key] = value[key];
+            out[key] = source[key];
         }
 
         return {value: out};
@@ -808,14 +800,11 @@ export default (appUrl, appEffects) => {
         if (spec == undefined || spec == null) return error(spec, ctx, "Missing encoding spec");
         switch (typeof (spec)) {
             case "object":
-                if (spec.hasOwnProperty("text")) return encodeText(spec, ctx);
-                if (spec.hasOwnProperty("char")) return encodeChar(spec, ctx);
+                if (hasProp(spec, "text")) return encodeText(spec, ctx);
+                if (hasProp(spec, "char")) return encodeChar(spec, ctx);
                 if (Array.isArray(spec)) return encodeList(spec, ctx);
                 if (spec.object) return encodeObject(spec, ctx);
-                if (spec.hasOwnProperty("switch")) return encodeSwitch(spec, ctx);
-                //if (spec.key) return encodeKey(spec, ctx);
-                //if (spec.key_path) return encodeKeyPath(spec, ctx);
-                //if (spec.i18n) return encodeI18n(spec, ctx);
+                if (hasProp(spec, "switch")) return encodeSwitch(spec, ctx);
                 if (spec.format) return encodeFormat(spec, ctx);
                 if (spec.format_date) return encodeFormatDate(spec, ctx);
                 if (spec.timestamp) return encodeTimestamp(spec, ctx);
@@ -825,12 +814,10 @@ export default (appUrl, appEffects) => {
                 if (spec.one_of) return encodeOneOf(spec, ctx);
                 if (spec.effect) return encodeCmd(spec, ctx);
                 if (spec.encoder) return encodeUsingEncoder(spec, ctx);
-                if (spec.percent) return encodePercent(spec, ctx);
                 if (spec.is_set) return encodeIsSet(spec, ctx);
                 if (spec.not) return encodeNot(spec, ctx);
                 if (spec.and) return encodeAnd(spec, ctx);
                 if (spec.or) return encodeOr(spec, ctx);
-                if (spec.any) return encodeAny(spec, ctx);
                 if (spec.head) return encodeHead(spec, ctx);
                 if (spec.tail) return encodeTail(spec, ctx);
                 if (spec.last) return encodeLast(spec, ctx);
@@ -838,7 +825,6 @@ export default (appUrl, appEffects) => {
                 if (spec.join) return encodeJoin(spec, ctx);
                 if (spec.concat) return encodeConcat(spec, ctx);
                 if (spec.merge) return encodeMerge(spec, ctx);
-                if (spec.iterate) return encodeIterate(spec, ctx);
                 if (spec.prettify) return encodePrettify(spec, ctx);
                 if (spec.percent) return encodePercent(spec, ctx);
                 if (spec.divide) return encodeDivide(spec, ctx);
@@ -880,7 +866,7 @@ export default (appUrl, appEffects) => {
         if (!data || typeof (data) != 'object') return error(spec, data, "no_match");
         var out = {};
         for (var k in spec.object) {
-            if (spec.object.hasOwnProperty(k)) {
+            if (hasProp(spec.object, k)) {
                 var keySpec = spec.object[k];
                 var { err, decoded } = decode(keySpec, data[k], ctx);
                 if (err) return error(keySpec, data[k], err);
@@ -939,7 +925,7 @@ export default (appUrl, appEffects) => {
         }
     }
 
-    function decodeAny(spec, data, ctx) {
+    function decodeAny(spec, data) {
         if (data == undefined || data == null) return error(spec, data, "no_data");
         var d = anyConditions[spec.any];
         if (!d) return error(spec, data, "unknown_any_condition");
@@ -948,11 +934,13 @@ export default (appUrl, appEffects) => {
 
     function decodeList(spec, data, ctx) {
         if (!Array.isArray(data)) return error(spec, data, "no_match");
+        var out = [];
+        var itemSpec;
+        var i;
+        var item;
         if (Array.isArray(spec.list)) {
-            var out = [];
-            var itemSpec;
-            for (var i = 0; i < spec.list.length; i++) {
-                var item = data[i];
+            for (i = 0; i < spec.list.length; i++) {
+                item = data[i];
                 itemSpec = spec.list[i];
                 var { err, decoded } = decode(itemSpec, item, ctx);
                 if (err) return error(spec, data, err);
@@ -960,13 +948,12 @@ export default (appUrl, appEffects) => {
             }
             return { decoded: out };
         } else {
-            var out = [];
-            var itemSpec = spec.list;
-            for (var i = 0; i < data.length; i++) {
-                var item = data[i];
-                var { err, decoded } = decode(itemSpec, item, ctx);
-                if (err) return error(spec, data, err);
-                out.push(decoded);
+            itemSpec = spec.list;
+            for (i = 0; i < data.length; i++) {
+                item = data[i];
+                var { err: itemErr, decoded: decodedItem } = decode(itemSpec, item, ctx);
+                if (itemErr) return error(spec, data, itemErr);
+                out.push(decodedItem);
             }
             return { decoded: out };
         }
@@ -1006,7 +993,7 @@ export default (appUrl, appEffects) => {
     }
 
 
-    function decodeJson(spec, data, ctx) {
+    function decodeJson(spec) {
         try {
             return { value: JSON.parse(spec.json) };
         } catch (e) {
@@ -1017,15 +1004,22 @@ export default (appUrl, appEffects) => {
     function decodeSize(spec, data) {
         var { err, value } = encode(spec.size, data);
         if (err) return error(spec, data, err);
-        switch (typeof (data)) {
+        var dataType = typeOf(data);
+
+        switch (dataType) {
             case 'object':
-                if (Array.isArray(data) && data.length == value) return { decoded: data };
-                if (Object.keys(data).length == value) return { decoded: data };
+                return (Object.keys(data).length == value) ? { decoded: data } :
+                    error(spec, data, "no_match");
+            case 'list':
+                return data.length == value ?  { decoded: data } :
+                    error(spec, data, "no_match");
+
             case 'string':
                 if (data && data.length == value) return { decoded: data };
         }
+
         return error(spec, data, "no_match");
-    };
+    }
 
     function decodeKey(spec, data, ctx) {
         var { err, value } = encode(spec, ctx);
@@ -1047,14 +1041,14 @@ export default (appUrl, appEffects) => {
         return data.match(regex) ? { decoded: data } : error(spec, data, "no_match");
     }
 
-    function decodeSame(spec, data, ctx) {
+    function decodeSame(spec, data) {
         return spec === data ? { deocded: data } : error(spec, data, "no_match");
     }
 
     function decode(spec, data, ctx) {
         switch (typeof (spec)) {
             case "object":
-                if (spec.hasOwnProperty("text")) return decode(spec.text, data, ctx);
+                if (hasProp(spec, "text")) return decode(spec.text, data, ctx);
                 if (spec.key) return decodeKey(spec, data, ctx);
                 if (spec.object) return decodeObject(spec, data, ctx);
                 if (spec.any) return decodeAny(spec, data, ctx);
@@ -1089,10 +1083,6 @@ export default (appUrl, appEffects) => {
         var { err, decoded } = tryDecoders(data, decoders[effect]);
         if (!err) return { decoded };
         if (err) return error(null, data, "all_decoders_failed");
-    }
-
-    function assetUrl(baseUrl, name) {
-        return baseUrl + 'js/' + name + '.js';
     }
 
     // function encodeCmds(spec, data) {
@@ -1200,7 +1190,7 @@ export default (appUrl, appEffects) => {
                 error: err,
                 value: value
             });
-            if (err) return error(c.condition, model, err);
+            if (err) return error(c.condition, ctx, err);
             if (value) return { spec: c };
         }
         return error(clauses, ctx, "all_conditions_failed");
@@ -1214,7 +1204,7 @@ export default (appUrl, appEffects) => {
         }
         var effect = ev.effect;
         delete ev.effect;
-        const { encoders, effects, decoders, update } = state.app;
+        const { encoders, decoders, update } = state.app;
         var { err, decoded } = tryAllDecoders(effect, ev, decoders);
         if (err) {
             console.error("Decode error", err);
@@ -1227,24 +1217,24 @@ export default (appUrl, appEffects) => {
             model: state.model,
             data: data
         };
-        var { err, spec } = selectUpdate(msg, update, ctx);
-        if (err) {
-            console.error("Select update Uerror", err);
+        var { err: selectUpdateErr, spec } = selectUpdate(msg, update, ctx);
+        if (selectUpdateErr) {
+            console.error("Select update Uerror", selectUpdateErr);
             return;
         }
-        var { err, value } = withWhere(spec, ctx);
-        if (err) {
-            console.error("Where error", err);
+        var { err: whereErr, value } = withWhere(spec, ctx);
+        if (whereErr) {
+            console.error("Where error", whereErr);
             return;
         }
         ctx = value;
         log("[core] update spec", { spec, ctx });
-        var { err, value } = encode(spec, ctx);
-        if (err) {
-            console.error("Encode new model error", err);
+        var { err: updateErr, value: updateValue } = encode(spec, ctx);
+        if (updateErr) {
+            console.error("Encode new model error", updateErr);
             return err;
         }
-        var { model, cmds } = value;
+        var { model, cmds } = updateValue;
         Object.assign(state.model, model);
         log("[core] new model", state.model);
         const t2 = new Date();
@@ -1290,14 +1280,13 @@ export default (appUrl, appEffects) => {
         }
     }
 
-
-    function indexedDecoders(effects, index) {
+    function indexedDecoders(effects) {
         var index = {};
         for (var k in effects) {
-            if (effects.hasOwnProperty(k)) {
+            if (hasProp(effects, k)) {
                 var decs = effects[k];
                 for (var dec in decs) {
-                    if (decs.hasOwnProperty(dec)) {
+                    if (hasProp(decs, dec)) {
                         var d = decs[dec];
                         var effSpec = d.object && d.object.effect ? d.object.effect : k;
                         var { err, value } = encode(effSpec, {});
@@ -1326,7 +1315,7 @@ export default (appUrl, appEffects) => {
     function effects(mods, next) {
         const out = {};
         for (var n in mods) {
-            if (mods.hasOwnProperty(n)) {
+            if (hasProp(mods, n)) {
                 const effSettings = (state.app.effects && state.app.effects[n]) ?
                     (state.app.effects[n].settings || {}) : {};
                 const settings = Object.assign({}, state.app.settings, effSettings);
@@ -1356,7 +1345,7 @@ export default (appUrl, appEffects) => {
             .catch((err) => {
                 console.error("app error", err);
             });
-    };
+    }
 
     app(appUrl, function (app) {
         state.app = compiledApp(app);
@@ -1366,5 +1355,4 @@ export default (appUrl, appEffects) => {
             init(app);
         });
     });
-
 };
