@@ -215,7 +215,7 @@ export default (appUrl, appEffects, deps) => {
                 s = s.then || s;
                 var { err: thenErr, value: thenValue} = encode(s, ctx);
                 if (thenErr) return error(s, ctx, thenErr);
-                return { thenValue };
+                return { value: thenValue };
             }
         }
         return error(spec, ctx, "No clause matched");
@@ -288,10 +288,86 @@ export default (appUrl, appEffects, deps) => {
         return {value: spec.data};
     }
 
+    function encodeEmpty(spec, ctx) {
+        var {err, value} = encode(spec.empty, ctx);
+        if (err) return error(spec.empty, ctx, err);
+        return {value: isEmpty(value)};
+    }
+
     function encodeHas(spec, ctx) {
         var {err, value} = encode(spec.has, ctx);
         if (err) return error(spec.has, ctx, err);
         return {value: hasProp(ctx, value)};
+    }
+
+    function encodeMember(spec, ctx) {
+        var {err, value} = encode(spec.member, ctx);
+        if (err) return error(spec.member, ctx, err);
+        var valueType = typeOf(value);
+
+        if (valueType != "list") return error(spec, ctx, {
+            reason: "Type mismatch",
+            data: value,
+            expected: "list"
+        });
+
+        if (value.length != 2) return error(spec, ctx, {
+            reason: "invalid lenght",
+            data: value,
+            expect: {length: 2}
+        });
+
+        var [col, item] = value;
+        var colType = typeOf(col);
+
+        if (colType != "list") return error(spec, ctx, {
+            reason: "Type mismatch",
+            data: col,
+            expected: "list"
+        });
+
+        return {value: col.indexOf(item) != -1};
+    }
+
+    function encodeAdd(spec, ctx) {
+        var {err: itemErr, value: item} = encode(spec.add, ctx);
+        if (itemErr) return error(spec.add, ctx, itemErr);
+
+        var {err: colErr, value: col} = encode(spec.to, ctx);
+        if (colErr) return error(spec.to, ctx, colErr);
+
+        var colType = typeOf(col);
+
+        if (colType != "list") return error(spec, ctx, {
+            reason: "Type mismatch",
+            data: col,
+            expected: "list"
+        });
+
+        return {value: col.concat([item])};
+    }
+
+    function encodeRemove(spec, ctx){
+        var {err: itemErr, value: item} = encode(spec.remove, ctx);
+        if (itemErr) return error(spec.remove, ctx, itemErr);
+
+        var {err: colErr, value: col} = encode(spec.from, ctx);
+        if (colErr) return error(spec.from, ctx, colErr);
+
+        var colType = typeOf(col);
+
+        if (colType != "list") return error(spec, ctx, {
+            reason: "Type mismatch",
+            data: col,
+            expected: "list"
+        });
+
+        var out = col.filter((i) => {
+            return i != item;
+        });
+
+        console.log("removing from list", {col, item, out});
+        return {value: out};
     }
 
     function encodeMatch(spec, ctx) {
@@ -681,6 +757,26 @@ export default (appUrl, appEffects, deps) => {
         return { value: out };
     }
 
+    function encodeReject(spec, ctx) {
+        var itemsSpec = isEmpty(spec.filter) ? "@items" : spec.filter;
+        var { err, value } = encode(itemsSpec, ctx);
+        if (err) return error(itemsSpec, ctx, err);
+        if (!Array.isArray(value)) return error(spec.filter, value, "Not a list");
+        var items = value;
+
+        var out = [];
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var itemCtx = Object.assign({}, ctx);
+            itemCtx[spec.as || "item"] = item;
+            var { err: withErr, decoded } = decode(spec.with, item, itemCtx);
+            if (withErr && !decoded) {
+                out.push(items[i]);
+            }
+        }
+        return { value: out };
+    }
+
     function encodeMap(spec, ctx) {
         var itemsSpec = isEmpty(spec.map) ? "@items" : spec.map;
         var { err, value } = encode(itemsSpec, ctx);
@@ -733,7 +829,6 @@ export default (appUrl, appEffects, deps) => {
     }
 
     function encodeFlatmap(spec, ctx) {
-        console.log("encode Flat map", {spec, ctx});
         return encodeMap(Object.assign({}, spec, {
             map: spec.flat_map,
             flatten: true
@@ -741,26 +836,34 @@ export default (appUrl, appEffects, deps) => {
     }
 
     function encodeUnique(spec, ctx) {
-        var { err, value } = encode(spec.unique, ctx);
-        if (err) return error(spec.unique, ctx, err);
-        if (!Array.isArray(value)) return error(spec.unique, value, "Not a list");
+        var itemsSpec = isEmpty(spec.unique) ? "@items" : spec.unique;
+        var { err: itemsErr, value: items } = encode(itemsSpec, ctx);
+        if (itemsErr) return error(itemsSpec, ctx, itemsErr);
+        if (!Array.isArray(items)) return error(itemsSpec, items, {
+            error: "type_mistmatch",
+            actual: items,
+            expected: "list"
+        });
 
         var index = {};
-        var items = value;
+        var bySpec = spec.by || "@item";
+
         for (var i = 0; i < items.length; i++) {
 
             var item = items[i];
-            var itemCtx = Object.assign({}, ctx);
-            if (spec.as) {
-                itemCtx[spec.as] = item;
-            } else {
-                itemCtx = Object.assign(ctx, item);
-            }
+            if (item) {
+                var itemCtx = Object.assign({}, ctx);
+                itemCtx[spec.as || "item"] = item;
 
-            var { err: byErr, value: byValue} = encode(spec.by, itemCtx);
-            if (byErr) return error(spec.by, itemCtx, byErr);
-            if (!byValue || typeof (byValue) != 'string') return error(byValue, spec.by, "Unique key is not a string");
-            index[byValue] = item;
+                var { err: byErr, value: byValue} = encode(bySpec, itemCtx);
+                if (byErr) return error(bySpec, itemCtx, byErr);
+                if (!byValue || typeof (byValue) != 'string') return error(byValue, bySpec, {
+                    error: "type_mistmatch",
+                    actual: byValue,
+                    expected: "string"
+                });
+                index[byValue] = item;
+            }
         }
 
         return { value: Object.values(index) };
@@ -840,9 +943,14 @@ export default (appUrl, appEffects, deps) => {
                 if (spec.map) return encodeMap(spec, ctx);
                 if (spec.flat_map) return encodeFlatmap(spec, ctx);
                 if (spec.filter) return encodeFilter(spec, ctx);
+                if (spec.reject) return encodeReject(spec, ctx);
                 if (spec.unique) return encodeUnique(spec, ctx);
                 if (spec.data) return encodeData(spec, ctx);
                 if (spec.has) return encodeHas(spec, ctx);
+                if (spec.member) return encodeMember(spec, ctx);
+                if (spec.empty) return encodeEmpty(spec, ctx);
+                if (spec.add) return encodeAdd(spec, ctx);
+                if (spec.remove) return encodeRemove(spec, ctx);
                 if (spec.match) return encodeMatch(spec, ctx);
                 if (spec.combine) return encodeCombine(spec, ctx);
                 if (spec.index) return encodeIndex(spec, ctx);
@@ -978,7 +1086,65 @@ export default (appUrl, appEffects, deps) => {
             default:
                 return error(spec, data, {error: "type_mistmatch", actual: dataType, expected: ["list", "object"]});
         }
+    }
 
+
+    function intersection(a, b) {
+        const s = new Set(b);
+        return a.filter(x => s.has(x));
+    }
+
+    function decodeAll(spec, data, ctx) {
+        if (!data) return error(spec, data, "no_data");
+        var dataType = typeOf(data);
+
+        if (dataType != 'list') return error(spec, data, {
+            error: "type_mistmatch",
+            actual: data,
+            expected: "list"
+        });
+
+        var {err, value: items} = encode(spec.all, ctx);
+        if (err) return error(spec.all, ctx, err);
+
+        var itemsType = typeOf(items);
+        if (itemsType!= 'list') return error(spec, data, {
+            error: "type_mistmatch",
+            actual: itemsType,
+            expected: "list"
+        });
+
+        var inter = intersection(items, data);
+        return inter.length == items.length ? {decoded: data} : error(spec, data, "no_match");
+    }
+
+    function decodeSome(spec, data, ctx) {
+        if (!data) return error(spec, data, "no_data");
+        var dataType = typeOf(data);
+
+        if (dataType != 'list') return error(spec, data, {
+            error: "type_mistmatch",
+            actual: data,
+            expected: "list"
+        });
+
+        var {err, value: items} = encode(spec.some, ctx);
+        if (err) return error(spec.some, ctx, err);
+
+        var itemsType = typeOf(items);
+        if (itemsType!= 'list') return error(spec, data, {
+            error: "type_mistmatch",
+            actual: itemsType,
+            expected: "list"
+        });
+
+        var inter = intersection(items, data);
+        return inter.length ? {decoded: data} : error(spec, data, "no_match");
+    }
+
+    function decodeEmpty(spec, data) {
+        if (!data || isEmpty(data)) return {decoded: data};
+        return error(spec, data, "no_match")
     }
 
     function decodeOne(spec, data, ctx) {
@@ -1054,6 +1220,9 @@ export default (appUrl, appEffects, deps) => {
                 if (spec.any) return decodeAny(spec, data, ctx);
                 if (spec.list) return decodeList(spec, data, ctx);
                 if (spec.with) return decodeWith(spec, data, ctx);
+                if (spec.all) return decodeAll(spec, data, ctx);
+                if (spec.some) return decodeSome(spec, data, ctx);
+                if (spec.empty) return decodeEmpty(spec, data, ctx);
                 if (spec.other_than) return decodeOtherThan(spec, data, ctx);
                 if (spec.one_of) return decodeOne(spec, data, ctx);
                 if (spec.json) return decodeJson(spec, data, ctx);

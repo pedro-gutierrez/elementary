@@ -17,6 +17,11 @@ spec:
       params:
         title: @title
         subtitle: Indexing
+    tagging-view:
+      view: loading-view
+      params:
+        title: @title
+        subtitle: Tagging
     loading-view:
       tag: section
       attrs:
@@ -30,7 +35,7 @@ spec:
           attrs:
             class: subtitle is-6
           children:
-            - @subtitle
+            - format: "{{subtitle}}..."
     layout-view:
       tag: div
       children:
@@ -146,61 +151,38 @@ spec:
                 - tag: div
                   attrs:
                     class: navbar-end
-                  children:
-                    - tag: div
-                      attrs:
-                        class: navbar-item
-                      children:
-                        - view: search-view
-                          when:
-                            encoder: search-enabled
-    mode-button:
-      tag: a
-      attrs:
-        onclick:
-          mode: @mode
-        class:
-          either:
-            - when:
-                equal:
-                  - @mode
-                  - @selected-mode
-              then: button is-primary is-capitalized
-            - button is-capitalized
-      children:
-        - @mode
-
-    search-view:
-      tag: div
-      attrs:
-        class: field
-      children:
-        - tag: div
-          attrs:
-            class: control has-icons-right
-          children:
-            - tag: input
-              attrs:
-                oninput: query
-                class: input
-                type: text
-                placeholder: Search
-                value: @query
-            - view: clear-icon-view
-              when:
-                is_set: @query
-    clear-icon-view:
-      tag: span
-      attrs:
-        class: icon is-small is-right
-      children:
-        - tag: i
-          attrs:
-            class: fa fa-times-circle
-            style:
-              cursor: pointer
-              pointer-events: initial
-            onclick: clear-search
+                  children: []
+                  ##search-view:
+                  ##  tag: div
+                  ##  attrs:
+                  ##    class: field
+                  ##  children:
+                  ##    - tag: div
+                  ##      attrs:
+                  ##        class: control has-icons-right
+                  ##      children:
+                  ##        - tag: input
+                  ##          attrs:
+                  ##            oninput: query
+                  ##            class: input
+                  ##            type: text
+                  ##            placeholder: Search
+                  ##            value: @query
+                  ##        - view: clear-icon-view
+                  ##          when:
+                  ##            is_set: @query
+                  ##clear-icon-view:
+                  ##  tag: span
+                  ##  attrs:
+                  ##    class: icon is-small is-right
+                  ##  children:
+                  ##    - tag: i
+                  ##      attrs:
+                  ##        class: fa fa-times-circle
+                  ##        style:
+                  ##          cursor: pointer
+                  ##          pointer-events: initial
+                  ##        onclick: clear-search
     title-view:
       view: hero-view
       params:
@@ -217,26 +199,3 @@ spec:
           children:
             - view: @content-view
               params: @content
-    hero-view:
-      tag: section
-      attrs:
-        class: hero
-      children:
-        - tag: div
-          attrs:
-            class: hero-body
-          children:
-            - tag: div
-              attrs:
-                class: container
-              children:
-                - tag: h1
-                  attrs:
-                    class: title
-                  children:
-                    - @title
-                - tag: h2
-                  attrs:
-                    class: subtitle
-                  children:
-                    - @subtitle

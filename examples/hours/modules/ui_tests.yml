@@ -3,13 +3,14 @@ name: ui_tests
 spec:
   init:
     model:
-      delay: 0
+      delay: 200
       tests: []
       indexed: {}
-      query: ""
       filtered: []
       view: steps-view
       step: ""
+      tags: []
+      selectedTags: []
     cmds:
       ui: downloading-view
       events: ready
@@ -21,17 +22,15 @@ spec:
           body:
             any: list
     ui:
-      query:
-        query:
-          any: text
-      clear-search:
-        clear-search: ""
       show-step:
         show-step:
           any: text
       show-steps:
         show-steps:
           any: object
+      toggle-tag:
+        toggle-tag:
+          any: text
     events:
       ready:
         ready:
@@ -41,6 +40,9 @@ spec:
           any: object
       indexed:
         indexed:
+          any: object
+      tagged:
+        tagged:
           any: object
   update:
     ready:
@@ -54,36 +56,26 @@ spec:
         events: downloaded
     downloaded:
       model:
-        let:
-          tests: @model.tests
-        in:
-          indexed:
-            encoder: index-data
-            params:
-              scenarios: @tests
+        indexed:
+          encoder: index-data
+          params:
+            scenarios: @model.tests
       cmds:
+        ui: tagging-view
         events: indexed
     indexed:
+      model:
+        tags:
+          encoder: extract-tags
+          params:
+            steps: @model.indexed.$
+      cmds:
+        events: tagged
+    tagged:
       model:
         filtered: @model.indexed.$
       cmds:
         ui: layout-view
-    query:
-      model:
-        query: @data.query
-        filtered:
-          encoder: filter-data
-          params:
-            steps: @model.indexed.$
-            query: @model.query
-      cmds:
-        ui: {}
-    clear-search:
-      model:
-        query: ""
-        filtered: @model.indexed.$
-      cmds:
-        ui: {}
     show-step:
       model:
         step:
@@ -98,6 +90,23 @@ spec:
         view: steps-view
       cmds:
         ui: {}
+    toggle-tag:
+      model:
+        let:
+          selectedTags:
+            encoder: toggle-tag
+            params:
+              tags: @model.selectedTags
+              tag: @data.toggle-tag
+        in:
+          selectedTags: @selectedTags
+          filtered:
+            encoder: filter-steps
+            params:
+              steps: @model.indexed.$
+              tags: @selectedTags
+      cmds:
+        ui: {}
   encoders:
     ready:
       ready: {}
@@ -108,10 +117,31 @@ spec:
     indexed:
       indexed: {}
       delay: @delay
+    tagged:
+      tagged: {}
+      delay: @delay
     get-tests:
       method: get
       path: /tests.json
       as: tests
+    step-tags:
+      pipeline:
+        - concat:
+          - @step.tags
+          - @step.spec.http.method
+          - text: @step.output.latest.status
+          - flat_map: @step.spec.http.url
+            as: parts
+            with:
+              split: @parts
+              using: /
+        - reject: {}
+          with:
+            one_of:
+              - api
+              - like:
+                  data: "@"
+              - empty: {}
     index-data:
       pipeline:
         - flat_map: @scenarios
@@ -134,30 +164,71 @@ spec:
             merge:
               - @step
               - tags:
-                  concat:
-                    - @step.spec.http.method
-                    - text: @step.output.latest.status
-                    - @step.tags
+                  encoder: step-tags
         - index: {}
-    filter-data:
-      filter: @steps
-      with:
-        one_of:
-          - title:
-              like: @query
-          - tags:
-              with:
-                like: @query
-          - output:
-              latest:
-                status:
-                  like: @query
-
+    filter-steps:
+      either:
+        - when:
+            empty: @tags
+          then: @steps
+        - filter: @steps
+          with:
+            tags:
+              all: @tags
+    extract-tags:
+      pipeline:
+        - flat_map: @steps
+          as: step
+          with: @step.tags
+        - unique: {}
+    toggle-tag:
+      either:
+        - when:
+            member:
+              - @tags
+              - @tag
+          remove: @tag
+          from: @tags
+        - add: @tag
+          to: @tags
     search-enabled:
       equal:
         - steps-view
         - @view
     steps-view:
+      tag: div
+      children:
+        - view: tag-cloud-view
+        - view: steps-items-view
+    tag-cloud-view:
+      tag: div
+      attrs:
+        class: tags
+      children:
+        loop: @tags
+        as: tag
+        with: tag-cloud-item-view
+        params:
+          selected: @selectedTags
+    tag-cloud-item-view:
+      tag: a
+      attrs:
+        onclick:
+          toggle-tag: @tag
+        class:
+          format: tag is-{{ color }}
+          params:
+            color:
+              either:
+                - when:
+                    member:
+                      - @selected
+                      - @tag
+                  then: primary
+                - light
+      children:
+        - capitalize: @tag
+    steps-items-view:
       tag: div
       attrs:
         class: columns is-12 is-multiline
@@ -228,7 +299,7 @@ spec:
       attrs:
         class: box column is-radiusless is-shadowless
       children:
-        - tag: h5
+        - tag: a
           attrs:
             class: has-text-weight-normal
           children:
