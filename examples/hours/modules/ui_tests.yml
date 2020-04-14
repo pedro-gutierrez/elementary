@@ -57,10 +57,16 @@ spec:
         events: downloaded
     downloaded:
       model:
-        indexed:
-          encoder: index-data
-          params:
-            scenarios: @model.tests
+        let:
+          scenarios:
+            encoder: index-scenarios
+            params:
+              scenarios: @model.tests
+        in:
+          indexed:
+            encoder: index-steps
+            params:
+              scenarios: @scenarios
       cmds:
         ui: tagging-view
         events: indexed
@@ -150,9 +156,16 @@ spec:
               - like:
                   data: "@"
               - empty: {}
-    index-data:
+    index-scenarios:
       pipeline:
-        - flat_map: @scenarios
+        - filter: @scenarios
+          with:
+            steps:
+              any: list
+        - index: {}
+    index-steps:
+      pipeline:
+        - flat_map: @scenarios.$
           as: scenario
           with:
             map: @scenario.steps
@@ -161,6 +174,10 @@ spec:
               merge:
                 - @step
                 - tags: @scenario.tags
+                  scenario:
+                    resolve:
+                      - scenarios
+                      - @step.scenario
         - filter: {}
           with:
             spec:
@@ -307,33 +324,48 @@ spec:
       attrs:
         key: @step.id
       children:
-        - tag: p
-          attrs:
-            style:
-              margin-bottom: 10px
+        - tag: div
           children:
-            - tag: a
+            - tag: p
               attrs:
-                class: link
-                onclick:
-                  show-steps: {}
+                style:
+                  margin-bottom: 10px
               children:
-                - Back
-
-        - view: summary-view
-          params: @step
-        - view: step-section-view
-          params:
-            title: Request
-            code:
-              take: [method, url, query, headers, body]
-              from: @step.output.latest.request
-        - view: step-section-view
-          params:
-            title: Response
-            code:
-              take: [status, headers, body]
-              from: @step.output.latest
+                - tag: a
+                  attrs:
+                    class: link
+                    onclick:
+                      show-steps: {}
+                  children:
+                    - Back
+        - tag: div
+          attrs:
+            class: columns
+          children:
+            - tag: div
+              attrs:
+                class: column is-one-third
+              children:
+                - view: summary-view
+                  params: @step
+                - view: scenario-view
+                  params: @step
+            - tag: div
+              attrs:
+                class: column is-two-thirds
+              children:
+                - view: step-section-view
+                  params:
+                    title: Request
+                    code:
+                      take: [method, url, query, headers, body]
+                      from: @step.output.latest.request
+                - view: step-section-view
+                  params:
+                    title: Response
+                    code:
+                      take: [status, headers, body]
+                      from: @step.output.latest
     step-section-view:
       tag: div
       attrs:
@@ -358,6 +390,8 @@ spec:
         - tag: a
           attrs:
             class: has-text-weight-normal
+            style:
+              margin-bottom: 10px
           children:
             - @title
         - view: tags-view
@@ -375,11 +409,52 @@ spec:
                         format: "{{ time }}ms"
                       color: light
                       size: small
+
+    scenario-view:
+      tag: div
+      attrs:
+        class: box column is-radiusless is-shadowless
+      children:
+        - view: tag-view
+          params:
+            label: Scenario
+            color: light
+            size: normal
+        - tag: p
+          attrs:
+            style:
+              margin-top: 20px
+            class: is-6
+          children:
+            - @scenario.title
+        - tag: div
+          attrs:
+            style:
+              margin-top: 10px
+          children:
+            loop: @scenario.steps
+            as: step
+            with: scenario-title-view
+            params:
+              current: @id
+    scenario-title-view:
+      tag: p
+      attrs:
+        class:
+          either:
+            - when:
+                equal:
+                  - @current
+                  - @step.id
+              then: has-text-weight-bold
+            - then: has-text-grey-light
+      children:
+        - @step.title
     tags-view:
       tag: div
       attrs:
         style:
-          margin-top: 5px
+          margin-top: 10px
         class: tags
       children:
         loop: @tags
