@@ -405,11 +405,9 @@ export default (appUrl, appEffects, deps) => {
             if(indexErr) return error(indexExpr, itemCtx, indexErr);
 
             var key = indexValue;
-            var keyType = typeOf(key);
-            if( keyType != 'text') return error(indexExpr, itemCtx, {
+            if( typeOf(key) != 'text') return error(indexExpr, itemCtx, {
                 reason: "Type mismatch",
-                data: value,
-                actualType: typeOf(value),
+                actual: value,
                 expectedType: "text"
             });
             out[key] = item;
@@ -418,6 +416,46 @@ export default (appUrl, appEffects, deps) => {
 
     }
 
+    function encodeGroup(spec, ctx) {
+
+        var path = isEmpty(spec.group) ? "@items" : spec.group;
+        var {err, value} = encode(path, ctx);
+        if (err) return error(path, ctx, err);
+        var source = value;
+
+        var sourceType = typeOf(source);
+        if (sourceType != "list") return error(spec, ctx, {
+            reason: "Type mismatch",
+            data: source,
+            actualType: sourceType,
+            expected: "list"
+        });
+
+        var groupExpr = isEmpty(spec.with) ? "@item.id" : spec.with;
+
+        var out = {}
+
+        for( var i=0; i<source.length; i++) {
+
+            var item = source[i];
+            var itemCtx = Object.assign({}, ctx);
+            itemCtx[spec.as || "item"] = item;
+
+            var {err: groupErr, value: groupValue} = encode(groupExpr, itemCtx);
+            if(groupErr) return error(groupExpr, itemCtx, groupErr);
+
+            var key = groupValue;
+            if( typeOf(key) != 'text') return error(groupExpr, itemCtx, {
+                reason: "Type mismatch",
+                actual: value,
+                expected: "text"
+            });
+
+            if (!out[key]) out[key] = []
+            out[key].push(item);
+        }
+        return {value: out}
+    }
 
     function encodeResolve(spec, ctx) {
         var {err, value} = encode(spec.resolve, ctx);
@@ -954,6 +992,7 @@ export default (appUrl, appEffects, deps) => {
                 if (spec.match) return encodeMatch(spec, ctx);
                 if (spec.combine) return encodeCombine(spec, ctx);
                 if (spec.index) return encodeIndex(spec, ctx);
+                if (spec.group) return encodeGroup(spec, ctx);
                 if (spec.resolve) return encodeResolve(spec, ctx);
                 if (spec.let) return encodeLet(spec, ctx);
                 if (spec.take) return encodeTake(spec, ctx);

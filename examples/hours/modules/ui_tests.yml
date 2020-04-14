@@ -11,6 +11,7 @@ spec:
       step: ""
       tags: []
       selectedTags: []
+      tagGroups: {}
     cmds:
       ui: downloading-view
       events: ready
@@ -65,10 +66,17 @@ spec:
         events: indexed
     indexed:
       model:
-        tags:
-          encoder: extract-tags
-          params:
-            steps: @model.indexed.$
+        let:
+          tags:
+            encoder: extract-tags
+            params:
+              steps: @model.indexed.$
+        in:
+          tags: @tags
+          tagGroups:
+            encoder: group-tags
+            params:
+              tags: @tags
       cmds:
         events: tagged
     tagged:
@@ -181,6 +189,22 @@ spec:
           as: step
           with: @step.tags
         - unique: {}
+    group-tags:
+      group: @tags
+      as: tag
+      with:
+        either:
+          - when:
+              member:
+                - ["200", "201", "400", "401", "404", "409", "500"]
+                - @tag
+            then: status
+          - when:
+              member:
+                - ["get", "put", "post", "delete"]
+                - @tag
+            then: method
+          - then: resource
     toggle-tag:
       either:
         - when:
@@ -198,11 +222,43 @@ spec:
     steps-view:
       tag: div
       children:
-        - view: tag-cloud-view
+        - view: tag-groups-view
         - view: steps-items-view
+    tag-groups-view:
+      tag: div
+      attrs:
+        style:
+          margin-bottom: 30px
+      children:
+        - view: tag-group-view
+          params:
+            title: Resources
+            tags: @tagGroups.resource
+            selectedTags: @selectedTags
+        - view: tag-group-view
+          params:
+            title: Methods
+            tags: @tagGroups.method
+            selectedTags: @selectedTags
+        - view: tag-group-view
+          params:
+            title: Status codes
+            tags: @tagGroups.status
+            selectedTags: @selectedTags
+    tag-group-view:
+      tag: div
+      attrs:
+        class: has-text-centered
+        style:
+          margin-bottom: 5px
+      children:
+        - view: tag-cloud-view
     tag-cloud-view:
       tag: div
       attrs:
+        style:
+          display: inline-block
+          margin-left: 5px
         class: tags
       children:
         loop: @tags
