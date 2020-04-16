@@ -1,9 +1,6 @@
 kind: module
 name: ui_hello
 spec:
-  init:
-    cmds:
-      ui: downloading-view
   decoders: {}
   update: {}
   encoders:
@@ -54,25 +51,22 @@ spec:
     app-icon-view:
       tag: span
       attrs:
-        class:
-          format: "icon is-{{ icon-size }}"
+        class: icon has-text-dark
       children:
         - tag: i
           attrs:
             class: fas fa-cubes
             style:
               font-size:
-                format: "{{ font-size }}em"
+                format: "{{ size }}em"
     large-app-icon-view:
       view: app-icon-view
       params:
-        icon-size: large
-        font-size: 2.5
+        size: 2.5
     small-app-icon-view:
       view: app-icon-view
       params:
-        icon-size: medium
-        font-size: 1.5
+        size: 1.5
     footer-view:
       tag: footer
       attrs:
@@ -87,23 +81,65 @@ spec:
                 - view: small-app-icon-view
                 - view: app-title-view
                 - view: credits-view
+                - view: sitemap-view
     credits-view:
       tag: p
       attrs:
         class: subtitle is-size-7
       children:
         - "Made with "
-        - tag: a
-          attrs:
-            href: https://elixir-lang.org
-          children:
-            - Elixir
+        - view: link-view
+          params:
+            title: Elixir
+            url: https://elixir-lang.org
         - " + "
-        - tag: a
+        - view: link-view
+          params:
+            title: Elementary
+            url: https://github.com/pedro-gutierrez/elementary
+    sitemap-view:
+      tag: p
+      attrs:
+        class: subtitle is-size-7
+      children:
+        - view: internal-link-view
+          params:
+            title: Home
+            icon: fas fa-home
+            onclick:
+              show-landing: {}
+        - view: internal-link-view
+          params:
+            title: API Docs
+            icon:  fas fa-code
+            onclick:
+              show-api-docs: {}
+    link-view:
+      tag: a
+      attrs:
+        href: @url
+      children:
+        - @title
+    icon-view:
+      tag: span
+      attrs:
+        class: icon
+      children:
+        - tag: i
           attrs:
-            href: https://github.com/pedro-gutierrez/elementary
+            class: @icon
+    internal-link-view:
+      tag: button
+      attrs:
+        class: button is-light is-small
+        onclick: @onclick
+        style:
+          margin-right: 5px
+      children:
+        - view: icon-view
+        - tag: span
           children:
-            - Elementary
+            - @title
     nav-view:
       tag: nav
       attrs:
@@ -199,3 +235,30 @@ spec:
           children:
             - view: @content-view
               params: @content
+    hero-view:
+      tag: section
+      attrs:
+        class: hero is-bold
+      children:
+        - tag: div
+          attrs:
+            class: hero-body has-text-centered
+          children:
+            - tag: div
+              attrs:
+                class: container
+              children:
+                - view: app-icon-view
+                  params:
+                    size: 4
+                - tag: h1
+                  attrs:
+                    class: title is-size-1
+                  children:
+                    - @title
+                - tag: h2
+                  attrs:
+                    class: subtitle is-size-4
+                  children:
+                    - @subtitle
+

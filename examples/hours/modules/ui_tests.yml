@@ -12,9 +12,6 @@ spec:
       tags: []
       selectedTags: []
       tagGroups: {}
-    cmds:
-      ui: downloading-view
-      events: ready
   decoders:
     http:
       tests:
@@ -23,6 +20,9 @@ spec:
           body:
             any: list
     ui:
+      show-api-docs:
+        show-api-docs:
+          any: object
       show-step:
         show-step:
           any: text
@@ -46,6 +46,10 @@ spec:
         tagged:
           any: object
   update:
+    show-api-docs:
+      cmds:
+        ui: downloading-view
+        events: ready
     ready:
       cmds:
         http: get-tests
@@ -369,7 +373,7 @@ spec:
     step-section-view:
       tag: div
       attrs:
-        class: box column is-radiusless is-shadowless
+        class: box column
         style:
           margin-bottom: 25px
       children:
@@ -385,7 +389,7 @@ spec:
     summary-view:
       tag: div
       attrs:
-        class: box column is-radiusless is-shadowless
+        class: box column
       children:
         - tag: a
           attrs:
@@ -413,7 +417,7 @@ spec:
     scenario-view:
       tag: div
       attrs:
-        class: box column is-radiusless is-shadowless
+        class: box column
       children:
         - view: tag-view
           params:

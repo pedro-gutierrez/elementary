@@ -5,4 +5,5 @@ spec:
     - web
   modules:
     - ui_hello
+    - ui_landing
     - ui_tests

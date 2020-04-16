@@ -1,0 +1,116 @@
+kind: module
+name: ui_landing
+spec:
+  init:
+    cmds:
+      ui: landing-layout-view
+  decoders:
+    ui:
+      show-landing:
+        show-landing: {}
+  update:
+    show-landing:
+      cmds:
+        ui: landing-layout-view
+
+  encoders:
+    landing-layout-view:
+      tag: div
+      children:
+        - view: container-view
+          params:
+            content-view: landing-view
+            content: @
+        - view: footer-view
+    landing-view:
+      tag: section
+      attrs:
+        class: is-medium section columns
+      children:
+        - tag: div
+          attrs:
+            class: column
+          children:
+            - view: landing-title-view
+        - tag: div
+          attrs:
+            class: column
+          children:
+            - view: login-view
+    landing-title-view:
+      view: hero-view
+      params:
+        icon: fas fa-boxes
+        title: Timeboxed
+        subtitle: Simple tasks
+    login-view:
+      tag: div
+      attrs:
+        class: box
+      children:
+        - view: form-view
+          params:
+            fields:
+              - name: email
+                kind: email
+                placeholder: you@domain.com
+              - name: password
+                kind: password
+                placeholder: Your password
+              - name: login
+                kind: submit
+            other:
+              - name: register
+              - name: forgot-password
+    form-view:
+      tag: div
+      children:
+        - tag: div
+          children:
+            loop: @fields
+            with: form-field-view
+    form-field-view:
+      tag: div
+      attrs:
+        class: field
+      children:
+        - view:
+            format: "form-{{ kind }}-view"
+    form-email-view:
+      view: form-input-view
+    form-password-view:
+      view: form-input-view
+    form-input-view:
+      tag: div
+      children:
+        - tag: label
+          attrs:
+            class: label
+          children:
+            - encoder: form-field-title
+        - tag: div
+          attrs:
+            class: control
+          children:
+            - tag: input
+              attrs:
+                class: input
+                type: @kind
+                placeholder: @placeholder
+
+    form-field-title:
+      either:
+        - when:
+            has: @title
+          then: @title
+        - capitalize: @name
+    form-submit-view:
+      tag: div
+      attrs:
+        class: control
+      children:
+        - tag: button
+          attrs:
+            class: button is-link
+          children:
+            - encoder: form-field-title
