@@ -1586,7 +1586,7 @@ export default (appUrl, appEffects, deps) => {
 
     app(appUrl, function (app) {
         state.app = compiledApp(app);
-        if (state.app.settings.debug) console.log(app);
+        log("app", app);
         effects(appEffects, (effs) => {
             state.effects = effs;
             init(app);

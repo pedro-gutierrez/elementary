@@ -10,6 +10,7 @@ export default (name, settings, app) => {
         var e = { effect: name }
         if (typeof (spec) == 'object') {
             e = Object.assign(spec, e);
+            e.value = value;
         } else {
             e[spec] = value || "";
         }
@@ -134,14 +135,15 @@ export default (name, settings, app) => {
             if (attrs.hasOwnProperty(k)) {
                 if (k.startsWith("on")) {
                     var spec = attrs[k];
-                    var {err, value} = encode(spec, ctx);
+                    var {err, value: eventSpec} = encode(spec, ctx);
                     if (err) {
                         console.error("Error encoding value for event handler", k, spec, err);
                     } else {
 
                         const handler = (ev) => {
                             if (ev.preventDefault) ev.preventDefault();
-                            event(value, evValue(ev.target));
+                            var eventValue = evValue(ev.target);
+                            event(eventSpec, eventValue);
                         }
                         attrs[k] = handler
                     }

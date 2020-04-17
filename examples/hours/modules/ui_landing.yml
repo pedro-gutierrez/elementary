@@ -46,6 +46,7 @@ spec:
     login-view:
       view: form-view
       params:
+        name: login
         status: invalid
         message: ""
         fields:
@@ -55,8 +56,9 @@ spec:
           - name: password
             kind: password
             placeholder: Your password
-          - name: login
-            kind: submit
+        actions:
+          - name: submit
+            title: Login
         related:
           - name: forgot-password
             label: Forgot password?
@@ -78,10 +80,16 @@ spec:
                     non_empty: text
             - tag: div
               children:
-                loop: "@fields"
+                concat:
+                loop: 
+                  concat:
+                    - "@fields"
+                    - kind: actions
+                      actions: "@actions"
                 with: form-field-view
                 params:
                   status: "@status"
+                  form-name: "@name"
         - tag: div
           children:
             loop: "@related"
@@ -135,31 +143,31 @@ spec:
                     - class: input
                       type: "@kind"
                       placeholder: "@placeholder"
-    form-field-title:
-      either:
-        - when:
-            has: "@title"
-          then: "@title"
-        - capitalize: "@name"
-    form-submit-view:
+                      oninput:
+                        format: "{{ form-name }}-{{ name }}"
+    form-actions-view:
       tag: div
       attrs:
         class: control
       children:
-        - tag: button
-          attrs:
-            class: 
-              format: button is-link is-{{ status }}
-            onclick:
-              encoder: form-submit-onclick
-          children:
-            - encoder: form-field-title
-    form-submit-onclick:
-      either:
-        - when:
-            has: onclick
-          then: "@onclick"
-        - submit: "@name"
+        loop: "@actions"
+        with: form-submit-button
+    form-field-title:
+      resolve:
+        - title
+      otherwise:
+        capitalize: "@name"
+    form-submit-button:
+      tag: button
+      attrs:
+        class: 
+          format: button is-link is-{{ status }}
+        onclick:
+          format: "{{ form-name }}-{{ name}}"
+        style:
+          margin-right: 5px
+      children:
+        - encoder: form-field-title
     form-input-disabled-style: 
       switch: "@status"
       case:
