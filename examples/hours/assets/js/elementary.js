@@ -31,6 +31,10 @@ export default (appUrl, appEffects, deps) => {
         return { err: { spec, ctx, reason } };
     }
 
+    function isNoMatch(err) {
+        return err && err.reason == "no_match";
+    }
+
     function fmt(pattern, args) {
         return Mustache.render(pattern, args)
     }
@@ -55,6 +59,12 @@ export default (appUrl, appEffects, deps) => {
         }
         return {value};
     }
+    
+    function getInOrDefault(spec, defaultVal, ctx) {
+        var {err, value} = getIn(spec, ctx);
+        if (err) return encode(defaultVal, ctx);
+        return {value};
+    }
 
     function encodeObject(spec, ctx) {
         var out = {};
@@ -73,6 +83,12 @@ export default (appUrl, appEffects, deps) => {
         if (!spec.key.length) return error(spec, ctx, "Invalid key spec");
         if (spec.key === "@") return { value: ctx };
         return getIn(spec.key.substring(1).split("."), ctx);
+    }
+
+    function encodeKeyOrDefault(spec, defaultVal, ctx) {
+        var {err, value} = encodeKey(spec, ctx);
+        if (err) return encode(defaultVal, ctx);
+        return {value};
     }
 
     function encodeList(items, ctx) {
@@ -465,10 +481,10 @@ export default (appUrl, appEffects, deps) => {
         switch (pathType) {
             case 'list':
                 path = "@" + path.join(".");
-                return encodeKey({key: path}, ctx);
+                return encodeKeyOrDefault({key: path}, spec.otherwise, ctx);
 
             case 'text':
-                return getIn([path], ctx);
+                return getInOrDefault([path], spec.otherwise, ctx);
 
             default:
                 return error(spec, ctx, {
@@ -756,7 +772,10 @@ export default (appUrl, appEffects, deps) => {
         if (err) return error(spec, ctx, err);
         var clause = spec["case"][value];
         if (!clause) {
-            return error(spec, ctx, "no clause matched");
+            clause = spec["default"]
+            if (!clause) return error(spec, ctx, {
+                error: "no_clause"
+            });
         }
         var { err: clauseErr, value: clauseValue} = encode(clause, ctx);
         if (clauseErr) return error(clause, ctx, clauseErr);
@@ -1186,6 +1205,13 @@ export default (appUrl, appEffects, deps) => {
         return error(spec, data, "no_match")
     }
 
+    function decodeNonEmpty(spec, data) {
+        var {err} = decodeEmpty({empty: spec.non_empty}, data);
+        if (isNoMatch(err)) return {decoded: data};
+        return error(spec, data, "no_match");
+         
+    }
+
     function decodeOne(spec, data, ctx) {
         function _(i) {
             if (i == spec.one_of.length) return error(spec, data, "no_match")
@@ -1262,6 +1288,7 @@ export default (appUrl, appEffects, deps) => {
                 if (spec.all) return decodeAll(spec, data, ctx);
                 if (spec.some) return decodeSome(spec, data, ctx);
                 if (spec.empty) return decodeEmpty(spec, data, ctx);
+                if (spec.non_empty) return decodeNonEmpty(spec, data, ctx);
                 if (spec.other_than) return decodeOtherThan(spec, data, ctx);
                 if (spec.one_of) return decodeOne(spec, data, ctx);
                 if (spec.json) return decodeJson(spec, data, ctx);
@@ -1339,7 +1366,9 @@ export default (appUrl, appEffects, deps) => {
 
     function isEmpty(obj) {
         if (!obj || (obj.length && obj.length == 0)) return true;
-        for (var x in obj) { return false; }
+        for (var x in obj) { 
+            if (hasProp(obj, x)) return false; 
+        }
         return true;
     }
 
@@ -1563,4 +1592,4 @@ export default (appUrl, appEffects, deps) => {
             init(app);
         });
     });
-};
+}

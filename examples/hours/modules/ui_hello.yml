@@ -88,12 +88,12 @@ spec:
         class: subtitle is-size-7
       children:
         - "Made with "
-        - view: link-view
+        - view: external-link-view
           params:
             title: Elixir
             url: https://elixir-lang.org
         - " + "
-        - view: link-view
+        - view: external-link-view
           params:
             title: Elementary
             url: https://github.com/pedro-gutierrez/elementary
@@ -102,19 +102,17 @@ spec:
       attrs:
         class: subtitle is-size-7
       children:
-        - view: internal-link-view
+        - view: internal-button-link-view
           params:
-            title: Home
+            name: landing 
+            label: Home
             icon: fas fa-home
-            onclick:
-              show-landing: {}
-        - view: internal-link-view
+        - view: internal-button-link-view
           params:
-            title: API Docs
+            name: api-docs
+            label: API Docs
             icon:  fas fa-code
-            onclick:
-              show-api-docs: {}
-    link-view:
+    external-link-view:
       tag: a
       attrs:
         href: @url
@@ -129,17 +127,32 @@ spec:
           attrs:
             class: @icon
     internal-link-view:
+      tag: a
+      attrs:
+        style:
+          margin-right: 5px
+        onclick:
+          show: @name
+      children:
+        - encoder: link-title
+    internal-button-link-view:
       tag: button
       attrs:
         class: button is-light is-small
-        onclick: @onclick
+        onclick: 
+          show: "@name"
         style:
           margin-right: 5px
       children:
         - view: icon-view
         - tag: span
           children:
-            - @title
+            - encoder: link-title
+    link-title:
+      resolve:
+        - label 
+      otherwise: 
+        capitalize: "@name"
     nav-view:
       tag: nav
       attrs:

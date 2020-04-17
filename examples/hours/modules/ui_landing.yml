@@ -7,7 +7,7 @@ spec:
   decoders:
     ui:
       show-landing:
-        show-landing: {}
+        show: landing
   update:
     show-landing:
       cmds:
@@ -20,7 +20,7 @@ spec:
         - view: container-view
           params:
             content-view: landing-view
-            content: @
+            content: "@"
         - view: footer-view
     landing-view:
       tag: section
@@ -44,31 +44,63 @@ spec:
         title: Timeboxed
         subtitle: Simple tasks
     login-view:
-      tag: div
-      attrs:
-        class: box
-      children:
-        - view: form-view
-          params:
-            fields:
-              - name: email
-                kind: email
-                placeholder: you@domain.com
-              - name: password
-                kind: password
-                placeholder: Your password
-              - name: login
-                kind: submit
-            other:
-              - name: register
-              - name: forgot-password
+      view: form-view
+      params:
+        status: invalid
+        message: ""
+        fields:
+          - name: email
+            kind: email
+            placeholder: you@domain.com
+          - name: password
+            kind: password
+            placeholder: Your password
+          - name: login
+            kind: submit
+        related:
+          - name: forgot-password
+            label: Forgot password?
+          - name: register
+            label: Don't have an account?
     form-view:
       tag: div
       children:
         - tag: div
+          attrs:
+            class: box
           children:
-            loop: @fields
-            with: form-field-view
+            - view: form-message-view
+              when:
+                match:
+                  status:
+                    other_than: loading
+                  message:
+                    non_empty: text
+            - tag: div
+              children:
+                loop: "@fields"
+                with: form-field-view
+                params:
+                  status: "@status"
+        - tag: div
+          children:
+            loop: "@related"
+            with: internal-link-view
+    form-message-view:
+      tag: div
+      attrs:
+        class: 
+          format: notification is-{{ style }}
+          params:
+            style:
+              encoder: form-message-style
+      children:
+        - "@message"
+    form-message-style:
+      switch: "@status"
+      case:
+        error: danger
+      default: warning
     form-field-view:
       tag: div
       attrs:
@@ -94,16 +126,21 @@ spec:
           children:
             - tag: input
               attrs:
-                class: input
-                type: @kind
-                placeholder: @placeholder
-
+                let:
+                  disabled:
+                    encoder: form-input-disabled-style
+                in:
+                  merge:
+                    - "@disabled"
+                    - class: input
+                      type: "@kind"
+                      placeholder: "@placeholder"
     form-field-title:
       either:
         - when:
-            has: @title
-          then: @title
-        - capitalize: @name
+            has: "@title"
+          then: "@title"
+        - capitalize: "@name"
     form-submit-view:
       tag: div
       attrs:
@@ -111,6 +148,22 @@ spec:
       children:
         - tag: button
           attrs:
-            class: button is-link
+            class: 
+              format: button is-link is-{{ status }}
+            onclick:
+              encoder: form-submit-onclick
           children:
             - encoder: form-field-title
+    form-submit-onclick:
+      either:
+        - when:
+            has: onclick
+          then: "@onclick"
+        - submit: "@name"
+    form-input-disabled-style: 
+      switch: "@status"
+      case:
+        loading:
+          disabled: ""
+      default: {}
+
