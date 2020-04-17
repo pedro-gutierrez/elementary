@@ -58,7 +58,7 @@ spec:
             placeholder: Your password
         actions:
           - name: submit
-            title: Login
+            label: Login
         related:
           - name: forgot-password
             label: Forgot password?
@@ -154,7 +154,7 @@ spec:
         with: form-submit-button
     form-field-title:
       resolve:
-        - title
+        - label 
       otherwise:
         capitalize: "@name"
     form-submit-button:
