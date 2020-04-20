@@ -1,0 +1,48 @@
+kind: module
+name: login_google
+spec:
+  decoders:
+    http:
+      get_code:
+        body:
+          code:
+            any: text
+      access_token:
+        body:
+          access_token:
+            any: text
+          refresh_token:
+            any: text
+          expires_in:
+            any: number
+          id_token:
+            any: text
+  update:
+    get_code:
+      model:
+        code: "@data.body.code"
+      cmds:
+        http: get_token
+    access_token:
+      model: "@data.body"
+      cmds:
+        return: access_token
+  encoders:
+    get_token:
+      object:
+        method: post
+        url: https://accounts.google.com/o/oauth2/token
+        headers:
+          content-type: application/x-www-form-urlencoded
+        body:
+          client_id: "@client_id" 
+          client_secret: "@client_secret"
+          grant_type: authorization_code
+          redirect_uri: "@redirect_uri"
+          code: "@code"
+    access_token:
+      status: 201
+      headers:
+        content-type: application/json
+      body:
+        token: "@access_token"

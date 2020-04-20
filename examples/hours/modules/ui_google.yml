@@ -1,0 +1,31 @@
+kind: module
+name: ui_google
+spec:
+  decoders:
+    ui:
+      google-signin:
+        show: google-signin
+
+    google:
+      google-auth-code:
+        code:
+          any: text
+  update:
+    google-signin:
+      cmds:
+        google: google-signin
+    google-auth-code:
+      model:
+        authCode: "@data.code"
+      cmds:
+        http: google-get-access-token
+  encoders:
+    google-signin:
+      google: signin
+    google-get-access-token:
+      method: post
+      path: /api/login/google
+      headers:
+        content-type: application/json
+      body:
+        code: "@authCode"

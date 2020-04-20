@@ -142,6 +142,24 @@ defmodule Elementary.Effect do
     |> effect_result(spec)
   end
 
+  def apply("http", spec) do
+    case Elementary.Http.Client.run(
+           debug: spec["debug"],
+           method: spec["method"] || "get",
+           url: spec["url"],
+           body: spec["body"],
+           headers: spec["headers"],
+           query: spec["query"]
+         ) do
+      {:ok, resp} ->
+        resp
+
+      {:error, e} ->
+        "#{e}"
+    end
+    |> effect_result(spec)
+  end
+
   def apply("test", %{"run" => test, "settings" => settings}) do
     with {:ok, _pid} <- Elementary.Test.run(test, settings) do
       {:ok, %{"status" => "started"}}

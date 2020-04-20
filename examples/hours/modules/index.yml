@@ -28,15 +28,20 @@ spec:
                 <link rel="stylesheet" href="css/fa.min.css"/>
                 <script src="js/mustache.min.js"></script>
                 <script src="js/elementary-dom.js"></script>
+                <!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script> -->
+                <script src="https://apis.google.com/js/client:platform.js"> </script>
                 <script type="module">
+                  import {default as google} from "{{baseUrl}}/js/elementary-google.js";
                   import {default as ui} from "{{baseUrl}}/js/elementary-ui.js";
                   import {default as events} from "{{baseUrl}}/js/elementary-events.js";
                   import {default as http} from "{{baseUrl}}/js/elementary-http.js";
                   import {default as router} from "{{baseUrl}}/js/elementary-router.js";
                   import {default as app} from "{{baseUrl}}/js/elementary.js";
-                  app("{{baseUrl}}/js/app.js", {ui, events, http, router}, {Mustache});
+                  window.start = () => {
+                    app("{{baseUrl}}/js/app.js", {ui, events, http, router, google}, {Mustache});
+                  }
                 </script>
               </head>
-              <body>
+              <body onload="start()">
               </body>
             </html>

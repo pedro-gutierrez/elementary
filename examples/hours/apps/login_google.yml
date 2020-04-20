@@ -1,0 +1,14 @@
+kind: app
+name: login_google
+spec:
+  routes:
+    hours:
+      post: /api/login/google
+  settings:
+    - hours
+    - google
+  filters:
+    - cors
+  modules:
+    - login_google
+    - http

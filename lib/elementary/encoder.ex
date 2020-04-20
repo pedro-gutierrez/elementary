@@ -428,10 +428,17 @@ defmodule Elementary.Encoder do
   end
 
   def encode(%{"url" => url_spec} = spec, context, encoders) do
-    with {:ok, map} <- encode(url_spec, context, encoders) do
-      "#{map["scheme"] || "http"}://#{map["host"] || "localhost"}:#{map["port"] || 80}#{
-        map["path"] || ""
-      }"
+    case encode(url_spec, context, encoders) do
+      {:ok, map} when is_map(map) ->
+        "#{map["scheme"] || "http"}://#{map["host"] || "localhost"}:#{map["port"] || 80}#{
+          map["path"] || ""
+        }"
+
+      {:ok, url} when is_binary(url) ->
+        url
+
+      other ->
+        other
     end
     |> result(spec, context)
   end

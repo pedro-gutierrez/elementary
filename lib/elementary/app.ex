@@ -125,7 +125,6 @@ defmodule Elementary.App do
     else
       {:error, e} ->
         error([app: mod, effect: effect, data: encoded], e)
-        {:error, :internal_error}
 
       other ->
         error([app: mod, effect: effect, data: encoded], %{unexpected: other})
