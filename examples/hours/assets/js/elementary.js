@@ -956,6 +956,17 @@ export default (appUrl, appEffects, deps) => {
         return {value: out};
     }
 
+    function uuidv4() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    function encodeUuid(_spec, _ctx) {
+        return {value: uuidv4()};
+    }
+
     function encode(spec, ctx) {
         if (spec == undefined || spec == null) return error(spec, ctx, "Missing encoding spec");
         switch (typeof (spec)) {
@@ -1015,6 +1026,7 @@ export default (appUrl, appEffects, deps) => {
                 if (spec.resolve) return encodeResolve(spec, ctx);
                 if (spec.let) return encodeLet(spec, ctx);
                 if (spec.take) return encodeTake(spec, ctx);
+                if (spec.uuid) return encodeUuid(spec, ctx);
                 if (!Object.keys(spec).length) return { value: {} };
                 return encodeObject({ object: spec }, ctx)
             case "string":

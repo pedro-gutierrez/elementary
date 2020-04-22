@@ -148,6 +148,18 @@ spec:
         - tag: span
           children:
             - encoder: link-title
+    external-button-link-view:
+      tag: a 
+      attrs:
+        class: button is-light is-small
+        href: "@url"
+        style:
+          margin-right: 5px
+      children:
+        - view: icon-view
+        - tag: span
+          children:
+            - encoder: link-title
     link-title:
       resolve:
         - label 

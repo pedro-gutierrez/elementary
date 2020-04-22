@@ -74,7 +74,7 @@ defmodule Elementary.Http do
         {req, resp} =
           with {:ok, model} <- App.init(mod, settings),
                {:ok, model2} <- App.filter(mod, @effect, data, model),
-               {:ok, %{"status" => _, "body" => _} = resp} <-
+               {:ok, %{"status" => _} = resp} <-
                  App.decode(
                    mod,
                    @effect,

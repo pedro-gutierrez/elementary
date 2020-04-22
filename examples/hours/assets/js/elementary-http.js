@@ -68,6 +68,25 @@ export default (name, settings, app) => {
         }
     }
 
+    function encodeUrl(req) {
+        if (req.url) return req.url;
+        return (state.url ||'') + (req.path || '')
+    }
+    
+    function encodeQuery(url, req) {
+        if (!req.query) return url;
+
+        var qs = [];
+        for (var q in req.query) {
+            if (req.query.hasOwnProperty(q)) {
+                var val = encodeURIComponent(req.query[q]);
+                qs.push(`${q}=${val}`)
+            }
+        }
+
+        return url + "?" + qs.join("&");
+    }
+
     function withReqHeaders(xhr, source) {
         if (source && source.headers) {
             for (var h in source.headers) {
@@ -84,9 +103,11 @@ export default (name, settings, app) => {
             error("error encoding request", err);
         } else {
             encodeBody(value, (body, ct) => {
-                var url = (state.url ||'') + (value.path || '');
+                var method = (value.method||'get').toUpperCase()
+                var url = encodeUrl(value);
+                url = encodeQuery(url, value);
                 var xhr = new XMLHttpRequest();
-                xhr.open((value.method||'get').toUpperCase(), url );
+                xhr.open(method, url);
                 withReqHeaders(xhr, settings);
                 withReqHeaders(xhr, value);
                 xhr.onload = function () {
@@ -105,6 +126,13 @@ export default (name, settings, app) => {
                         data[as] = payload
                     }
                     data.effect = name
+
+                    if (value.debug) {
+                        console.log(name, {request: {
+                            url, method, body
+                        }, response: data});
+                    }
+
                     update(data);
                 }
                 xhr.send(body);

@@ -303,6 +303,28 @@ defmodule Elementary.Encoder do
     end
   end
 
+  def encode(
+        %{"url" => %{"scheme" => scheme, "host" => host, "path" => path} = url_spec} = spec,
+        context,
+        encoders
+      ) do
+    with {:ok, scheme} <- encode(scheme, context, encoders),
+         {:ok, host} <- encode(host, context, encoders),
+         {:ok, path} <- encode(path, context, encoders),
+         {:ok, qs} <- encode(url_spec["query"] || %{}, context, encoders) do
+      url = "#{scheme}://#{host}#{path}"
+
+      case qs do
+        empty when map_size(empty) == 0 ->
+          {:ok, url}
+
+        _ ->
+          {:ok, "#{url}?#{URI.encode_query(qs)}"}
+      end
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"uuid" => _}, _, _) do
     {:ok, UUID.uuid4()}
   end

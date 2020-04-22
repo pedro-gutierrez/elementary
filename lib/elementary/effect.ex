@@ -175,11 +175,25 @@ defmodule Elementary.Effect do
   def apply("app", %{"app" => app}) do
     with {:ok, app} <- Elementary.Index.get("app", app),
          {:ok, settings} <- app.settings do
+      settings = Map.put(settings, "state", UUID.uuid4())
+
       {:ok,
        app.spec
        |> Map.put("settings", settings)
        |> Map.drop(["modules"])}
     end
+  end
+
+  def apply("jwt", %{"decode" => token} = spec) do
+    with [_header, claims, _signature] <- String.split(token, "."),
+         {:ok, data} <- Base.url_decode64(claims, padding: false),
+         {:ok, data} <- Jason.decode(data) do
+      %{"claims" => data}
+    else
+      _ ->
+        "invalid"
+    end
+    |> effect_result(spec)
   end
 
   def apply(effect, data) do

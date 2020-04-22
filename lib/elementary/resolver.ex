@@ -99,11 +99,14 @@ defmodule Elementary.Resolver do
   end
 
   def merge(names, kind, specs) do
-    Enum.map(names, fn name ->
-      Spec.find!(specs, kind, name)
-    end)
-    |> Enum.map(fn %{"spec" => spec} ->
-      spec
+    Enum.map(names, fn
+      name when is_binary(name) ->
+        %{"spec" => spec} = Spec.find!(specs, kind, name)
+        spec
+
+      %{"prefixed" => name} ->
+        %{"spec" => spec} = Spec.find!(specs, kind, name)
+        %{name => spec}
     end)
     |> Spec.merge()
   end

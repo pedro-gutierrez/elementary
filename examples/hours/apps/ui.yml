@@ -7,4 +7,3 @@ spec:
     - ui_hello
     - ui_landing
     - ui_tests
-    - ui_google

@@ -1,14 +1,16 @@
 kind: app
-name: login_google
+name: google 
 spec:
   routes:
     hours:
-      post: /api/login/google
+      get: /api/google/:stage
   settings:
     - hours
+    - web
     - google
   filters:
     - cors
   modules:
-    - login_google
+    - google_state 
+    - google_token 
     - http

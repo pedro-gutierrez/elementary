@@ -1,0 +1,41 @@
+kind: module
+name: google_state 
+spec:
+  decoders:
+    http:
+      get_state:
+        params:
+          stage: state
+  update:
+    get_state:
+      model:
+        state:
+          uuid: {}
+      cmds:
+        return: authorize
+  encoders:
+    authorize:
+      status: 302
+      headers:
+        location:
+          encoder: google_auth_url
+    google_auth_url:
+      url:
+        scheme: "https"
+        host: "accounts.google.com"
+        path: "/o/oauth2/v2/auth"
+        query:
+          client_id: "@client"
+          state: "@state"
+          scope: "openid email"
+          response_type: "code"
+          redirect_uri:
+            format: "{{ baseUrl }}{{ redirectPath }}"
+      ##github-authorize-url:
+      ##  urlencoded:
+      ##    base: "https://github.com/login/oauth/authorize"
+      ##    params:
+      ##      client_id: "@github.client"
+      ##      state: "@state"
+      ##      redirect_uri:
+      ##        format: "{{ baseUrl}}/tokens/github"

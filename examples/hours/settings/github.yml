@@ -1,0 +1,5 @@
+kind: settings
+name: github 
+spec:
+  client: 
+    env: GITHUB_CLIENT_ID 

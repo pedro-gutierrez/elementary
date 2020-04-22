@@ -37,26 +37,29 @@ spec:
             class: column
           children:
             - view: login-view
-            - view: google-signin-view
+            - view: social-login-view
     landing-title-view:
       view: hero-view
       params:
         icon: fas fa-boxes
         title: Timeboxed
         subtitle: Simple tasks
-    google-signin-view:
+    social-login-view:
       tag: div
       attrs:
         style: 
           margin-top: 15px
-          #class: g-signin2
-          #data-onsuccess: onSignIn
       children:
-        - view: internal-button-link-view
+        - view: external-button-link-view
           params:
-            name: google-signin
+            url: /api/google/state
             label: Sign in with Google
             icon: fab fa-google
+        - view: external-button-link-view
+          params:
+            url: /api/github/state
+            label: Sign in with Github 
+            icon: fab fa-github
     login-view:
       view: form-view
       params:

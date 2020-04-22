@@ -16,12 +16,12 @@ spec:
         app: compile
     spec:
       model:
-        spec: @data
+        spec: "@data"
       cmds:
         return: render
   encoders:
     compile:
-      app: @app
+      app: "@app"
     render:
       status: 200
       headers:
@@ -29,4 +29,4 @@ spec:
         cache-control: "no-cache, no-store, must-revalidate"
         pragma: "no-cache"
         expires: "0"
-      body: @spec
+      body: "@spec"
