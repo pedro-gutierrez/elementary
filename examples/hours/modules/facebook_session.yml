@@ -1,0 +1,32 @@
+kind: module
+name: facebook_session
+spec:
+  decoders:
+    http:
+      create_session:
+        params:
+          stage: session 
+  update:
+    create_session:
+      model:
+        session:
+          uuid: {}
+      cmds:
+        return: authorize
+  encoders:
+    authorize:
+      status: 302
+      headers:
+        location:
+          encoder: facebook_auth_url
+    facebook_auth_url:
+      url:
+        scheme: "https"
+        host: "www.facebook.com"
+        path: "/v6.0/dialog/oauth"
+        query:
+          client_id: "@client"
+          state: "@session"
+          response_type: "code"
+          redirect_uri:
+            format: "{{ baseUrl }}{{ redirectPath }}"

@@ -60,6 +60,11 @@ spec:
             url: /api/github/session
             label: Sign in with Github 
             icon: fab fa-github
+        - view: external-button-link-view
+          params:
+            url: /api/facebook/session
+            label: Sign in with Facebook 
+            icon: fab fa-facebook-square
     login-view:
       view: form-view
       params:

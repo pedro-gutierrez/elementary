@@ -37,6 +37,7 @@ defmodule Elementary.Http do
     end
 
     def mime("application/json"), do: :json
+    def mime("text/javascript"), do: :json
     def mime("application/x-www-form-urlencoded"), do: :form_urlencoded
     def mime(_), do: :other
   end

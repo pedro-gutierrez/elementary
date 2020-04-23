@@ -1,0 +1,16 @@
+kind: app
+name: facebook 
+spec:
+  routes:
+    hours:
+      get: /api/facebook/:stage
+  settings:
+    - hours
+    - web
+    - facebook
+  filters:
+    - cors
+  modules:
+    - facebook_session 
+    - facebook_token 
+    - http
