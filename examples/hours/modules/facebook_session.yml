@@ -20,13 +20,10 @@ spec:
         location:
           encoder: facebook_auth_url
     facebook_auth_url:
-      url:
-        scheme: "https"
-        host: "www.facebook.com"
-        path: "/v6.0/dialog/oauth"
-        query:
-          client_id: "@client"
-          state: "@session"
-          response_type: "code"
-          redirect_uri:
-            format: "{{ baseUrl }}{{ redirectPath }}"
+      uri: "https://www.facebook.com/v6.0/dialog/oauth"
+      with:
+        client_id: "@client"
+        state: "@session"
+        response_type: "code"
+        redirect_uri:
+          format: "{{ baseUrl }}{{ redirectPath }}"

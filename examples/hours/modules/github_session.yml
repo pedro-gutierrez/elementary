@@ -20,13 +20,9 @@ spec:
         location:
           encoder: github_auth_url
     github_auth_url:
-      url:
-        scheme: "https"
-        host: "github.com"
-        path: "/login/oauth/authorize"
-        query:
-          client_id: "@client"
-          state: "@session"
-          #scope: "user:email"
-          redirect_uri:
-            format: "{{ baseUrl }}{{ redirectPath }}"
+      uri: "https://github.com/login/oauth/authorize"
+      with:
+        client_id: "@client"
+        state: "@session"
+        redirect_uri:
+          format: "{{ baseUrl }}{{ redirectPath }}"

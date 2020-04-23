@@ -39,24 +39,21 @@ spec:
         return: session
   encoders:
     get_token:
-      object:
-        method: get 
-        url: https://graph.facebook.com/v6.0/oauth/access_token
-        query:
-          client_id: "@client" 
-          client_secret: "@secret"
-          redirect_uri:
-            format: "{{ baseUrl }}{{ redirectPath }}"
-          code: "@code"
+      method: get 
+      url: https://graph.facebook.com/v6.0/oauth/access_token
+      query:
+        client_id: "@client" 
+        client_secret: "@secret"
+        redirect_uri:
+          format: "{{ baseUrl }}{{ redirectPath }}"
+        code: "@code"
     decode_token:
       decode: "@id_token"
     get_user_info:
-      object:
-        method: get
-        url: https://graph.facebook.com/me
-        query:
-          access_token: "@access_token"
-        debug: true
+      method: get
+      url: https://graph.facebook.com/me
+      query:
+        access_token: "@access_token"
     session:
       status: 302
       headers:

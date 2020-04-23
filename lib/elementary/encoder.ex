@@ -304,23 +304,13 @@ defmodule Elementary.Encoder do
   end
 
   def encode(
-        %{"url" => %{"scheme" => scheme, "host" => host, "path" => path} = url_spec} = spec,
+        %{"uri" => uri, "with" => query} = spec,
         context,
         encoders
       ) do
-    with {:ok, scheme} <- encode(scheme, context, encoders),
-         {:ok, host} <- encode(host, context, encoders),
-         {:ok, path} <- encode(path, context, encoders),
-         {:ok, qs} <- encode(url_spec["query"] || %{}, context, encoders) do
-      url = "#{scheme}://#{host}#{path}"
-
-      case qs do
-        empty when map_size(empty) == 0 ->
-          {:ok, url}
-
-        _ ->
-          {:ok, "#{url}?#{URI.encode_query(qs)}"}
-      end
+    with {:ok, uri} <- encode(uri, context, encoders),
+         {:ok, query} <- encode(query, context, encoders) do
+      {:ok, "#{uri}?#{URI.encode_query(query)}"}
     end
     |> result(spec, context)
   end
@@ -449,21 +439,21 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
-  def encode(%{"url" => url_spec} = spec, context, encoders) do
-    case encode(url_spec, context, encoders) do
-      {:ok, map} when is_map(map) ->
-        "#{map["scheme"] || "http"}://#{map["host"] || "localhost"}:#{map["port"] || 80}#{
-          map["path"] || ""
-        }"
+  ## def encode(%{"url" => url_spec} = spec, context, encoders) do
+  ##  case encode(url_spec, context, encoders) do
+  ##    {:ok, map} when is_map(map) ->
+  ##      "#{map["scheme"] || "http"}://#{map["host"] || "localhost"}:#{map["port"] || 80}#{
+  ##        map["path"] || ""
+  ##      }"
 
-      {:ok, url} when is_binary(url) ->
-        url
+  ##    {:ok, url} when is_binary(url) ->
+  ##      url
 
-      other ->
-        other
-    end
-    |> result(spec, context)
-  end
+  ##    other ->
+  ##      other
+  ##  end
+  ##  |> result(spec, context)
+  ## end
 
   def encode(
         %{"http" => %{"url" => url_spec} = http_spec} = spec,
@@ -602,6 +592,10 @@ defmodule Elementary.Encoder do
          {:ok, params} <- encode(params, context, encoders) do
       {:ok, Mustache.render(template, Map.merge(context, params))}
     end
+  end
+
+  def encode(%{"format" => template, "params" => params}, context, encoders) do
+    encode(%{"format" => template, "with" => params}, context, encoders)
   end
 
   def encode(%{"format" => template}, context, encoders) do

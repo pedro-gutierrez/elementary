@@ -18,8 +18,6 @@ spec:
     - time
     - tasks
   init:
-    baseUrl:
-      url: @hours
     auth: {}
     json:
       content-type: application/json

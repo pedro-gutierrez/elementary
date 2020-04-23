@@ -38,26 +38,23 @@ spec:
         return: session
   encoders:
     get_token:
-      object:
-        method: post
-        url: https://github.com/login/oauth/access_token
-        headers:
-          content-type: application/x-www-form-urlencoded
-        body:
-          client_id: "@client" 
-          client_secret: "@secret"
-          redirect_uri:
-            format: "{{ baseUrl }}{{ redirectPath }}"
-          code: "@code"
-          session: "@state"
+      method: post
+      url: https://github.com/login/oauth/access_token
+      headers:
+        content-type: application/x-www-form-urlencoded
+      body:
+        client_id: "@client" 
+        client_secret: "@secret"
+        redirect_uri:
+          format: "{{ baseUrl }}{{ redirectPath }}"
+        code: "@code"
+        session: "@state"
     get_user:
-      object:
-        method: get
-        url: https://api.github.com/user
-        headers:
-          authorization:
-            format: "token {{ access_token }}"
-        debug: true
+      method: get
+      url: https://api.github.com/user
+      headers:
+        authorization:
+          format: "token {{ access_token }}"
     session:
       status: 302
       headers:

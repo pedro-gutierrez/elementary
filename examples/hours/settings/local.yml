@@ -1,8 +1,10 @@
 kind: settings
 name: local
 spec:
-  hours:
-    port:
-      env: PORT
+  baseUrl:
+    format: "http://localhost:{{ port }}"
+    params:
+      port:
+        env: PORT
   admin:
     env: ELEMENTARY_ADMIN_TOKEN
