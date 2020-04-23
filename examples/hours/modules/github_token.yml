@@ -1,5 +1,5 @@
 kind: module
-name: google_token
+name: github_token 
 spec:
   decoders:
     http:
@@ -13,27 +13,14 @@ spec:
         body:
           access_token:
             any: text
-          expires_in:
-            any: number
-          id_token:
-            any: text
       user_info:
         body:
-          email:
+          id:
+            any: number
+          avatar_url:
             any: text
           name:
-            any: text
-          picture:
-            any: text
-          sub:
-            any: text
-    jwt:
-      claims:
-        claims:
-          email:
-            any: text
-          sub:
-            any: text
+            any: text 
   update:
     get_token:
       model: "@data.query"
@@ -42,39 +29,35 @@ spec:
     token:
       model: "@data.body"
       cmds:
-        jwt: decode_token
-    claims:
+        http: get_user 
+    user_info:
       model:
         session:
           uuid: {}
-      cmds:
-        http: get_user_info
-    user_info:
       cmds:
         return: session
   encoders:
     get_token:
       object:
         method: post
-        url: https://accounts.google.com/o/oauth2/token
+        url: https://github.com/login/oauth/access_token
         headers:
           content-type: application/x-www-form-urlencoded
         body:
           client_id: "@client" 
           client_secret: "@secret"
-          grant_type: authorization_code
           redirect_uri:
             format: "{{ baseUrl }}{{ redirectPath }}"
           code: "@code"
-    decode_token:
-      decode: "@id_token"
-    get_user_info:
+          session: "@state"
+    get_user:
       object:
         method: get
-        url: https://www.googleapis.com/oauth2/v3/userinfo
+        url: https://api.github.com/user
         headers:
           authorization:
-            format: "Bearer {{ access_token }}"
+            format: "token {{ access_token }}"
+        debug: true
     session:
       status: 302
       headers:

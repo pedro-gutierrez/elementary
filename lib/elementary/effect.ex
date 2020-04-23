@@ -1,6 +1,7 @@
 defmodule Elementary.Effect do
   @moduledoc false
 
+  require Logger
   alias Elementary.Kit
 
   def apply("uuid", _) do
@@ -201,7 +202,22 @@ defmodule Elementary.Effect do
   end
 
   defp effect_result(res, spec) do
-    {:ok, maybe_alias(spec["as"], res)}
+    res = maybe_alias(spec["as"], res)
+
+    if spec["debug"] do
+      Logger.info(
+        "#{
+          inspect(
+            effect: [
+              spec: spec,
+              result: res
+            ]
+          )
+        }"
+      )
+    end
+
+    {:ok, res}
   end
 
   defp maybe_alias(nil, res), do: res

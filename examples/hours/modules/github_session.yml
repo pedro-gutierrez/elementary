@@ -1,0 +1,32 @@
+kind: module
+name: github_session
+spec:
+  decoders:
+    http:
+      create_session:
+        params:
+          stage: session
+  update:
+    create_session:
+      model:
+        session:
+          uuid: {}
+      cmds:
+        return: authorize
+  encoders:
+    authorize:
+      status: 302
+      headers:
+        location:
+          encoder: github_auth_url
+    github_auth_url:
+      url:
+        scheme: "https"
+        host: "github.com"
+        path: "/login/oauth/authorize"
+        query:
+          client_id: "@client"
+          state: "@session"
+          #scope: "user:email"
+          redirect_uri:
+            format: "{{ baseUrl }}{{ redirectPath }}"

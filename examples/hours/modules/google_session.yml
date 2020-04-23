@@ -1,15 +1,15 @@
 kind: module
-name: google_state 
+name: google_session
 spec:
   decoders:
     http:
-      get_state:
+      create_session:
         params:
-          stage: state
+          stage: session 
   update:
-    get_state:
+    create_session:
       model:
-        state:
+        session:
           uuid: {}
       cmds:
         return: authorize
@@ -26,16 +26,8 @@ spec:
         path: "/o/oauth2/v2/auth"
         query:
           client_id: "@client"
-          state: "@state"
-          scope: "openid email"
+          state: "@session"
+          scope: "profile email"
           response_type: "code"
           redirect_uri:
             format: "{{ baseUrl }}{{ redirectPath }}"
-      ##github-authorize-url:
-      ##  urlencoded:
-      ##    base: "https://github.com/login/oauth/authorize"
-      ##    params:
-      ##      client_id: "@github.client"
-      ##      state: "@state"
-      ##      redirect_uri:
-      ##        format: "{{ baseUrl}}/tokens/github"

@@ -52,12 +52,12 @@ spec:
       children:
         - view: external-button-link-view
           params:
-            url: /api/google/state
+            url: /api/google/session
             label: Sign in with Google
             icon: fab fa-google
         - view: external-button-link-view
           params:
-            url: /api/github/state
+            url: /api/github/session
             label: Sign in with Github 
             icon: fab fa-github
     login-view:

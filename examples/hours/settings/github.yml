@@ -3,3 +3,6 @@ name: github
 spec:
   client: 
     env: GITHUB_CLIENT_ID 
+  secret:
+    env: GITHUB_CLIENT_SECRET
+  redirectPath: "/api/github/token"

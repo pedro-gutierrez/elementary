@@ -15,22 +15,30 @@ defmodule Elementary.Http do
       |> Enum.into(%{})
     end
 
-    def with_simple_content_type(
-          %{"content-type" => "application/json; charset=" <> charset} = headers
-        ) do
-      Map.merge(headers, %{
-        "content-type" => "application/json",
-        "charset" => charset
-      })
+    def with_simple_content_type(%{"content-type" => content_type} = headers) do
+      case String.split(content_type, "; charset=") do
+        [mime, charset] ->
+          Map.merge(headers, %{
+            "content-type" => mime,
+            "charset" => charset
+          })
+
+        _ ->
+          headers
+      end
     end
 
     def with_simple_content_type(headers) do
       headers
     end
 
-    def json?(headers) do
-      "application/json" == (headers["content-type"] || "")
+    def mime(headers) when is_map(headers) do
+      mime(headers["content-type"])
     end
+
+    def mime("application/json"), do: :json
+    def mime("application/x-www-form-urlencoded"), do: :form_urlencoded
+    def mime(_), do: :other
   end
 
   alias Elementary.App
@@ -152,8 +160,8 @@ defmodule Elementary.Http do
       true ->
         {:ok, data, req} = :cowboy_req.read_body(req)
 
-        case Headers.json?(headers) do
-          true ->
+        case Headers.mime(headers) do
+          :json ->
             case Jason.decode(data) do
               {:ok, data} ->
                 {:ok, req, data}
@@ -163,7 +171,10 @@ defmodule Elementary.Http do
                 {:ok, req, data}
             end
 
-          false ->
+          :form_urlencoded ->
+            {:ok, req, URI.decode_query(data)}
+
+          _ ->
             {:ok, req, data}
         end
     end
@@ -194,18 +205,18 @@ defmodule Elementary.Http do
     body = resp["body"] || ""
 
     body =
-      case Headers.json?(headers) do
-        true ->
+      case Headers.mime(headers) do
+        :json ->
           Jason.encode!(body)
 
-        false ->
-          case is_binary(body) do
-            true ->
-              body
+        :form_urlencoded ->
+          URI.encode_query(body)
 
-            false ->
-              ""
-          end
+        _ when is_binary(body) ->
+          body
+
+        _ ->
+          ""
       end
 
     headers = encoded_headers(headers)
@@ -269,7 +280,7 @@ defmodule Elementary.Http do
         |> Enum.into(%{})
         |> Headers.normalized()
 
-      body = maybe_json_decode(body, headers)
+      body = decode_body(body, headers)
       %{"status" => code, "headers" => headers, "body" => body}
     end
 
@@ -277,12 +288,15 @@ defmodule Elementary.Http do
       %{"error" => error}
     end
 
-    defp maybe_json_decode(body, headers) do
-      case Headers.json?(headers) do
-        true ->
+    defp decode_body(body, headers) do
+      case Headers.mime(headers) do
+        :json ->
           Jason.decode!(body)
 
-        false ->
+        :form_urlencoded ->
+          URI.decode_query(body)
+
+        :other ->
           body
       end
     end

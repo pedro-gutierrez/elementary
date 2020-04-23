@@ -1,16 +1,16 @@
 kind: app
-name: google 
+name: github 
 spec:
   routes:
     hours:
-      get: /api/google/:stage
+      get: /api/github/:stage
   settings:
     - hours
     - web
-    - google
+    - github 
   filters:
     - cors
   modules:
-    - google_session 
-    - google_token 
+    - github_session 
+    - github_token 
     - http
