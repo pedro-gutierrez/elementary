@@ -17,6 +17,7 @@ defmodule Elementary.MixProject do
       extra_applications: [:logger],
       applications: [
         :argon2_elixir,
+        :content_type,
         :cowboy,
         :file_system,
         :httpoison,
@@ -36,6 +37,7 @@ defmodule Elementary.MixProject do
   defp deps do
     [
       {:argon2_elixir, "~> 2.0"},
+      {:content_type, "~> 0.1.0"},
       {:cowboy, "~> 2.6.3"},
       {:file_system, "~> 0.2.7"},
       {:httpoison, "~> 1.6"},

@@ -65,6 +65,11 @@ spec:
             url: /api/facebook/session
             label: Sign in with Facebook 
             icon: fab fa-facebook-square
+        - view: external-button-link-view
+          params:
+            url: /api/linkedin/session
+            label: Sign in with LinkedIn 
+            icon: fab fa-linkedin-in
     login-view:
       view: form-view
       params:

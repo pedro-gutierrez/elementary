@@ -161,13 +161,20 @@ defmodule Elementary.Decoder do
     |> result(spec)
   end
 
-  def decode(%{"list" => %{"with" => dec}} = spec, data, context) when is_list(data) do
+  def decode(%{"list" => %{"with" => dec} = with_spec} = spec, data, context)
+      when is_list(data) do
     with {:ok, dec} <- encode(dec, context),
          nil <-
            Enum.reduce_while(data, nil, fn item, acc ->
              case decode(dec, item, context) do
-               {:ok, _} ->
-                 {:halt, {:ok, data}}
+               {:ok, decoded} ->
+                 case with_spec["as"] do
+                   nil ->
+                     {:halt, {:ok, data}}
+
+                   as ->
+                     {:halt, {:ok, %{as => decoded}}}
+                 end
 
                {:error, _} ->
                  {:cont, acc}

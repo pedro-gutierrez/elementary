@@ -1,0 +1,81 @@
+kind: module
+name: linkedin_token
+spec:
+  decoders:
+    http:
+      get_token:
+        query:
+          code:
+            any: text
+          state:
+            any: text
+      token:
+        body:
+          access_token:
+            any: text
+          expires_in:
+            any: number
+      user_info:
+        body:
+          localizedFirstName:
+            any: text
+          localizedLastName:
+            any: text
+          id:
+            any: text
+          profilePicture:
+            displayImage~:
+              elements:
+                list:
+                  with:
+                    identifiers:
+                      list:
+                        with:
+                          identifier:
+                            any: text
+                        as: first
+                  as: first
+  update:
+    get_token:
+      model: "@data.query"
+      cmds:
+        http: get_token
+    token:
+      model: "@data.body"
+      cmds:
+        http: get_user_info
+    user_info:
+      model:
+        profilePic: "@data.body.profilePicture.displayImage~.elements.first.identifiers.first.identifier"
+        session:
+          uuid: {}
+      cmds:
+        return: session
+  encoders:
+    get_token:
+      method: post 
+      url: https://www.linkedin.com/oauth/v2/accessToken
+      headers:
+        content-type: application/x-www-form-urlencoded
+      body:
+        client_id: "@client" 
+        client_secret: "@secret"
+        redirect_uri:
+          format: "{{ baseUrl }}{{ redirectPath }}"
+        code: "@code"
+        grant_type: authorization_code
+    decode_token:
+      decode: "@id_token"
+    get_user_info:
+      method: get
+      url: https://api.linkedin.com/v2/me
+      headers:
+        authorization:
+          format: "Bearer {{access_token}}"
+      query:
+        projection: "(id,localizedFirstName,localizedLastName,profilePicture(displayImage~:playableStreams))"
+    session:
+      status: 302
+      headers:
+        location:
+          format: "{{ baseUrl }}/#/s={{ session }}"

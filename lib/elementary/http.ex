@@ -2,6 +2,8 @@ defmodule Elementary.Http do
   @effect "http"
 
   defmodule Headers do
+    import ContentType
+
     def normalized(headers) do
       headers
       |> downcased()
@@ -15,13 +17,16 @@ defmodule Elementary.Http do
       |> Enum.into(%{})
     end
 
-    def with_simple_content_type(%{"content-type" => content_type} = headers) do
-      case String.split(content_type, "; charset=") do
-        [mime, charset] ->
-          Map.merge(headers, %{
-            "content-type" => mime,
-            "charset" => charset
-          })
+    def with_simple_content_type(%{"content-type" => ct} = headers) do
+      case content_type(ct) do
+        {:ok, app, kind, extra} ->
+          Map.merge(
+            headers,
+            Map.merge(
+              extra,
+              %{"content-type" => "#{app}/#{kind}"}
+            )
+          )
 
         _ ->
           headers

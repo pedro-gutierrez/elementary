@@ -1,0 +1,16 @@
+kind: app
+name: linkedin 
+spec:
+  routes:
+    hours:
+      get: /api/linkedin/:stage
+  settings:
+    - hours
+    - web
+    - linkedin
+  filters:
+    - cors
+  modules:
+    - linkedin_session 
+    - linkedin_token 
+    - http
