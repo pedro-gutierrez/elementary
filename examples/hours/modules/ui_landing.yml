@@ -25,51 +25,86 @@ spec:
     landing-view:
       tag: section
       attrs:
-        class: is-medium section columns
+        class: section
       children:
-        - tag: div
-          attrs:
-            class: column
-          children:
-            - view: landing-title-view
-        - tag: div
-          attrs:
-            class: column
-          children:
-            - view: login-view
-            - view: social-login-view
+        - view: landing-title-view
+        - view: social-login-view
+        - view: features-view
+          params:
+            features:
+              - title: Plan
+                summary: Describe your work, and organize your projects with a simple and minimal user interface
+              - title: Collaborate
+                summary: Delegate, communicate with others. Keep conversations efficient and focused.
+              - title: Track
+                summary: Allocate resources, control cost, stay on top of things, and deliver on time
     landing-title-view:
       view: hero-view
       params:
-        icon: fas fa-boxes
+        icon: ""
         title: Timeboxed
-        subtitle: Simple tasks
+        subtitle: Simple tasks. Stay focused.
     social-login-view:
       tag: div
       attrs:
-        style: 
-          margin-top: 15px
+        class: has-text-centered
       children:
-        - view: external-button-link-view
+        - view: social-button-view
           params:
             url: /api/google/session
             label: Sign in with Google
             icon: fab fa-google
-        - view: external-button-link-view
+        - view: social-button-view
           params:
             url: /api/github/session
             label: Sign in with Github 
             icon: fab fa-github
-        - view: external-button-link-view
+        - view: social-button-view
           params:
             url: /api/facebook/session
             label: Sign in with Facebook 
             icon: fab fa-facebook-square
-        - view: external-button-link-view
+        - view: social-button-view
           params:
             url: /api/linkedin/session
             label: Sign in with LinkedIn 
             icon: fab fa-linkedin-in
+    social-button-view:
+      tag: a 
+      attrs:
+        class: button is-rounded is-primary is-medium
+        href: "@url"
+        style:
+          border-radius: 50%
+          margin-left: 5px
+          margin-right: 5px
+          padding: 25px
+      children:
+        - view: icon-view
+    features-view:
+      tag: section
+      attrs:
+        class: is-medium section
+      children:
+        - tag: div
+          attrs:
+            class: columns
+          children:
+            loop: "@features"
+            with: feature-view
+    feature-view:
+      tag: div
+      attrs:
+        class: has-text-centered column
+      children:
+        - tag: h5
+          attrs:
+            class: has-text-primary is-size-5
+          children:
+            - "@title"
+        - tag: p
+          children:
+            - "@summary"
     login-view:
       view: form-view
       params:

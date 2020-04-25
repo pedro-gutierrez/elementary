@@ -273,17 +273,16 @@ spec:
               attrs:
                 class: container
               children:
-                - view: app-icon-view
-                  params:
-                    size: 4
                 - tag: h1
                   attrs:
-                    class: title is-size-1
+                    class: title
+                    style:
+                      font-size: 4rem
                   children:
                     - @title
                 - tag: h2
                   attrs:
-                    class: subtitle is-size-4
+                    class: subtitle is-size-5
                   children:
                     - @subtitle
 
