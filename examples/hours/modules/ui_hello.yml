@@ -275,9 +275,7 @@ spec:
               children:
                 - tag: h1
                   attrs:
-                    class: title
-                    style:
-                      font-size: 4rem
+                    class: title is-size-1 is-size-3-mobile
                   children:
                     - @title
                 - tag: h2

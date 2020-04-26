@@ -47,7 +47,7 @@ spec:
     social-login-view:
       tag: div
       attrs:
-        class: has-text-centered
+        class: columns is-centered
       children:
         - view: social-button-view
           params:
@@ -70,17 +70,21 @@ spec:
             label: Sign in with LinkedIn 
             icon: fab fa-linkedin-in
     social-button-view:
-      tag: a 
+      tag: div
       attrs:
-        class: button is-rounded is-primary is-medium
-        href: "@url"
-        style:
-          border-radius: 50%
-          margin-left: 5px
-          margin-right: 5px
-          padding: 25px
+        class: column is-1 has-text-centered
       children:
-        - view: icon-view
+        - tag: a 
+          attrs:
+            class: button is-rounded is-primary is-medium
+            href: "@url"
+            style:
+              border-radius: 50%
+              margin-left: 5px
+              margin-right: 5px
+              padding: 25px
+          children:
+            - view: icon-view
     features-view:
       tag: section
       attrs:
