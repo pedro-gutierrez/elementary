@@ -8,10 +8,17 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
       - run:
+          name: Install Heroku CLI if necessary
+          command: |
+            if [[ $(command -v heroku) == "" ]]; then
+              curl https://cli-assets.heroku.com/install.sh | sh
+            else
+              echo "Heroku is already installed. No operation was performed."
+            fi
+      - run:
           name: Build Elementary
           command: |
             make elementary 
-
       - run:
           name: Deploy Unquoted
           command: |

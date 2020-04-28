@@ -26,3 +26,4 @@ heroku:
 	@docker tag pedrogutierrez/$(app):latest registry.heroku.com/$(app)/web
 	@docker push registry.heroku.com/$(app)/web
 	@heroku container:release -a $(app) web
+	@rm -rf Dockerfile.$(app)
