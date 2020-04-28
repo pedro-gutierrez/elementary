@@ -1,0 +1,19 @@
+kind: module
+name: cors
+spec:
+  decoders:
+    http:
+      preflight:
+        method: OPTIONS
+      other:
+        method:
+          other_than: OPTIONS
+  update:
+    preflight:
+      cmds:
+        stop: allow
+    other:
+      model: {}
+  encoders:
+    allow:
+      status: 204

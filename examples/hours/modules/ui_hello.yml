@@ -78,7 +78,6 @@ spec:
           children:
             - tag: p
               children:
-                - view: small-app-icon-view
                 - view: app-title-view
                 - view: credits-view
                 - view: sitemap-view
@@ -97,6 +96,11 @@ spec:
           params:
             title: Elementary
             url: https://github.com/pedro-gutierrez/elementary
+        - " by "
+        - view: external-link-view
+          params:
+            title: Insane Loop 
+            url: https://www.insaneloop.io
     sitemap-view:
       tag: p
       attrs:

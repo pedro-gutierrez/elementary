@@ -1,0 +1,30 @@
+kind: module
+name: ui_home
+spec:
+  init:
+    model:
+      view: home-view
+    cmds:
+      ui: layout-view 
+  encoders:
+    layout-view:
+      tag: div
+      children:
+        - view: container-view
+          params:
+            content-view: "@view"
+            content: "@"
+    home-view:
+      tag: div
+      children:
+        - "Unquoted.io"
+    container-view:
+      tag: section
+      attrs:
+        class: section
+      children:
+        - tag: div
+          attrs:
+            class: container is-fluid
+          children:
+            - view: "@content-view"

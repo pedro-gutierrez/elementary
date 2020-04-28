@@ -1,0 +1,8 @@
+kind: app
+name: ui_source
+spec:
+  routes:
+    unquoted:
+      get: /js/app.js
+  modules:
+    - ui_source

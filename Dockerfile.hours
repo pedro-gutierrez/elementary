@@ -1,4 +1,0 @@
-FROM pedrogutierrez/elementary:latest
-ADD examples/hours /etc/hours
-ENV ELEMENTARY_HOME=/etc/hours
-ENV ELEMENTARY_ASSETS=/etc/hours/assets

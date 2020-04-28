@@ -1,0 +1,12 @@
+kind: app
+name: index
+spec:
+  routes:
+    unquoted:
+      get: /
+  settings:
+    - web
+  modules:
+    - index
+    - http
+

@@ -26,3 +26,5 @@ elementary-*.tar
 .other
 
 tags
+
+Dockerfile.*

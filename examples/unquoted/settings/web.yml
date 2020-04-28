@@ -1,0 +1,8 @@
+kind: settings
+name: web
+spec:
+  debug: true
+  telemetry: true
+  title: Unquoted.io
+  baseUrl:
+    env: ELEMENTARY_WEBROOT

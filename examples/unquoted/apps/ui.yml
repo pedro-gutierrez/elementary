@@ -1,0 +1,7 @@
+kind: app
+name: ui
+spec:
+  settings:
+    - web
+  modules:
+    - ui_home
