@@ -9,7 +9,7 @@ defmodule Elementary.Kit do
   @doc """
   Returns the assets folder
   """
-  def assets(), do: System.get_env("ELEMENTARY_ASSETS", "/tmp")
+  def assets(), do: System.get_env("ELEMENTARY_ASSETS", Path.join(home(), "assets"))
 
   @doc """
   Parse the given filename as yaml
