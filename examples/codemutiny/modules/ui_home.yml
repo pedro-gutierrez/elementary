@@ -17,7 +17,7 @@ spec:
     home-view:
       tag: div
       children:
-        - "Unquoted.io"
+        - "codemunity.io"
     container-view:
       tag: section
       attrs:

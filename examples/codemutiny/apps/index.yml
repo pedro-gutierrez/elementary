@@ -2,7 +2,7 @@ kind: app
 name: index
 spec:
   routes:
-    unquoted:
+    codemunity:
       get: /
   settings:
     - web
