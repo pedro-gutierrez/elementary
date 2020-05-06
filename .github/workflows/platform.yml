@@ -1,0 +1,56 @@
+name: Update platform
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - cmtool
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup a0
+        uses: appleboy/ssh-action@master
+        env:
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        with:
+          host: ${{ secrets.HOST_A0 }}
+          username: root
+          key: ${{ secrets.SSH_PRIV_KEY }}
+          envs: AWS_ACCESS_KEY,AWS_SECRET_ACCESS_KEY
+          script_stop: true
+          script: |
+            wget -O /usr/bin/cmtool https://raw.githubusercontent.com/pedro-gutierrez/elementary/master/cmtool
+            chmod +x /usr/bin/cmtool
+            AWS_ACCESS_KEY=$AWS_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY cmtool mustache debs packages setup_aws download_certs haproxy users app
+      - name: Setup a1
+        uses: appleboy/ssh-action@master
+        env:
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        with:
+          host: ${{ secrets.HOST_A1 }}
+          username: root
+          key: ${{ secrets.SSH_PRIV_KEY }}
+          envs: AWS_ACCESS_KEY,AWS_SECRET_ACCESS_KEY
+          script_stop: true
+          script: |
+            wget -O /usr/bin/cmtool https://raw.githubusercontent.com/pedro-gutierrez/elementary/master/cmtool
+            chmod +x /usr/bin/cmtool
+            AWS_ACCESS_KEY=$AWS_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY cmtool mustache debs packages setup_aws download_certs haproxy users app
+      - name: Setup a2
+        uses: appleboy/ssh-action@master
+        env:
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        with:
+          host: ${{ secrets.HOST_A2 }}
+          username: root
+          envs: AWS_ACCESS_KEY,AWS_SECRET_ACCESS_KEY
+          key: ${{ secrets.SSH_PRIV_KEY }}
+          script_stop: true
+          script: |
+            wget -O /usr/bin/cmtool https://raw.githubusercontent.com/pedro-gutierrez/elementary/master/cmtool
+            chmod +x /usr/bin/cmtool
+            AWS_ACCESS_KEY=$AWS_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY cmtool mustache debs packages setup_aws download_certs haproxy users app

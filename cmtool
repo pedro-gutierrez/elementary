@@ -1,0 +1,233 @@
+#!/usr/bin/env bash
+#
+BUCKET=codemutiny
+ELEMENTARY_EXAMPLE=codemutiny
+ELEMENTARY_PORT=4000
+DOMAINS=(codemutiny.io)
+CERTS_DIR=/etc/certs
+EMAIL=pedrogutierrez@mac.com
+ESL_DEB=erlang-solutions_2.0_all.deb
+CM_USER=cm
+CM_REPO=https://github.com/pedro-gutierrez/elementary
+    
+check_env() {
+    VARNAME=$1
+    if [ -z "${!VARNAME}" ]; then
+        echo "Missing variable $VARNAME"
+        exit 1
+    fi
+}
+
+mustache() {
+	echo "Installing Mustache..."
+	curl -sSL https://git.io/get-mo -o mo
+	chmod +x mo
+	mv mo /usr/bin
+	. /usr/bin/mo
+}
+
+debs() {
+	echo "Installing ESL Deb..."
+	wget -O $ESL_DEB https://packages.erlang-solutions.com/$ESL_DEB
+	dpkg -i $ESL_DEB 
+
+	echo "Refreshing apt-get"
+	apt-get update
+}
+
+packages() {
+	echo "Installing Ubuntu packages"
+	DEBIAN_FRONTEND=noninteractive apt-get install -y \
+		build-essential \
+		curl \
+		git \
+		libssl-dev \
+		libreadline-dev \
+		libncurses5-dev \
+		zlib1g-dev \
+		m4 \
+		curl \
+		autoconf \
+		unzip \
+		certbot \
+		haproxy \
+		htop \
+		inotify-tools \
+		python3 \
+		python3-pip \
+		esl-erlang \
+		elixir
+}
+
+setup_aws() {
+    pip3 install --upgrade awscli
+    check_env "AWS_ACCESS_KEY"
+    check_env "AWS_SECRET_ACCESS_KEY" 
+    aws configure set aws_access_key_id ${AWS_ACCESS_KEY}
+    aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
+    aws configure set default.region eu-west-1
+}
+
+download_certs() {
+	mkdir -p $CERTS_DIR
+	echo "Downloading certs"
+	for domain in "${DOMAINS[@]}"
+	do
+		echo "Installing default cert for $domain ..."
+		aws s3 cp s3://$BUCKET/$domain.pem $CERTS_DIR/$domain.pem
+		chown haproxy:haproxy $CERTS_DIR/$domain.pem
+    	done
+}
+
+upload_certs() {
+	echo "Updating gandi dns plugin..."
+	pip3 install --upgrade certbot-plugin-gandi
+	aws s3 cp s3://$BUCKET/gandi.ini gandi.ini
+	chmod 600 ~/gandi.ini
+	
+	echo "Killing previous certbot..."
+	pkill certbot
+	find / -type f -name ".certbot.lock" -exec rm {} \;
+
+	echo "Generating certs in $CERTS_DIR"
+	mkdir -p $CERTS_DIR
+	for domain in "${DOMAINS[@]}"
+	do
+		echo "Generating certs for $domain..."
+		certbot certonly -a certbot-plugin-gandi:dns --certbot-plugin-gandi:dns-credentials gandi.ini -d *.$domain --work-dir $CERTS_DIR --logs-dir $CERTS_DIR --config-dir $CERTS_DIR -m $EMAIL --agree-tos -n
+		RESULT=$?
+		if [ $RESULT -eq 0 ]; then
+			cat $CERTS_DIR/live/$domain/fullchain.pem $CERTS_DIR/live/$domain/privkey.pem > $CERTS_DIR/$domain.pem
+			aws s3 cp $CERTS_DIR/$domain.pem s3://$BUCKET/$domain.pem
+		else
+			echo "Error generating certs for $domain"
+			exit 1
+		fi
+	done
+}
+
+haproxy() {
+	echo "Setting up HAPRoxy..."
+	. /usr/bin/mo
+	export DOMAINS
+	cat << EOF | mo > /etc/haproxy/haproxy.cfg
+global
+  log 127.0.0.1 local0
+  log 127.0.0.1 local1 notice
+  maxconn 4096
+
+defaults
+  log global
+  mode http
+  option httplog
+  option dontlognull
+  timeout connect 5000ms
+  timeout client 10000ms
+  timeout server 10000ms
+
+frontend balancer
+  bind 0.0.0.0:443 ssl crt{{#DOMAINS}} /etc/certs/{{.}}.pem{{/DOMAINS}}
+  mode http
+  default_backend webs
+
+backend webs
+  mode http
+  option forwardfor
+  balance roundrobin
+  server web 127.0.0.1:4000 check
+  option httpchk GET /
+  http-check expect status 200
+EOF
+chmod 600 /etc/haproxy/haproxy.cfg
+chown haproxy:haproxy /etc/haproxy/haproxy.cfg
+systemctl restart haproxy
+}
+
+users () {
+    useradd $CM_USER || true
+}
+
+firewall () {
+	echo "Setting up firewall..."
+	ufw --force reset
+	ufw default deny incoming
+	ufw default deny outgoing
+	ufw allow in 22
+	ufw limit ssh
+	ufw allow out 53
+	ufw allow in 443
+	ufw allow out 443
+	ufw allow out 80
+	ufw --force enable
+	ufw status
+	echo "Firewall configured"
+}
+
+
+app() {
+	echo "Installing app..."
+	BUILD_DIR=/home/$CM_USER/build
+	if [ -d $BUILD_DIR ]; then 
+		echo "Found existing sources. Updating..."
+		cd $BUILD_DIR; git pull
+	else
+		echo "No sources found. Fetching from Git..."
+		mkdir -p $BUILD_DIR
+		git clone $CM_REPO $BUILD_DIR
+	fi
+	echo "Compiling the release..."
+	cd $BUILD_DIR; MIX_ENV=prod VERSION=1 mix do local.hex --force, \
+		local.rebar --force, \
+		deps.get, \
+		compile, \
+		release --overwrite
+	echo "Release built"
+    
+	PROD_DIR=/home/$CM_USER/prod
+	rm -rf $PROD_DIR
+	mkdir -p $PROD_DIR
+    cp -rf $BUILD_DIR/_build/prod/rel/elementary/. $PROD_DIR
+    chown -R $CM_USER:$CM_USER $PROD_DIR
+    echo "Release ready"
+
+    echo "Configuring app...."
+    ETC_DIR=/home/$CM_USER/etc
+    mkdir -p $ETC_DIR
+    cp -rf $BUILD_DIR/examples/$ELEMENTARY_EXAMPLE/. $ETC_DIR
+    
+    echo "Setting up elementary service..."
+	cat << EOF > /lib/systemd/system/elementary.service
+[Unit]
+Description=Elementary service
+
+[Service]
+Type=simple
+User=$CM_USER
+Group=$CM_USER
+Restart=on-failure
+Environment=PORT=$ELEMENTARY_PORT
+Environment=LANG=en_US.UTF-8
+Environment=ELEMENTARY_HOME=$ETC_DIR
+Environment=ELEMENTARY_WEBROOT=https://www.$ELEMENTARY_EXAMPLE.io
+WorkingDirectory=$PROD_DIR
+ExecStart=$PROD_DIR/bin/elementary start
+
+[Install]
+WantedBy=multi-user.target
+EOF
+   
+    systemctl enable elementary.service
+    systemctl restart elementary.service
+    systemctl status elementary.service
+
+}
+
+for action in $@ 
+do
+	$action
+	RESULT=$?
+	if [ $RESULT -ne 0 ]; then
+	    echo "Error in $action"
+        exit 1
+    fi
+done
