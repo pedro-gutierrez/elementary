@@ -94,7 +94,7 @@ upload_certs() {
 	for domain in "${DOMAINS[@]}"
 	do
 		echo "Generating certs for $domain..."
-		certbot certonly -a certbot-plugin-gandi:dns --certbot-plugin-gandi:dns-credentials gandi.ini -d *.$domain --work-dir $CERTS_DIR --logs-dir $CERTS_DIR --config-dir $CERTS_DIR -m $EMAIL --agree-tos -n
+		certbot certonly -a certbot-plugin-gandi:dns --certbot-plugin-gandi:dns-credentials gandi.ini -d $domain -d *.$domain --work-dir $CERTS_DIR --logs-dir $CERTS_DIR --config-dir $CERTS_DIR -m $EMAIL --agree-tos -n
 		RESULT=$?
 		if [ $RESULT -eq 0 ]; then
 			cat $CERTS_DIR/live/$domain/fullchain.pem $CERTS_DIR/live/$domain/privkey.pem > $CERTS_DIR/$domain.pem
