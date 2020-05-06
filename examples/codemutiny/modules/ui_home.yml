@@ -19,23 +19,23 @@ spec:
       children:
         - tag: h1
           attrs:
-            class: title
+            class: title is-family-monospace 
           children:
             - "@title"
         - tag: h2
           attrs:
-            class: subtitle
+            class: content
           children:
             - tag: blockquote
               children:
-                - "Though others, who give an Account of their Voyages, do generally attempt to imitate the style and method which is us’d by Authors that write ashore, I rather choose to keep to the Language of the Sea, which is more genuine, and natural..."
+                - "\"Tho others, who give an Account of their Voyages, do generally attempt to imitate the style and method which is us’d by Authors that write ashore, I rather choose to keep to the Language of the Sea, which is more genuine, and natural...\""
         - view: social-login-view
     container-view:
       tag: div
       children:
         - tag: section
           attrs:
-            class: section container
+            class: section container is-medium
           children:
             - view: "@content-view"
               params: "@content"
@@ -87,6 +87,9 @@ spec:
     footer-view:
       tag: p
       children:
+        - view: icon-view
+          params:
+            icon: fa fa-skull
         - "Made with "
         - tag: a
           attrs:
