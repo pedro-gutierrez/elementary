@@ -3,6 +3,6 @@ name: web
 spec:
   debug: true
   telemetry: true
-  title: codemutiny.io
+  title: Code Mutiny
   baseUrl:
     env: ELEMENTARY_WEBROOT

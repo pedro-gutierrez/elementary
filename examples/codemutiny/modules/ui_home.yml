@@ -18,15 +18,86 @@ spec:
       tag: div
       children:
         - tag: h1
-          children:
-            - "codemunity.io"
-    container-view:
-      tag: section
-      attrs:
-        class: section
-      children:
-        - tag: div
           attrs:
-            class: container is-fluid
+            class: title
+          children:
+            - "@title"
+        - tag: h2
+          attrs:
+            class: subtitle
+          children:
+            - tag: blockquote
+              children:
+                - "Though others, who give an Account of their Voyages, do generally attempt to imitate the style and method which is us’d by Authors that write ashore, I rather choose to keep to the Language of the Sea, which is more genuine, and natural..."
+        - view: social-login-view
+    container-view:
+      tag: div
+      children:
+        - tag: section
+          attrs:
+            class: section container
           children:
             - view: "@content-view"
+              params: "@content"
+        - tag: footer 
+          attrs:
+            class: section container
+          children:
+            - view: footer-view
+    social-login-view:
+      tag: p
+      attrs:
+        class: buttons 
+      children:
+        - view: social-button-view
+          params:
+            url: /api/google/session
+            label: Sign in with Google
+            icon: fab fa-google
+        - view: social-button-view
+          params:
+            url: /api/github/session
+            label: Sign in with Github 
+            icon: fab fa-github
+        - view: social-button-view
+          params:
+            url: /api/facebook/session
+            label: Sign in with Facebook 
+            icon: fab fa-facebook-square
+        - view: social-button-view
+          params:
+            url: /api/linkedin/session
+            label: Sign in with LinkedIn 
+            icon: fab fa-linkedin-in
+    social-button-view:
+      tag: a 
+      attrs:
+        class: button is-light
+        href: "@url"
+      children:
+        - view: icon-view
+    icon-view:
+      tag: span
+      attrs:
+        class: icon
+      children:
+        - tag: i
+          attrs:
+            class: "@icon"
+    footer-view:
+      tag: p
+      children:
+        - "Made with "
+        - tag: a
+          attrs:
+            href: "https://elixir-lang.org"
+          children:
+            - Elixir
+        - " and "
+        - tag: a
+          attrs:
+            href: "https://github.com/pedro-gutierrez/elementary"
+          children:
+            - Elementary
+
+      
