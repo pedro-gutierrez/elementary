@@ -3,10 +3,11 @@ define start
 endef
 
 codemutiny:
-	$(call  start,codemutiny,4002)
-
-hours:
-	$(call  start,hours,4000)
+	$(call  start,codemutiny,4000)
 
 fullpass:
 	$(call  start,fullpass,4001)
+
+hours:
+	$(call  start,hours,4002)
+
