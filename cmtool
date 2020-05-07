@@ -199,6 +199,7 @@ app() {
     echo "Configuring app...."
     ETC_DIR=/home/$CM_USER/etc
     mkdir -p $ETC_DIR
+    rm -rf $ETC_DIR/*
     cp -rf $BUILD_DIR/examples/$ELEMENTARY_EXAMPLE/. $ETC_DIR
     
     echo "Setting up elementary service..."
