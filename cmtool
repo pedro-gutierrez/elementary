@@ -201,6 +201,11 @@ app() {
     mkdir -p $ETC_DIR
     rm -rf $ETC_DIR/*
     cp -rf $BUILD_DIR/examples/$ELEMENTARY_EXAMPLE/. $ETC_DIR
+	
+	echo "Downloading environment..."
+	ENV_FILE=/home/$CM_USER/.env
+	aws s3 cp s3://$BUCKET/elementary.env $ENV_FILE
+	chmox 600 $ENV_FILE
     
     echo "Setting up elementary service..."
 	cat << EOF > /lib/systemd/system/elementary.service
@@ -212,6 +217,7 @@ Type=simple
 User=$CM_USER
 Group=$CM_USER
 Restart=on-failure
+EnvironmentFile=$ENV_FILE
 Environment=PORT=$ELEMENTARY_PORT
 Environment=LANG=en_US.UTF-8
 Environment=ELEMENTARY_HOME=$ETC_DIR
