@@ -1,0 +1,16 @@
+kind: app
+name: google 
+spec:
+  routes:
+    codemutiny:
+      get: /api/google/:stage
+  settings:
+    - codemutiny 
+    - web
+    - google
+  filters:
+    - cors
+  modules:
+    - google_session 
+    - google_token 
+    - http

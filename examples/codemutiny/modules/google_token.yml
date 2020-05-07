@@ -1,0 +1,80 @@
+kind: module
+name: google_token
+spec:
+  decoders:
+    http:
+      get_token:
+        query:
+          code:
+            any: text
+          state:
+            any: text
+      token:
+        body:
+          access_token:
+            any: text
+          expires_in:
+            any: number
+          id_token:
+            any: text
+      user_info:
+        body:
+          email:
+            any: text
+          name:
+            any: text
+          picture:
+            any: text
+          sub:
+            any: text
+    jwt:
+      claims:
+        claims:
+          email:
+            any: text
+          sub:
+            any: text
+  update:
+    get_token:
+      model: "@data.query"
+      cmds:
+        http: get_token
+    token:
+      model: "@data.body"
+      cmds:
+        jwt: decode_token
+    claims:
+      model:
+        session:
+          uuid: {}
+      cmds:
+        http: get_user_info
+    user_info:
+      cmds:
+        return: session
+  encoders:
+    get_token:
+      method: post
+      url: https://accounts.google.com/o/oauth2/token
+      headers:
+        content-type: application/x-www-form-urlencoded
+      body:
+        client_id: "@client" 
+        client_secret: "@secret"
+        grant_type: authorization_code
+        redirect_uri:
+          format: "{{ baseUrl }}{{ redirectPath }}"
+        code: "@code"
+    decode_token:
+      decode: "@id_token"
+    get_user_info:
+      method: get
+      url: https://www.googleapis.com/oauth2/v3/userinfo
+      headers:
+        authorization:
+          format: "Bearer {{ access_token }}"
+    session:
+      status: 302
+      headers:
+        location:
+          format: "{{ baseUrl }}/#/s={{ session }}"

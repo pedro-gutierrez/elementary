@@ -1,5 +1,5 @@
 kind: port
-name: codemunity 
+name: codemutiny
 spec:
   port:
     env: PORT

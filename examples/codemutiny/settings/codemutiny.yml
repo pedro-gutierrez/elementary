@@ -1,0 +1,4 @@
+kind: settings
+name: codemutiny
+spec:
+  store: codemutiny

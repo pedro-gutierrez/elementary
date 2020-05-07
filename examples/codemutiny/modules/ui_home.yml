@@ -27,8 +27,13 @@ spec:
             class: content
           children:
             - tag: blockquote
-              children:
-                - "\"Tho others, who give an Account of their Voyages, do generally attempt to imitate the style and method which is us’d by Authors that write ashore, I rather choose to keep to the Language of the Sea, which is more genuine, and natural...\""
+              children: |
+                "Tho others, who give an Account of their Voyages, do generally attempt 
+                to imitate the style and method which is us’d by Authors that write ashore, 
+                I rather choose to keep to the Language of the Sea, 
+                which is more genuine, and natural..." 
+
+                - Woodes Rogers
         - view: social-login-view
     container-view:
       tag: div

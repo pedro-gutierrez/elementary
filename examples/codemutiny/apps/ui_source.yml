@@ -2,7 +2,7 @@ kind: app
 name: ui_source
 spec:
   routes:
-    codemunity:
+    codemutiny:
       get: /js/app.js
   modules:
     - ui_source
