@@ -3,8 +3,6 @@ name: google
 spec:
   client: 
     env: GOOGLE_CLIENT_ID 
-    default: "invalid"
   secret: 
     env: GOOGLE_CLIENT_SECRET
-    default: "invalid"
   redirectPath: "/api/google/token"
