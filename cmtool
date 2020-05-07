@@ -125,7 +125,12 @@ defaults
   timeout client 10000ms
   timeout server 10000ms
 
-frontend balancer
+frontend insecure
+  bind 0.0.0.0:80
+  mode http
+  redirect scheme https code 301
+
+frontend secure 
   bind 0.0.0.0:443 ssl crt{{#DOMAINS}} /etc/certs/{{.}}.pem{{/DOMAINS}}
   mode http
   default_backend webs
@@ -158,6 +163,7 @@ firewall () {
 	ufw allow in 443
 	ufw allow out 443
 	ufw allow out 80
+	ufw allow in 80
 	ufw --force enable
 	ufw status
 	echo "Firewall configured"
