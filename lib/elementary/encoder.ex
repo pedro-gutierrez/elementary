@@ -622,6 +622,15 @@ defmodule Elementary.Encoder do
     end
   end
 
+  def encode(%{"entries" => entries} = spec, context, encoders) do
+    with {:ok, entries} <- encode_specs(entries, context, encoders) do
+      Enum.reduce(entries, %{}, fn %{"key" => key, "value" => value}, acc ->
+        Map.put(acc, key, value)
+      end)
+    end
+    |> result(spec, context)
+  end
+
   def encode(spec, context, encoders) when is_map(spec) do
     encode(%{"object" => spec}, context, encoders)
   end

@@ -1,0 +1,8 @@
+kind: app
+name: token
+spec:
+  debug: true
+  settings:
+    - codemutiny
+  modules:
+    - token

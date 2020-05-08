@@ -1,0 +1,33 @@
+kind: module
+name: token 
+spec:
+  decoders:
+    caller:
+      nonce: 
+        create: "nonce"
+    store:
+      created: "created"
+  update:
+    nonce:
+      model:
+        kind: "nonce"
+        token:
+          id:
+            uuid: {}
+          nonce:
+            now: {}
+      cmds:
+        store: create
+    created:
+      cmds:
+        stop: created
+  encoders:
+    create:
+      store: "@store"
+      insert: "@token"
+      into: tokens 
+    created:
+      entries:
+        - key: "@kind"
+          value: "@token.id"
+        

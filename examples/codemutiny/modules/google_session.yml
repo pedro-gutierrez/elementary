@@ -5,15 +5,25 @@ spec:
     http:
       create_session:
         params:
-          stage: session 
+          stage: session
+    app:
+      nonce:
+        nonce:
+          any: text
   update:
     create_session:
+      cmds:
+        app: nonce
+    nonce:
       model:
-        session:
-          uuid: {}
+        nonce: "@data.nonce"
       cmds:
         return: authorize
   encoders:
+    nonce:
+      app: token 
+      params:
+        create: "nonce"
     authorize:
       status: 302
       headers:
@@ -23,7 +33,7 @@ spec:
       uri: "https://accounts.google.com/o/oauth2/v2/auth"
       with:
         client_id: "@client"
-        state: "@session"
+        state: "@nonce"
         scope: "profile email"
         response_type: "code"
         redirect_uri:

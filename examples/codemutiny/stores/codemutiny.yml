@@ -1,0 +1,12 @@
+kind: store
+name: codemutiny
+spec:
+  url:
+    env: MONGO_URL
+  collections:
+    tokens:
+      indexes:
+        - expire: nonce
+          after: 5
+        - expire: session
+          after: 60

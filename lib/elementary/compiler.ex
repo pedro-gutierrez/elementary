@@ -69,7 +69,7 @@ defmodule Elementary.Compiler do
           [
             quote do
               def get(kind, name) do
-                {:error, :not_found}
+                {:error, %{"kind" => kind, "name" => name, "error" => "not_found"}}
               end
 
               def get!(kind, name) do
@@ -506,6 +506,9 @@ defmodule Elementary.Compiler do
 
              %{"geo" => field} ->
                {"_#{field}_", [key: %{field => "2dsphere"}]}
+
+             %{"expire" => field, "after" => seconds} ->
+               {"_#{field}_", [expireAfterSeconds: seconds, key: [{field, 1}]]}
            end)
            |> Enum.each(fn {name, opts} = spec ->
              case ensure_index(col, name, opts) do

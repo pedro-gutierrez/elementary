@@ -57,11 +57,11 @@ defmodule Elementary.Effect do
 
   def apply("store", %{"store" => store, "insert" => doc, "into" => col} = spec)
       when is_map(doc) do
-    {:ok, store} = Elementary.Index.get("store", store)
-
-    case store.insert(col, doc) do
-      :ok -> "created"
-      {:error, e} -> "#{e}"
+    with {:ok, store} <- Elementary.Index.get("store", store) do
+      case store.insert(col, doc) do
+        :ok -> "created"
+        {:error, e} -> "#{e}"
+      end
     end
     |> effect_result(spec)
   end
@@ -161,6 +161,24 @@ defmodule Elementary.Effect do
     |> effect_result(spec)
   end
 
+  def apply("app", %{"app" => app, "params" => data} = spec) do
+    effect = "caller"
+
+    with {:ok, mod} <- Elementary.Index.get("app", app),
+         {:ok, settings} <- mod.settings,
+         {:ok, model} <- Elementary.App.init(mod, settings),
+         {:ok, model2} <- Elementary.App.filter(mod, effect, data, model) do
+      Elementary.App.decode(mod, effect, data, Map.merge(model, model2))
+    else
+      {:error, e} when is_atom(e) ->
+        "#{e}"
+
+      {:error, e} ->
+        e
+    end
+    |> effect_result(spec)
+  end
+
   def apply("test", %{"run" => test, "settings" => settings}) do
     with {:ok, _pid} <- Elementary.Test.run(test, settings) do
       {:ok, %{"status" => "started"}}
@@ -173,7 +191,7 @@ defmodule Elementary.Effect do
     end
   end
 
-  def apply("app", %{"app" => app}) do
+  def apply("spec", %{"app" => app}) do
     with {:ok, app} <- Elementary.Index.get("app", app),
          {:ok, settings} <- app.settings do
       settings = Map.put(settings, "state", UUID.uuid4())
@@ -199,6 +217,14 @@ defmodule Elementary.Effect do
 
   def apply(effect, data) do
     {:error, %{"error" => "no_such_effect", "effect" => effect, "data" => data}}
+  end
+
+  defp effect_result({_, data}, spec) when is_atom(data) do
+    effect_result("#{data}", spec)
+  end
+
+  defp effect_result({_, data}, spec) do
+    effect_result(data, spec)
   end
 
   defp effect_result(res, spec) do

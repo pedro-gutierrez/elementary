@@ -7,13 +7,13 @@ spec:
     http:
       compile:
         any: object
-    app:
+    spec:
       spec:
         any: object
   update:
     compile:
       cmds:
-        app: compile
+        spec: compile
     spec:
       model:
         spec: "@data"
