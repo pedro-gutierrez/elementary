@@ -136,7 +136,7 @@ defmodule Elementary.Effect do
   def apply("store", %{"reset" => %{}, "store" => store} = spec) do
     {:ok, store} = Elementary.Index.get("store", store)
 
-    case store.empty() do
+    case store.reset() do
       :ok -> "reset"
       {:error, e} -> "#{e}"
     end
