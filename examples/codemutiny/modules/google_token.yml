@@ -37,17 +37,21 @@ spec:
           sub:
             any: text
     service:
-      nonce_found:
-        token:
-          any: object
+      nonce_verified:
+        consumed: true 
+      nonce_not_verified:
+        consumed: false
   update:
     get_token:
       model: "@data.query"
       cmds:
-        service: check_nonce
-    nonce_found:
+        service: consume_nonce
+    nonce_verified:
       cmds:
         http: get_token
+    nonce_not_verified:
+      cmds:
+        return: login_error
     invalid:
       cmds:
         return: login_error
@@ -65,10 +69,10 @@ spec:
       cmds:
         return: session
   encoders:
-    check_nonce:
+    consume_nonce:
       app: token
       params:
-        check: "@state"
+        consume: "@state"
     get_token:
       method: post
       url: https://accounts.google.com/o/oauth2/token

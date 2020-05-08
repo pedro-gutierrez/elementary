@@ -1,9 +1,9 @@
 kind: app
 name: token
 spec:
-  debug: true
   settings:
     - codemutiny
   modules:
     - create_nonce
     - check_token
+    - consume_token

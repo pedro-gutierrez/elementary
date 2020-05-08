@@ -596,8 +596,8 @@ defmodule Elementary.Compiler do
                   col,
                   doc
                 ) do
-             {:ok, _} ->
-               :ok
+             {:ok, %Mongo.DeleteResult{acknowledged: true, deleted_count: deleted}} ->
+               {:ok, deleted}
 
              {:error, e} ->
                {:error, mongo_error(e)}

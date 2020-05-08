@@ -1,0 +1,38 @@
+kind: module
+name: consume_token
+spec:
+  decoders:
+    caller:
+      consume_token:
+        consume:
+          any: text
+    store:
+      token_consumed:
+        consumed: 1
+      token_not_consumed:
+        consumed: 0
+  update:
+    consume_token:
+      model:
+        id: "@data.consume"
+      cmds:
+        store: delete_token
+    token_consumed:
+      cmds:
+        stop: consumed
+    token_not_consumed:
+      cmds:
+        stop: not_consumed 
+  encoders:
+    delete_token:
+      store: "@store"
+      delete:
+        id: "@id"
+      from: tokens
+      as: consumed
+    consumed: 
+      consumed: true
+      token: "@id"
+    not_consumed: 
+      consumed: false
+      token: "@id"

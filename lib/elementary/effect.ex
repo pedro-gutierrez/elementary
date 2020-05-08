@@ -85,7 +85,7 @@ defmodule Elementary.Effect do
     query = Kit.with_mongo_id(query)
 
     case store.delete(col, query) do
-      :ok -> "deleted"
+      {:ok, deleted} -> deleted
       {:error, e} -> "#{e}"
     end
     |> effect_result(spec)
@@ -168,7 +168,8 @@ defmodule Elementary.Effect do
          {:ok, settings} <- mod.settings,
          {:ok, model} <- Elementary.App.init(mod, settings),
          {:ok, model2} <- Elementary.App.filter(mod, effect, data, model) do
-      Elementary.App.decode(mod, effect, data, Map.merge(model, model2))
+      merged = Map.merge(model, model2)
+      Elementary.App.decode(mod, effect, data, merged)
     else
       {:error, e} when is_atom(e) ->
         "#{e}"
