@@ -161,7 +161,7 @@ defmodule Elementary.Effect do
     |> effect_result(spec)
   end
 
-  def apply("app", %{"app" => app, "params" => data} = spec) do
+  def apply("service", %{"app" => app, "params" => data} = spec) do
     effect = "caller"
 
     with {:ok, mod} <- Elementary.Index.get("app", app),

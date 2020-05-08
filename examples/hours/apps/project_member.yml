@@ -1,7 +1,0 @@
-kind: app
-name: project_member
-spec:
-  modules:
-    - project_member
-    - common_project
-    - http

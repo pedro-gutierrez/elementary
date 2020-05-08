@@ -1,0 +1,9 @@
+kind: app
+name: admin
+spec:
+  settings:
+    - admin
+  modules:
+    - admin
+    - http
+

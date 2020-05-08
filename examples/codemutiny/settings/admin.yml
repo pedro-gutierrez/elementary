@@ -1,0 +1,5 @@
+kind: settings
+name: admin
+spec:
+  admin:
+    env: ELEMENTARY_ADMIN_TOKEN

@@ -1,8 +1,0 @@
-kind: app
-name: health
-spec:
-  settings:
-    - fullpass
-  modules:
-    - health
-    - http

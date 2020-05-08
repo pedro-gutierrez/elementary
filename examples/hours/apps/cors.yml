@@ -1,7 +1,0 @@
-kind: app
-name: cors
-spec:
-  modules:
-    - cors
-    - http
-

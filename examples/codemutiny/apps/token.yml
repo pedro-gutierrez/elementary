@@ -5,4 +5,5 @@ spec:
   settings:
     - codemutiny
   modules:
-    - token
+    - create_nonce
+    - check_token

@@ -1,5 +1,0 @@
-kind: port
-name: hours
-spec:
-  port:
-    env: PORT

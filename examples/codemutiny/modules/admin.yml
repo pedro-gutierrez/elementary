@@ -1,0 +1,14 @@
+kind: module
+name: admin
+spec:
+  decoders:
+    http:
+      admin:
+        headers:
+          authorization: "@admin"
+  update:
+    default:
+      cmds:
+        stop: unauthorized
+    admin:
+      model: {}

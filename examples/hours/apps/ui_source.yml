@@ -1,8 +1,0 @@
-kind: app
-name: ui_source
-spec:
-  routes:
-    hours:
-      get: /js/app.js
-  modules:
-    - ui_source

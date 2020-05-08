@@ -1,0 +1,32 @@
+kind: module
+name: check_token
+spec:
+  decoders:
+    caller:
+      check_token:
+        check:
+          any: text
+    store:
+      token_found:
+        token:
+          any: object
+  update:
+    check_token:
+      model:
+        id: "@data.check"
+      cmds:
+        store: find_token
+    token_found:
+      model:
+        token: "@data.token"
+      cmds:
+        stop: token 
+  encoders:
+    find_token:
+      store: "@store"
+      fetch:
+        id: "@id"
+      from: tokens
+      as: token
+    token: 
+      token: "@token"

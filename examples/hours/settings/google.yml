@@ -1,8 +1,0 @@
-kind: settings
-name: google
-spec:
-  client: 
-    env: GOOGLE_CLIENT_ID 
-  secret: 
-    env: GOOGLE_CLIENT_SECRET
-  redirectPath: "/api/google/token"

@@ -6,14 +6,14 @@ spec:
       create_session:
         params:
           stage: session
-    app:
+    service:
       nonce:
         nonce:
           any: text
   update:
     create_session:
       cmds:
-        app: nonce
+        service: nonce
     nonce:
       model:
         nonce: "@data.nonce"

@@ -1,8 +1,0 @@
-kind: settings
-name: local
-spec:
-  fullpass:
-    port: 2100
-  clients:
-    admin: 22ae449ad80e
-    mobile: 482a2a5e6c77

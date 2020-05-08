@@ -1,8 +1,0 @@
-kind: settings
-name: web
-spec:
-  debug: true
-  telemetry: true
-  title: Timeboxed
-  baseUrl:
-    env: ELEMENTARY_WEBROOT

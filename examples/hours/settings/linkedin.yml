@@ -1,8 +1,0 @@
-kind: settings
-name: linkedin 
-spec:
-  client: 
-    env: LINKEDIN_CLIENT_ID 
-  secret:
-    env: LINKEDIN_CLIENT_SECRET
-  redirectPath: "/api/linkedin/token"

@@ -1,8 +1,0 @@
-kind: settings
-name: facebook
-spec:
-  client: 
-    env: FACEBOOK_CLIENT_ID 
-  secret: 
-    env: FACEBOOK_CLIENT_SECRET
-  redirectPath: "/api/facebook/token"

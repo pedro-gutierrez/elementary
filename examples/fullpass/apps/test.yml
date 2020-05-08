@@ -1,6 +1,0 @@
-kind: app
-name: test
-spec:
-  modules:
-    - test
-    - http

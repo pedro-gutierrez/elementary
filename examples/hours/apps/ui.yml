@@ -1,9 +1,0 @@
-kind: app
-name: ui
-spec:
-  settings:
-    - web
-  modules:
-    - ui_hello
-    - ui_landing
-    - ui_tests

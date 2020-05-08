@@ -1,7 +1,0 @@
-kind: app
-name: admin
-spec:
-  modules:
-    - admin
-    - http
-

@@ -9,6 +9,8 @@ spec:
             any: text
           state:
             any: text
+      invalid:
+        status: 400
       token:
         body:
           access_token:
@@ -34,11 +36,21 @@ spec:
             any: text
           sub:
             any: text
+    service:
+      nonce_found:
+        token:
+          any: object
   update:
     get_token:
       model: "@data.query"
       cmds:
+        service: check_nonce
+    nonce_found:
+      cmds:
         http: get_token
+    invalid:
+      cmds:
+        return: login_error
     token:
       model: "@data.body"
       cmds:
@@ -53,6 +65,10 @@ spec:
       cmds:
         return: session
   encoders:
+    check_nonce:
+      app: token
+      params:
+        check: "@state"
     get_token:
       method: post
       url: https://accounts.google.com/o/oauth2/token
@@ -73,6 +89,11 @@ spec:
       headers:
         authorization:
           format: "Bearer {{ access_token }}"
+    login_error:
+      status: 302
+      headers:
+        location:
+          format: "{{ baseUrl }}/#/login/error"
     session:
       status: 302
       headers:
