@@ -1,7 +1,6 @@
 kind: app
 name: store
 spec:
-  debug: true
   routes:
     codemutiny:
       delete: "/api/stores/:name"
