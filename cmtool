@@ -69,48 +69,48 @@ setup_aws() {
 }
 
 download_certs() {
-	mkdir -p $CERTS_DIR
-	echo "Downloading certs"
-	for domain in "${DOMAINS[@]}"
-	do
-		echo "Installing default cert for $domain ..."
-		aws s3 cp s3://$BUCKET/$domain.pem $CERTS_DIR/$domain.pem
-		chown haproxy:haproxy $CERTS_DIR/$domain.pem
-    	done
+    mkdir -p $CERTS_DIR
+    echo "Downloading certs"
+    for domain in "${DOMAINS[@]}"
+    do
+        echo "Installing default cert for $domain ..."
+        aws s3 cp s3://$BUCKET/$domain.pem $CERTS_DIR/$domain.pem
+        chown haproxy:haproxy $CERTS_DIR/$domain.pem
+    done
 }
 
 upload_certs() {
-	echo "Updating gandi dns plugin..."
-	pip3 install --upgrade certbot-plugin-gandi
-	aws s3 cp s3://$BUCKET/gandi.ini gandi.ini
-	chmod 600 ~/gandi.ini
-	
-	echo "Killing previous certbot..."
-	pkill certbot
-	find / -type f -name ".certbot.lock" -exec rm {} \;
+    echo "Updating gandi dns plugin..."
+    pip3 install --upgrade certbot-plugin-gandi
+    aws s3 cp s3://$BUCKET/gandi.ini gandi.ini
+    chmod 600 ~/gandi.ini
 
-	echo "Generating certs in $CERTS_DIR"
-	mkdir -p $CERTS_DIR
-	for domain in "${DOMAINS[@]}"
-	do
-		echo "Generating certs for $domain..."
-		certbot certonly -a certbot-plugin-gandi:dns --certbot-plugin-gandi:dns-credentials gandi.ini -d $domain -d *.$domain --work-dir $CERTS_DIR --logs-dir $CERTS_DIR --config-dir $CERTS_DIR -m $EMAIL --agree-tos -n
-		RESULT=$?
-		if [ $RESULT -eq 0 ]; then
-			cat $CERTS_DIR/live/$domain/fullchain.pem $CERTS_DIR/live/$domain/privkey.pem > $CERTS_DIR/$domain.pem
-			aws s3 cp $CERTS_DIR/$domain.pem s3://$BUCKET/$domain.pem
-		else
-			echo "Error generating certs for $domain"
-			exit 1
-		fi
-	done
+    echo "Killing previous certbot..."
+    pkill certbot
+    find / -type f -name ".certbot.lock" -exec rm {} \;
+
+    echo "Generating certs in $CERTS_DIR"
+    mkdir -p $CERTS_DIR
+    for domain in "${DOMAINS[@]}"
+    do
+        echo "Generating certs for $domain..."
+        certbot certonly -a certbot-plugin-gandi:dns --certbot-plugin-gandi:dns-credentials gandi.ini -d $domain -d *.$domain --work-dir $CERTS_DIR --logs-dir $CERTS_DIR --config-dir $CERTS_DIR -m $EMAIL --agree-tos -n
+        RESULT=$?
+        if [ $RESULT -eq 0 ]; then
+            cat $CERTS_DIR/live/$domain/fullchain.pem $CERTS_DIR/live/$domain/privkey.pem > $CERTS_DIR/$domain.pem
+            aws s3 cp $CERTS_DIR/$domain.pem s3://$BUCKET/$domain.pem
+        else
+            echo "Error generating certs for $domain"
+            exit 1
+        fi
+    done
 }
 
 haproxy() {
-	echo "Setting up HAPRoxy..."
-	. /usr/bin/mo
-	export DOMAINS
-	cat << EOF | mo > /etc/haproxy/haproxy.cfg
+    echo "Setting up HAPRoxy..."
+    . /usr/bin/mo
+    export DOMAINS
+    cat << EOF | mo > /etc/haproxy/haproxy.cfg
 global
   log 127.0.0.1 local0
   log 127.0.0.1 local1 notice
@@ -153,27 +153,28 @@ users () {
 }
 
 firewall () {
-	echo "Setting up firewall..."
-	ufw --force reset
-	ufw default deny incoming
-	ufw default deny outgoing
-	ufw allow in 22
-	ufw limit ssh
-	ufw allow out 53
-	ufw allow in 443
-	ufw allow out 443
-	ufw allow out 80
-	ufw allow in 80
-	ufw --force enable
-	ufw status
-	echo "Firewall configured"
+    echo "Setting up firewall..."
+    ufw --force reset
+    ufw default deny incoming
+    ufw default deny outgoing
+    ufw allow in 22
+    ufw limit ssh
+    ufw allow out 53
+    ufw allow in 443
+    ufw allow out 443
+    ufw allow out 80
+    ufw allow in 80
+    ufw allow out 27017
+    ufw --force enable
+    ufw status
+    echo "Firewall configured"
 }
 
 
 app() {
 	echo "Installing app..."
 	BUILD_DIR=/home/$CM_USER/build
-	if [ -d $BUILD_DIR ]; then 
+    if [ -d $BUILD_DIR ]; then 
 		echo "Found existing sources. Updating..."
 		cd $BUILD_DIR; git pull
 	else
@@ -206,7 +207,7 @@ app() {
 	ENV_FILE=/home/$CM_USER/.env
 	aws s3 cp s3://$BUCKET/elementary.env $ENV_FILE
 	chmox 600 $ENV_FILE
-    
+
     echo "Setting up elementary service..."
 	cat << EOF > /lib/systemd/system/elementary.service
 [Unit]
@@ -228,19 +229,19 @@ ExecStart=$PROD_DIR/bin/elementary start
 [Install]
 WantedBy=multi-user.target
 EOF
-   
+    
     systemctl enable elementary.service
     systemctl restart elementary.service
     systemctl status elementary.service
-
 }
+
 
 for action in $@ 
 do
-	$action
-	RESULT=$?
-	if [ $RESULT -ne 0 ]; then
-	    echo "Error in $action"
+    $action
+    RESULT=$?
+    if [ $RESULT -ne 0 ]; then
+        echo "Error in $action"
         exit 1
     fi
 done
