@@ -1,0 +1,20 @@
+kind: module
+name: ui_router
+spec:
+  decoders:
+    router:
+      home-page:
+        path: "/"
+      error-page:
+        path: "/error"
+  update:
+    home-page:
+      model:
+        view: home-view
+      cmds:
+        ui: layout-view 
+    error-page:
+      model:
+        view: error-view 
+      cmds:
+        ui: layout-view 

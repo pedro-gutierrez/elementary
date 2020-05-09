@@ -5,7 +5,8 @@ spec:
     model:
       view: home-view
     cmds:
-      ui: layout-view 
+      router: {}
+      #ui: layout-view 
   encoders:
     layout-view:
       tag: div
@@ -17,24 +18,47 @@ spec:
     home-view:
       tag: div
       children:
-        - tag: h1
-          attrs:
-            class: title is-family-monospace 
-          children:
-            - "@title"
-        - tag: h2
-          attrs:
-            class: content
-          children:
-            - tag: blockquote
-              children: |
-                "Tho others, who give an Account of their Voyages, do generally attempt 
-                to imitate the style and method which is us’d by Authors that write ashore, 
-                I rather choose to keep to the Language of the Sea, 
-                which is more genuine, and natural..." 
-
-                - Woodes Rogers
+        - view: title-view
+        - view: subtitle-view
+          params:
+            content-view: quote-view
         - view: social-login-view
+    quote-view:
+      tag: blockquote
+      children: |
+        "Tho others, who give an Account of their Voyages, do generally attempt 
+        to imitate the style and method which is us’d by Authors that write ashore, 
+        I rather choose to keep to the Language of the Sea, 
+        which is more genuine, and natural..." 
+
+        - Woodes Rogers
+    error-view:
+      tag: div
+      children:
+        - view: title-view
+        - view: subtitle-view
+          params:
+            content-view: error-message-view
+        - view: link-view
+          params:
+            title: "Try again"
+            url: "/"
+    error-message-view:
+      tag: p
+      children:
+        - "Oooops, it looks like things are a little bit unstable here..."
+    title-view:
+      tag: h1
+      attrs:
+        class: title is-family-monospace 
+      children:
+        - "@title"
+    subtitle-view:
+      tag: h2
+      attrs:
+        class: content
+      children:
+        - view: "@content-view"
     container-view:
       tag: div
       children:
@@ -89,6 +113,12 @@ spec:
         - tag: i
           attrs:
             class: "@icon"
+    link-view:
+      tag: a
+      attrs:
+        href: "@url"
+      children:
+        - "@title"
     footer-view:
       tag: p
       children:

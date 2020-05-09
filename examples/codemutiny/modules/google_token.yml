@@ -97,7 +97,7 @@ spec:
       status: 302
       headers:
         location:
-          format: "{{ baseUrl }}/#/login/error"
+          format: "{{ baseUrl }}/#/error"
     session:
       status: 302
       headers:
