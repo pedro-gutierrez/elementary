@@ -1,0 +1,43 @@
+kind: module
+name: identity_update
+spec:
+  decoders:
+    caller:
+      update:
+        update:
+          kind:
+            one_of:
+              - google
+          id:
+            any: text
+          email:
+            any: text
+          picture:
+            any: text
+          name:
+            any: text
+    store:
+      updated:
+        updated:
+          one_of:
+            - 0
+            - 1
+  update:
+    update:
+      model:
+        identity: "@data.update"
+      cmds:
+        store: update
+    updated:
+      cmds:
+        stop: updated
+  encoders:
+    update:
+      store: "@store"
+      update: "@identity"
+      where:
+        id: "@identity.id"
+      into: identities
+      as: updated
+    updated:
+      id: "@identity.id"

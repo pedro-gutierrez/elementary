@@ -1,0 +1,7 @@
+kind: app
+name: identity
+spec:
+  settings:
+    - codemutiny
+  modules:
+    - identity_update

@@ -41,6 +41,13 @@ spec:
         consumed: true 
       nonce_not_verified:
         consumed: false
+      identity_updated:
+        identity:
+          id: 
+            any: text
+      session_created:
+        session:
+          any: text
   update:
     get_token:
       model: "@data.query"
@@ -51,10 +58,10 @@ spec:
         http: get_token
     nonce_not_verified:
       cmds:
-        return: login_error
+        return: error
     invalid:
       cmds:
-        return: login_error
+        return: error
     token:
       model: "@data.body"
       cmds:
@@ -66,6 +73,18 @@ spec:
       cmds:
         http: get_user_info
     user_info:
+      model:
+        user: "@data.body"
+      cmds:
+        service: "identity"
+    identity_updated:
+      model:
+        identity: "@data.identity.id"
+      cmds:
+        service: create_session
+    session_created:
+      model:
+        session: "@data.session"
       cmds:
         return: session
   encoders:
@@ -93,7 +112,22 @@ spec:
       headers:
         authorization:
           format: "Bearer {{ access_token }}"
-    login_error:
+    identity:
+      app: "identity"
+      params:
+        update:
+          kind: "google"
+          id: "@user.sub"
+          email: "@user.email"
+          picture: "@user.picture"
+          name: "@user.name"
+      as: identity
+    create_session:
+      app: token
+      params:
+        session:
+          identity: "@identity"
+    error:
       status: 302
       headers:
         location:
@@ -102,4 +136,4 @@ spec:
       status: 302
       headers:
         location:
-          format: "{{ baseUrl }}/#/s={{ session }}"
+          format: "{{ baseUrl }}/#/?session={{ session }}"

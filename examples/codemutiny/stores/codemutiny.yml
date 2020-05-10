@@ -4,6 +4,7 @@ spec:
   url:
     env: MONGO_URL
   collections:
+    identities: {}
     tokens:
       indexes:
         - expire: nonce

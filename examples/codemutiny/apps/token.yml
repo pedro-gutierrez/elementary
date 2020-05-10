@@ -7,3 +7,4 @@ spec:
     - create_nonce
     - check_token
     - consume_token
+    - create_session

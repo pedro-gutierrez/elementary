@@ -579,8 +579,13 @@ defmodule Elementary.Compiler do
                   doc,
                   upsert: true
                 ) do
-             {:ok, _} ->
-               :ok
+             {:ok,
+              %Mongo.UpdateResult{
+                acknowledged: true,
+                modified_count: modified,
+                upserted_ids: upserted_ids
+              }} ->
+               {:ok, modified + length(upserted_ids)}
 
              {:error, e} ->
                {:error, mongo_error(e)}

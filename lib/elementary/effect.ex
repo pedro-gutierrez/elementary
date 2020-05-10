@@ -73,7 +73,7 @@ defmodule Elementary.Effect do
     query = Kit.with_mongo_id(query)
 
     case store.update(col, query, doc) do
-      :ok -> "updated"
+      {:ok, updated} -> updated
       {:error, e} -> "#{e}"
     end
     |> effect_result(spec)
