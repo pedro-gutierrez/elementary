@@ -1,6 +1,7 @@
 kind: app
-name: admin
+name: auth
 spec:
+  debug: true
   modules:
-    - admin
+    - auth
     - http

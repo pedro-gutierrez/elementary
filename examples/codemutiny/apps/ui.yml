@@ -6,3 +6,6 @@ spec:
   modules:
     - ui_router
     - ui_home
+    - ui_welcome
+    - ui_common
+    - ui_errors

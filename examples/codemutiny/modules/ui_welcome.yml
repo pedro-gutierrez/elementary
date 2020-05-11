@@ -1,0 +1,64 @@
+kind: module
+name: ui_welcome
+spec:
+  decoders:
+    http:
+      unauthorized:
+        status: 401
+      profile:
+        body:
+          email:
+            any: text
+          id:
+            any: text
+          name:
+            any: text
+          picture:
+            any: text
+  update:
+    welcome-page:
+      model:
+        view: loading-view
+        session: "@data.query.session"
+      cmds:
+        http: get-profile
+        ui: layout-view
+    unauthorized:
+      model:
+        session: ""
+        view: unauthorized-view
+      cmds:
+        ui: {}
+    profile:
+      model:
+        profile: "@data.body"
+        view: welcome-view
+      cmds:
+        ui: {}
+  encoders:
+    get-profile:
+      method: get
+      path: /api/profile
+      headers:
+        authorization: "@session"
+    welcome-view:
+      tag: div
+      children:
+        - tag: h1
+          children:
+            - format: "Welcome {{name}}"
+              params:
+                name: "@profile.name"
+        - view: avatar-view
+          params:
+            url: "@profile.picture"
+    avatar-view:
+      tag: figure
+      attrs:
+        class: image is-64x64
+      children:
+        - tag: img
+          attrs:
+            class: is-rounded
+            src: "@url"
+

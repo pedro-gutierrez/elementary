@@ -1,0 +1,30 @@
+kind: module
+name: profile
+spec:
+  init:
+    model:
+      profile: "plop"
+  decoders:
+    http:
+      get:
+        method: GET
+    store:
+      profile:
+        profile:
+          any: object
+  update:
+    get:
+      cmds:
+        store: find_profile
+    profile:
+      model:
+        data: "@data.profile"
+      cmds:
+        return: data
+  encoders:
+    find_profile:
+      store: "@store"
+      fetch:
+        id: "@session.identity"
+      from: identities
+      as: profile

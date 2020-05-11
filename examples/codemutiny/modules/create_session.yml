@@ -19,6 +19,7 @@ spec:
             uuid: {}
           session:
             now: {}
+          identity: "@data.session.identity"
       cmds:
         store: create_session
     session_created:

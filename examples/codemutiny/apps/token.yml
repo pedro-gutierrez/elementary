@@ -8,3 +8,4 @@ spec:
     - check_token
     - consume_token
     - create_session
+    - find_session

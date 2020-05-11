@@ -6,7 +6,6 @@ spec:
       view: home-view
     cmds:
       router: {}
-      #ui: layout-view 
   encoders:
     layout-view:
       tag: div
@@ -23,34 +22,22 @@ spec:
           params:
             content-view: quote-view
         - view: social-login-view
+        - tag: footer
+          children:
+            - view: footer-view
     quote-view:
       tag: blockquote
       children: |
         "Tho others, who give an Account of their Voyages, do generally attempt 
         to imitate the style and method which is us’d by Authors that write ashore, 
         I rather choose to keep to the Language of the Sea, 
-        which is more genuine, and natural..." 
+        which is more genuine, and natural..."
 
         - Woodes Rogers
-    error-view:
-      tag: div
-      children:
-        - view: title-view
-        - view: subtitle-view
-          params:
-            content-view: error-message-view
-        - view: link-view
-          params:
-            title: "Try again"
-            url: "/"
-    error-message-view:
-      tag: p
-      children:
-        - "Oooops, it looks like things are a little bit unstable here..."
     title-view:
       tag: h1
       attrs:
-        class: title is-family-monospace 
+        class: title is-family-monospace
       children:
         - "@title"
     subtitle-view:
@@ -68,15 +55,10 @@ spec:
           children:
             - view: "@content-view"
               params: "@content"
-        - tag: footer 
-          attrs:
-            class: section container
-          children:
-            - view: footer-view
     social-login-view:
       tag: p
       attrs:
-        class: buttons 
+        class: buttons
       children:
         - view: social-button-view
           params:
@@ -86,20 +68,20 @@ spec:
         - view: social-button-view
           params:
             url: /api/github/session
-            label: Sign in with Github 
+            label: Sign in with Github
             icon: fab fa-github
         - view: social-button-view
           params:
             url: /api/facebook/session
-            label: Sign in with Facebook 
+            label: Sign in with Facebook
             icon: fab fa-facebook-square
         - view: social-button-view
           params:
             url: /api/linkedin/session
-            label: Sign in with LinkedIn 
+            label: Sign in with LinkedIn
             icon: fab fa-linkedin-in
     social-button-view:
-      tag: a 
+      tag: a
       attrs:
         class: button is-light
         href: "@url"
@@ -137,5 +119,3 @@ spec:
             href: "https://github.com/pedro-gutierrez/elementary"
           children:
             - Elementary
-
-      

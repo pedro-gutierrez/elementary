@@ -1,0 +1,43 @@
+kind: module
+name: auth
+spec:
+  decoders:
+    http:
+      auth:
+        headers:
+          authorization:
+            any: text
+      anonymous:
+        headers:
+          without:
+            - authorization
+    service:
+      session_not_found:
+        session: not_found
+      session_found:
+        session:
+          identity:
+            any: text
+          id:
+            any: text
+  update:
+    auth:
+      model:
+        token: "@data.headers.authorization"
+      cmds:
+        service: find_session
+    anonymous:
+      cmds:
+        stop: unauthorized
+    session_not_found:
+      cmds:
+        stop: unauthorized
+    session_found:
+      model:
+        session: "@data.session"
+  encoders:
+    find_session:
+      app: token
+      params:
+        find:
+          session: "@token"

@@ -5,6 +5,14 @@ spec:
     router:
       home-page:
         path: "/"
+        query:
+          without:
+            - session
+      welcome-page:
+        path: "/"
+        query:
+          session:
+            any: text
       error-page:
         path: "/error"
   update:
@@ -12,9 +20,9 @@ spec:
       model:
         view: home-view
       cmds:
-        ui: layout-view 
+        ui: layout-view
     error-page:
       model:
-        view: error-view 
+        view: error-view
       cmds:
-        ui: layout-view 
+        ui: layout-view

@@ -1,0 +1,8 @@
+kind: module
+name: ui_common
+spec:
+  encoders:
+    loading-view:
+      tag: div
+      children:
+        - "Loading..."

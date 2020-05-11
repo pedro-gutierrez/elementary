@@ -1158,6 +1158,28 @@ export default (appUrl, appEffects, deps) => {
         }
     }
 
+    function decodeWithout(spec, data, ctx) {
+        if (!data) return error(spec, data, "no_data");
+        var dataType = typeOf(data);
+        switch (dataType) {
+            case "object":
+                var {err, value} = encode(spec.without, ctx)
+                if (err) return error(spec, ctx, err)
+                if (typeOf(value) != "list") return error(spec.without, ctx, {error: "type_mismatch", actual: value, expected: "list"});
+
+                for (var i=0; i<value.length; i++) {
+                    var key = value[i];
+                    if (hasProp(data, key)) {
+                        return error(spec, data, {error: "unexpected_key", key: key, data: data});
+                    }
+                }
+                return {decoded: data}
+
+            default:
+                return error(spec, data, {error: "type_mistmatch", actual: dataType, expected: ["object"]});
+        }
+    }
+
 
     function intersection(a, b) {
         const s = new Set(b);
@@ -1297,6 +1319,7 @@ export default (appUrl, appEffects, deps) => {
                 if (spec.any) return decodeAny(spec, data, ctx);
                 if (spec.list) return decodeList(spec, data, ctx);
                 if (spec.with) return decodeWith(spec, data, ctx);
+                if (spec.without) return decodeWithout(spec, data, ctx);
                 if (spec.all) return decodeAll(spec, data, ctx);
                 if (spec.some) return decodeSome(spec, data, ctx);
                 if (spec.empty) return decodeEmpty(spec, data, ctx);

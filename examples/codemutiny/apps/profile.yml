@@ -1,0 +1,14 @@
+kind: app
+name: profile
+spec:
+  debug: true
+  routes:
+    codemutiny:
+      get: /api/profile
+  settings:
+    - codemutiny
+  filters:
+    - auth
+  modules:
+    - profile
+    - http

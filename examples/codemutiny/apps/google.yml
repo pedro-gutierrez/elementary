@@ -1,7 +1,6 @@
 kind: app
 name: google 
 spec:
-  debug: true
   routes:
     codemutiny:
       get: /api/google/:stage

@@ -1,0 +1,35 @@
+kind: module
+name: find_session
+spec:
+  decoders:
+    caller:
+      find_session:
+        find:
+          session:
+            any: text
+    store:
+      session:
+        session:
+          one_of:
+            - any: object
+            - "not_found"
+  update:
+    find_session:
+      model:
+        id: "@data.find.session"
+      cmds:
+        store: find_session
+    session:
+      model:
+        session: "@data.session"
+      cmds:
+        stop: session
+  encoders:
+    find_session:
+      store: "@store"
+      fetch:
+        id: "@id"
+      from: tokens
+      as: session
+    session:
+      session: "@session"
