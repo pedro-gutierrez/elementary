@@ -1,0 +1,17 @@
+kind: app
+name: linkedin 
+spec:
+  routes:
+    codemutiny:
+      get: /api/linkedin/:stage
+  settings:
+    - codemutiny 
+    - web
+    - linkedin
+  filters:
+    - cors
+  modules:
+    - linkedin_session 
+    - linkedin_token 
+    - http
+    - common_session

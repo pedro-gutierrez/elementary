@@ -211,7 +211,14 @@ defmodule Elementary.Encoder do
           {:ok, first}
 
         other ->
-          {:error, %{"error" => "unexpected", "actual" => other, "expected" => "non-empty-list"}}
+          {:error,
+           %{
+             "error" => "unexpected",
+             "actual" => other,
+             "expected" => "non-empty-list",
+             "spec" => spec,
+             "context" => context
+           }}
       end
     end
     |> result(spec, context)

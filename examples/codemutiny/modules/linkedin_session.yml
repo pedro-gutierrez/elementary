@@ -1,0 +1,18 @@
+kind: module
+name: linkedin_session
+spec:
+  encoders:
+    authorize:
+      status: 302
+      headers:
+        location:
+          encoder: linkedin_auth_url
+    linkedin_auth_url:
+      uri: "https://www.linkedin.com/oauth/v2/authorization"
+      with:
+        client_id: "@client"
+        state: "@nonce"
+        response_type: "code"
+        redirect_uri:
+          format: "{{ baseUrl }}{{ redirectPath }}"
+        scope: "r_liteprofile"
