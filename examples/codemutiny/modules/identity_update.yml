@@ -6,8 +6,7 @@ spec:
       update:
         update:
           kind:
-            one_of:
-              - google
+            any: text
           id:
             any: text
           email:

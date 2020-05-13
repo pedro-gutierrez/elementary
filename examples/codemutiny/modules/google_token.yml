@@ -3,14 +3,6 @@ name: google_token
 spec:
   decoders:
     http:
-      get_token:
-        query:
-          code:
-            any: text
-          state:
-            any: text
-      invalid:
-        status: 400
       token:
         body:
           access_token:
@@ -36,32 +28,7 @@ spec:
             any: text
           sub:
             any: text
-    service:
-      nonce_verified:
-        consumed: true 
-      nonce_not_verified:
-        consumed: false
-      identity_updated:
-        identity:
-          id: 
-            any: text
-      session_created:
-        session:
-          any: text
   update:
-    get_token:
-      model: "@data.query"
-      cmds:
-        service: consume_nonce
-    nonce_verified:
-      cmds:
-        http: get_token
-    nonce_not_verified:
-      cmds:
-        return: error
-    invalid:
-      cmds:
-        return: error
     token:
       model: "@data.body"
       cmds:
@@ -74,24 +41,15 @@ spec:
         http: get_user_info
     user_info:
       model:
-        user: "@data.body"
+        identity: 
+          kind: "google"
+          id: "@data.body.sub"
+          email: "@data.body.email"
+          picture: "@data.body.picture"
+          name: "@data.body.name"
       cmds:
-        service: "identity"
-    identity_updated:
-      model:
-        identity: "@data.identity.id"
-      cmds:
-        service: create_session
-    session_created:
-      model:
-        session: "@data.session"
-      cmds:
-        return: session
+        service: update_identity
   encoders:
-    consume_nonce:
-      app: token
-      params:
-        consume: "@state"
     get_token:
       method: post
       url: https://accounts.google.com/o/oauth2/token
@@ -112,28 +70,3 @@ spec:
       headers:
         authorization:
           format: "Bearer {{ access_token }}"
-    identity:
-      app: "identity"
-      params:
-        update:
-          kind: "google"
-          id: "@user.sub"
-          email: "@user.email"
-          picture: "@user.picture"
-          name: "@user.name"
-      as: identity
-    create_session:
-      app: token
-      params:
-        session:
-          identity: "@identity"
-    error:
-      status: 302
-      headers:
-        location:
-          format: "{{ baseUrl }}/#/error"
-    session:
-      status: 302
-      headers:
-        location:
-          format: "{{ baseUrl }}/#/?session={{ session }}"

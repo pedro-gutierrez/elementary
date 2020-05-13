@@ -1,17 +1,17 @@
 kind: app
-name: google 
+name: facebook 
 spec:
   routes:
     codemutiny:
-      get: /api/google/:stage
+      get: /api/facebook/:stage
   settings:
-    - codemutiny 
+    - codemutiny
     - web
-    - google
+    - facebook
   filters:
     - cors
   modules:
-    - google_session 
-    - google_token 
+    - facebook_session 
+    - facebook_token 
     - http
     - common_session

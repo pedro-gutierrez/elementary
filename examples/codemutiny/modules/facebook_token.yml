@@ -1,0 +1,54 @@
+kind: module
+name: facebook_token
+spec:
+  decoders:
+    http:
+      token:
+        body:
+          access_token:
+            any: text
+          expires_in:
+            any: number
+      user_info:
+        body:
+          name:
+            any: text
+          id:
+            any: text
+          # photo url is: https://graph.facebook.com/{facebookId}/picture?type=normal
+  update:
+    token:
+      model: "@data.body"
+      cmds:
+        http: get_user_info
+    user_info:
+      model:
+        identity: 
+          kind: "facebook"
+          id: "@data.body.id"
+          email: ""
+          picture: ""
+          name: "@data.body.name"
+      cmds:
+        service: update_identity
+  encoders:
+    consume_nonce:
+      app: token
+      params:
+        consume: "@state"
+    get_token:
+      method: get 
+      url: https://graph.facebook.com/v6.0/oauth/access_token
+      query:
+        client_id: "@client" 
+        client_secret: "@secret"
+        redirect_uri:
+          format: "{{ baseUrl }}{{ redirectPath }}"
+        code: "@code"
+    decode_token:
+      decode: "@id_token"
+    get_user_info:
+      method: get
+      url: https://graph.facebook.com/me
+      query:
+        access_token: "@access_token"

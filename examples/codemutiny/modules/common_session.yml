@@ -1,0 +1,92 @@
+kind: module
+name: common_session
+spec:
+  decoders:
+    http:
+      create_session:
+        params:
+          stage: session
+      get_token:
+        query:
+          code:
+            any: text
+          state:
+            any: text
+      invalid:
+        status: 400
+    service:
+      nonce:
+        nonce:
+          any: text
+      nonce_verified:
+        consumed: true 
+      nonce_not_verified:
+        consumed: false
+      identity_updated:
+        identity:
+          id: 
+            any: text
+      session_created:
+        session:
+          any: text
+  update:
+    create_session:
+      cmds:
+        service: create_nonce
+    nonce:
+      model:
+        nonce: "@data.nonce"
+      cmds:
+        return: authorize
+    get_token:
+      model: "@data.query"
+      cmds:
+        service: consume_nonce
+    nonce_verified:
+      cmds:
+        http: get_token
+    nonce_not_verified:
+      cmds:
+        return: error
+    invalid:
+      cmds:
+        return: error
+    identity_updated:
+      model:
+        identity: "@data.identity.id"
+      cmds:
+        service: create_session
+    session_created:
+      model:
+        session: "@data.session"
+      cmds:
+        return: session
+  encoders:
+    create_nonce:
+      app: token 
+      params:
+        create: "nonce"
+    consume_nonce:
+      app: token
+      params:
+        consume: "@state"
+    create_session:
+      app: token
+      params:
+        session:
+          identity: "@identity"
+    update_identity:
+      app: "identity"
+      params:
+        update: "@identity"
+      as: identity
+    error:
+      status: 302
+      headers:
+        location:
+          format: "{{ baseUrl }}/#/error"
+    session:
+      status: 302
+      headers:
+        location:
+          format: "{{ baseUrl }}/#?session={{ session }}"

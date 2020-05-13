@@ -1,7 +1,6 @@
 kind: app
 name: auth
 spec:
-  debug: true
   modules:
     - auth
     - http
