@@ -1,0 +1,17 @@
+kind: app
+name: github
+spec:
+  routes:
+    codemutiny:
+      get: /api/github/:stage
+  settings:
+    - codemutiny
+    - web
+    - github
+  filters:
+    - cors
+  modules:
+    - github_session
+    - github_token
+    - http
+    - common_session

@@ -1,0 +1,16 @@
+kind: module
+name: github_session
+spec:
+  encoders:
+    authorize:
+      status: 302
+      headers:
+        location:
+          encoder: github_auth_url
+    github_auth_url:
+      uri: "https://github.com/login/oauth/authorize"
+      with:
+        client_id: "@client"
+        state: "@nonce"
+        redirect_uri:
+          format: "{{ baseUrl }}{{ redirectPath }}"

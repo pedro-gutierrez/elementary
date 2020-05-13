@@ -1,5 +1,5 @@
 kind: module
-name: facebook_token
+name: github_token 
 spec:
   decoders:
     http:
@@ -7,44 +7,46 @@ spec:
         body:
           access_token:
             any: text
-          expires_in:
-            any: number
       user_info:
         body:
-          name:
-            any: text
           id:
+            any: number
+          avatar_url:
             any: text
-          # photo url is: https://graph.facebook.com/{facebookId}/picture?type=normal
+          name:
+            any: text 
   update:
     token:
       model: "@data.body"
       cmds:
-        http: get_user_info
+        http: get_user 
     user_info:
       model:
         identity: 
-          kind: "facebook"
-          id: "@data.body.id"
+          kind: "github"
+          id: 
+            text: "@data.body.id"
           email: ""
-          picture: ""
+          picture: "@data.body.avatar_url"
           name: "@data.body.name"
       cmds:
         service: update_identity
   encoders:
     get_token:
-      method: get 
-      url: https://graph.facebook.com/v6.0/oauth/access_token
-      query:
+      method: post
+      url: https://github.com/login/oauth/access_token
+      headers:
+        content-type: application/x-www-form-urlencoded
+      body:
         client_id: "@client" 
         client_secret: "@secret"
         redirect_uri:
           format: "{{ baseUrl }}{{ redirectPath }}"
         code: "@code"
-    decode_token:
-      decode: "@id_token"
-    get_user_info:
+        session: "@state"
+    get_user:
       method: get
-      url: https://graph.facebook.com/me
-      query:
-        access_token: "@access_token"
+      url: https://api.github.com/user
+      headers:
+        authorization:
+          format: "token {{ access_token }}"

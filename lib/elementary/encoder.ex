@@ -432,28 +432,12 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
-  def encode(%{"text_from" => value} = spec, context, encoders) do
+  def encode(%{"text" => value} = spec, context, encoders) do
     with {:ok, value} <- encode(value, context, encoders) do
       {:ok, "#{inspect(value)}"}
     end
     |> result(spec, context)
   end
-
-  ## def encode(%{"url" => url_spec} = spec, context, encoders) do
-  ##  case encode(url_spec, context, encoders) do
-  ##    {:ok, map} when is_map(map) ->
-  ##      "#{map["scheme"] || "http"}://#{map["host"] || "localhost"}:#{map["port"] || 80}#{
-  ##        map["path"] || ""
-  ##      }"
-
-  ##    {:ok, url} when is_binary(url) ->
-  ##      url
-
-  ##    other ->
-  ##      other
-  ##  end
-  ##  |> result(spec, context)
-  ## end
 
   def encode(
         %{"http" => %{"url" => url_spec} = http_spec} = spec,
