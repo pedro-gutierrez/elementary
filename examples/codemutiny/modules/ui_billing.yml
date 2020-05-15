@@ -1,0 +1,51 @@
+kind: module
+name: ui_billing
+spec:
+  init:
+    model:
+      products: []
+  decoders:
+    router:
+      show-subscriptions:
+        path: /subscriptions
+    http:
+      products:
+        products:
+          body:
+            any: list
+  update:
+    show-subscriptions:
+      model:
+        view: subscriptions-view
+      cmds:
+        http: get-products
+        ui: layout-view
+    products:
+      model:
+        products: "@data.products.body"
+      cmds:
+        ui: {}
+  encoders:
+    subscriptions-view:
+      tag: div
+      children:
+        - subscriptions
+        - view: products-view
+    products-view:
+      tag: div
+      children:
+        loop: "@products"
+        with: product-view
+    product-view:
+      tag: div
+      children:
+        loop: "@plans"
+        with: plan-view
+    plan-view:
+      tag: div
+      children:
+        - "@name"
+    get-products:
+      method: get
+      path: /api/billing/products
+      as: products

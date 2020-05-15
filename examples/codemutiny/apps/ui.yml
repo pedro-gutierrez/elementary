@@ -7,5 +7,6 @@ spec:
     - ui_router
     - ui_home
     - ui_welcome
+    - ui_billing
     - ui_common
     - ui_errors

@@ -1,0 +1,13 @@
+kind: app
+name: billing
+spec:
+  routes:
+    codemutiny:
+      get: "/api/billing/:feature"
+  settings:
+    - codemutiny
+  filters:
+    - cors
+  modules:
+    - billing_product
+    - http

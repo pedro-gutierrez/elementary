@@ -11,7 +11,7 @@ spec:
       status: 200
       headers:
         content-type: application/json
-      body: @data
+      body: "@data"
     created:
       status: 201
       headers:

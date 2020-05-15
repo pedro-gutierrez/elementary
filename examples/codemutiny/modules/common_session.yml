@@ -19,12 +19,12 @@ spec:
         nonce:
           any: text
       nonce_verified:
-        consumed: true 
+        consumed: true
       nonce_not_verified:
         consumed: false
       identity_updated:
         identity:
-          id: 
+          id:
             any: text
       session_created:
         session:
@@ -63,7 +63,7 @@ spec:
         return: session
   encoders:
     create_nonce:
-      app: token 
+      app: token
       params:
         create: "nonce"
     consume_nonce:

@@ -52,6 +52,7 @@ spec:
         - view: avatar-view
           params:
             url: "@profile.picture"
+        - view: user-menu-view
     avatar-view:
       tag: figure
       attrs:
@@ -61,4 +62,18 @@ spec:
           attrs:
             class: is-rounded
             src: "@url"
-
+    user-menu-view:
+      tag: div
+      children:
+        - view: user-menu-link
+          params:
+            icon: fas fa-shopping-cart
+            route: subscriptions
+    user-menu-link:
+      tag: a
+      attrs:
+        class: button is-light
+        onclick:
+          navigate: "@route"
+      children:
+        - view: icon-view

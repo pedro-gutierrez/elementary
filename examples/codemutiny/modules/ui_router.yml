@@ -2,6 +2,10 @@ kind: module
 name: ui_router
 spec:
   decoders:
+    ui:
+      navigate:
+        navigate:
+          any: text
     router:
       home-page:
         path: "/"
@@ -16,6 +20,11 @@ spec:
       error-page:
         path: "/error"
   update:
+    navigate:
+      model:
+        route: "@data.navigate"
+      cmds:
+        router: navigate 
     home-page:
       model:
         view: home-view
@@ -26,3 +35,7 @@ spec:
         view: error-view
       cmds:
         ui: layout-view
+  encoders:
+    navigate:
+      action: navigate 
+      target: "@route"

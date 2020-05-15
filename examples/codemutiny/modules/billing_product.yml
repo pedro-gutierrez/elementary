@@ -1,0 +1,31 @@
+kind: module
+name: billing_product
+spec:
+  decoders:
+    http:
+      list_products:
+        method: GET
+        params:
+          feature: products
+    store:
+      products:
+        products:
+          any: list
+  update:
+    list_products:
+      model:
+        data: []
+      cmds:
+        store: find_products 
+    products:
+      model:
+        data: "@data.products"
+      cmds:
+        return: data
+  encoders:
+    find_products:
+      store: "@store"
+      find:
+        kind: product
+      from: billing 
+      as: products
