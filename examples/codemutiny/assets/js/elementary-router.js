@@ -1,7 +1,7 @@
 export default (name, _settings, app) => {
 
     const {encode, update} = app;
-    
+
     function error(spec, data, reason) {
         console.error(`[${name}]`, {spec, data, reason});
     }
@@ -20,12 +20,11 @@ export default (name, _settings, app) => {
                     query[temp[0]] = temp[1]
                 });
             }
-            
+
             if (!path.startsWith("/")) path="/"+path;
         }
 
-
-        update({ 
+        update({
             effect: name,
             path: path,
             query: query

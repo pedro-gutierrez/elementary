@@ -14,6 +14,7 @@ spec:
           params:
             content-view: "@view"
             content: "@"
+        - view: footer-view
     home-view:
       tag: div
       children:
@@ -22,9 +23,6 @@ spec:
           params:
             content-view: quote-view
         - view: social-login-view
-        - tag: footer
-          children:
-            - view: footer-view
     quote-view:
       tag: blockquote
       children: |
@@ -47,14 +45,12 @@ spec:
       children:
         - view: "@content-view"
     container-view:
-      tag: div
+      tag: section
+      attrs:
+        class: section container is-medium
       children:
-        - tag: section
-          attrs:
-            class: section container is-medium
-          children:
-            - view: "@content-view"
-              params: "@content"
+        - view: "@content-view"
+          params: "@content"
     social-login-view:
       tag: p
       attrs:
@@ -102,11 +98,26 @@ spec:
       children:
         - "@title"
     footer-view:
+      tag: footer
+      attrs:
+        class: footer has-text-centered
+      children:
+        - view: footer-icon-view
+        - view: footer-title-view
+        - view: footer-subtitle-view
+    footer-icon-view:
       tag: p
       children:
         - view: icon-view
           params:
             icon: fa fa-skull
+    footer-title-view:
+      tag: p
+      children:
+        - "Codemutiny (c) 2020"
+    footer-subtitle-view:
+      tag: p
+      children:
         - "Made with "
         - tag: a
           attrs:

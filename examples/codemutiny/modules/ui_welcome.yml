@@ -32,7 +32,8 @@ spec:
     profile:
       model:
         profile: "@data.body"
-        view: welcome-view
+        view: member-layout-view
+        member-view: welcome-view
       cmds:
         ui: {}
   encoders:
@@ -41,6 +42,75 @@ spec:
       path: /api/profile
       headers:
         authorization: "@session"
+    member-layout-view:
+      tag: div
+      children:
+        - view: member-nav-view
+          #    - view: "@member-view"
+    member-nav-view:
+      view: navbar-view
+      params:
+        profile: "@profile"
+        menu:
+          - icon: fas fa-shopping-cart
+            route: subscriptions
+    navbar-view:
+      tag: nav
+      attrs:
+        class: navbar is-transparent is-fixed-top is-spaced
+        role: navigation
+        aria-label: main navigation
+      children:
+        - tag: div
+          attrs:
+            class: navbar-brand
+          children:
+            - tag: a
+              attrs:
+                role: button
+                class: navbar-burger
+                aria-label: menu
+                aria-expanded: false
+              children:
+                - view: burger-span
+                - view: burger-span
+                - view: burger-span
+        - tag: div
+          attrs:
+            class: navbar-menu
+          children:
+            - tag: div
+              attrs:
+                class: navbar-start
+              children: []
+            - tag: div
+              attrs:
+                class: navbar-end
+              children:
+                - tag: div
+                  attrs:
+                    class: navbar-item has-dropdown is-active
+                  children:
+                    - tag: a
+                      attrs:
+                        class: button is-light
+                      children:
+                        - view: avatar-view
+                          params:
+                            size: 24
+                            url: "@profile.picture"
+                            #- "@profile.name"
+                    - tag: div
+                      attrs:
+                        class: navbar-dropdown is-right
+                      children:
+                        loop: "@menu"
+                        with: user-menu-link 
+    burger-span:
+      tag: span
+      attrs:
+        aria-hidden: true
+      children: []
     welcome-view:
       tag: div
       children:
@@ -56,19 +126,15 @@ spec:
     avatar-view:
       tag: figure
       attrs:
-        class: image is-64x64
+        style:
+          margin-right: 5px
+        class: 
+          format: "image is-{{size}}x{{size}}"
       children:
         - tag: img
           attrs:
             class: is-rounded
             src: "@url"
-    user-menu-view:
-      tag: div
-      children:
-        - view: user-menu-link
-          params:
-            icon: fas fa-shopping-cart
-            route: subscriptions
     user-menu-link:
       tag: a
       attrs:
@@ -76,4 +142,5 @@ spec:
         onclick:
           navigate: "@route"
       children:
-        - view: icon-view
+        #        - view: icon-view
+        - capitalize: "@route"
