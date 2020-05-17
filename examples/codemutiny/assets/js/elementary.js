@@ -558,6 +558,7 @@ export default (appUrl, appEffects, deps) => {
             if (err) return error(spec, ctx, err);
             lists[i] = value;
         }
+        console.log("concat lists", lists);
         return { value: flatten(lists) }
     }
 
@@ -1501,17 +1502,51 @@ export default (appUrl, appEffects, deps) => {
         }
         ctx = value;
         log("[core] update spec", { spec, ctx });
-        var { err: updateErr, value: updateValue } = encode(spec, ctx);
-        if (updateErr) {
-            console.error("Encode new model error", updateErr);
-            return err;
+        
+        var newModel = state.model;
+        if (spec.model) {
+            var {err, value} = encode(spec.model, ctx);
+            if (err) {
+                console.error("Encode new model error", { spec: spec.model, ctx: ctx, error: err}); 
+                return err
+            }
+            newModel = Object.assign(newModel, value);
         }
-        var { model, cmds } = updateValue;
-        Object.assign(state.model, model);
+
+        var cmds = null;
+        if (spec.cmds) {
+            var {err, value} = encode(spec.cmds, newModel);
+            if (err) {
+                console.error("Encode commands error", { spec: spec.model, ctx: ctx, error: err}); 
+                return err
+            }
+            cmds = value;
+        }
+
+        // we succesfully encoded the new model 
+        // and commands. We can transition to the next model
+        // and start applying commands
+        state.model = newModel;
         log("[core] new model", state.model);
+
         const t2 = new Date();
         if (spec.cmds) applyCmds(encoders, state.effects, cmds, state.model);
         const t3 = new Date();
+
+
+        //var { err: updateErr, value: updateValue } = encode(spec, ctx);
+        //if (updateErr) {
+        //    console.error("Encode new model error", updateErr);
+        //    return err;
+        //}
+        //var { model, cmds } = updateValue;
+        //Object.assign(state.model, model);
+        //log("[core] new model", state.model);
+        //const t2 = new Date();
+        //if (spec.cmds) applyCmds(encoders, state.effects, cmds, state.model);
+        //const t3 = new Date();
+        
+
         if (state.app.settings.telemetry) {
             console.log("[core]"
                 + "[decode " + elapsed(t0, t1) + "ms]"

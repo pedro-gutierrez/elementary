@@ -8,6 +8,9 @@ spec:
     router:
       show-subscriptions:
         path: /subscriptions
+        query:
+          session:
+            any: text
     http:
       products:
         products:
@@ -16,12 +19,17 @@ spec:
   update:
     show-subscriptions:
       model:
-        view: subscriptions-view
+        session: "@data.query.session"
+        view: loading-view
+        memberView: subscriptions-view
+        onProfile:
+          http: get-products
       cmds:
-        http: get-products
+        http: get-profile
         ui: layout-view
     products:
       model:
+        view: member-layout-view
         products: "@data.products.body"
       cmds:
         ui: {}

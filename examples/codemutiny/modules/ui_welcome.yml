@@ -20,6 +20,9 @@ spec:
       model:
         view: loading-view
         session: "@data.query.session"
+        memberView: welcome-view
+        onProfile:
+          ui: {}
       cmds:
         http: get-profile
         ui: layout-view
@@ -33,27 +36,33 @@ spec:
       model:
         profile: "@data.body"
         view: member-layout-view
-        member-view: welcome-view
-      cmds:
-        ui: {}
+      cmds: "@onProfile"
   encoders:
     get-profile:
       method: get
       path: /api/profile
       headers:
         authorization: "@session"
+    welcome-view:
+      tag: h1
+      children:
+        - Hello !
     member-layout-view:
       tag: div
       children:
         - view: member-nav-view
-          #    - view: "@member-view"
+        - view: "@memberView"
     member-nav-view:
       view: navbar-view
       params:
+        session: "@session"
         profile: "@profile"
         menu:
-          - icon: fas fa-shopping-cart
-            route: subscriptions
+          - route: subscriptions
+            icon: fas fa-shopping-cart
+          - route: logout
+            icon: fas fa-power-off
+
     navbar-view:
       tag: nav
       attrs:
@@ -87,25 +96,8 @@ spec:
               attrs:
                 class: navbar-end
               children:
-                - tag: div
-                  attrs:
-                    class: navbar-item has-dropdown is-active
-                  children:
-                    - tag: a
-                      attrs:
-                        class: button is-light
-                      children:
-                        - view: avatar-view
-                          params:
-                            size: 24
-                            url: "@profile.picture"
-                            #- "@profile.name"
-                    - tag: div
-                      attrs:
-                        class: navbar-dropdown is-right
-                      children:
-                        loop: "@menu"
-                        with: user-menu-link 
+                loop: "@menu"
+                with: navbar-item-view
     burger-span:
       tag: span
       attrs:
@@ -135,12 +127,19 @@ spec:
           attrs:
             class: is-rounded
             src: "@url"
-    user-menu-link:
-      tag: a
+    navbar-item-view:
+      tag: div
       attrs:
-        class: button is-light
-        onclick:
-          navigate: "@route"
+        class: navbar-item
       children:
-        #        - view: icon-view
-        - capitalize: "@route"
+        - tag: a
+          attrs:
+            class: is-light button
+            onclick:
+              navigate:
+                format: "{{ route}}?session={{ session }}"
+          children:
+            - view: icon-view
+            - tag: span
+              children:
+                - capitalize: "@route"  
