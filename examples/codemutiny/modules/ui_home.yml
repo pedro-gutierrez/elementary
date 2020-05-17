@@ -59,22 +59,22 @@ spec:
         - view: social-button-view
           params:
             url: /api/google/session
-            label: Sign in with Google
+            title: Sign in with Google
             icon: fab fa-google
         - view: social-button-view
           params:
             url: /api/github/session
-            label: Sign in with Github
+            title: Sign in with Github
             icon: fab fa-github
         - view: social-button-view
           params:
             url: /api/facebook/session
-            label: Sign in with Facebook
+            title: Sign in with Facebook
             icon: fab fa-facebook-square
         - view: social-button-view
           params:
             url: /api/linkedin/session
-            label: Sign in with LinkedIn
+            title: Sign in with LinkedIn
             icon: fab fa-linkedin-in
     social-button-view:
       tag: a
@@ -87,6 +87,7 @@ spec:
       tag: span
       attrs:
         class: icon
+        title: "@title"
       children:
         - tag: i
           attrs:
@@ -111,6 +112,7 @@ spec:
         - view: icon-view
           params:
             icon: fa fa-skull
+            title: "Skull"
     footer-title-view:
       tag: p
       children:

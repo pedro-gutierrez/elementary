@@ -96,8 +96,16 @@ spec:
               attrs:
                 class: navbar-end
               children:
-                loop: "@menu"
-                with: navbar-item-view
+                - tag: div
+                  attrs:
+                    class: navbar-item
+                  children:
+                    - tag: div
+                      attrs:
+                        class: field is-grouped
+                      children:
+                        loop: "@menu"
+                        with: navbar-item-view
     burger-span:
       tag: span
       attrs:
@@ -128,9 +136,9 @@ spec:
             class: is-rounded
             src: "@url"
     navbar-item-view:
-      tag: div
+      tag: p
       attrs:
-        class: navbar-item
+        class: control
       children:
         - tag: a
           attrs:
@@ -140,6 +148,7 @@ spec:
                 format: "{{ route}}?session={{ session }}"
           children:
             - view: icon-view
-            - tag: span
-              children:
-                - capitalize: "@route"  
+              params:
+                icon: "@icon"
+                title: 
+                  capitalize: "@route"  
