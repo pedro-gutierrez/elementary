@@ -15,6 +15,16 @@ spec:
             content-view: "@view"
             content: "@"
         - view: footer-view
+    member-layout-view:
+      tag: div
+      children:
+        - view: member-nav-view
+        - tag: section 
+          attrs:
+            class: section container is-medium
+          children:
+            - view: "@view"
+        - view: footer-view
     home-view:
       tag: div
       children:
@@ -35,7 +45,7 @@ spec:
     title-view:
       tag: h1
       attrs:
-        class: title is-family-monospace
+        class: title
       children:
         - "@title"
     subtitle-view:

@@ -21,7 +21,6 @@ spec:
       model:
         session: "@data.query.session"
         view: loading-view
-        memberView: subscriptions-view
         onProfile:
           http: get-products
       cmds:
@@ -29,16 +28,26 @@ spec:
         ui: layout-view
     products:
       model:
-        view: member-layout-view
+        view: subscriptions-view
         products: "@data.products.body"
       cmds:
-        ui: {}
+        ui: member-layout-view
   encoders:
     subscriptions-view:
       tag: div
+      attrs:
+        class: content
       children:
-        - subscriptions
+        - tag: h1
+          children:
+            - Select a plan
         - view: products-view
+        - tag: h1
+          children:
+            - Past subscriptions 
+        - view: notification-view
+          params:
+            message: You have no past subscriptions
     products-view:
       tag: div
       children:
@@ -46,13 +55,59 @@ spec:
         with: product-view
     product-view:
       tag: div
+      attrs:
+        class: pricing-table
       children:
         loop: "@plans"
         with: plan-view
     plan-view:
       tag: div
+      attrs:
+        class: pricing-plan
       children:
-        - "@name"
+        - tag: div
+          attrs:
+            class: plan-header
+          children:
+            - "@name"
+        - tag: div
+          attrs:
+            class: plan-price
+          children:
+            - tag: span
+              attrs:
+                class: plan-price-amount
+              children:
+                - tag: span
+                  attrs:
+                    class: plan-price-currency
+                  children:
+                    - "£"
+                - 10
+            - "/month"
+        - tag: div
+          attrs:
+            class: plan-items
+          children:
+            - tag: div
+              attrs:
+                class: plan-item
+              children:
+                - "5 passes/year"
+            - tag: div
+              attrs:
+                class: plan-item
+              children:
+                - "-"
+        - tag: div
+          attrs:
+            class: plan-footer
+          children:
+            - tag: button
+              attrs:
+                class: button is-fullwidth
+              children:
+                - "Choose"
     get-products:
       method: get
       path: /api/billing/products

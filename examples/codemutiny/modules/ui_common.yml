@@ -6,3 +6,9 @@ spec:
       tag: div
       children:
         - "Loading..."
+    notification-view:
+      tag: div
+      attrs:
+        class: notification is -light
+      children:
+        - "@message"

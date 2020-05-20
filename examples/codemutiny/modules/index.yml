@@ -26,6 +26,7 @@ spec:
                 <title>{{title}}</title>
                 <link rel="stylesheet" href="css/bulma.min.css"/>
                 <link rel="stylesheet" href="css/fa.min.css"/>
+                <link rel="stylesheet" href="css/bulma-pricingtable.min.css"/>
                 <script src="js/mustache.min.js"></script>
                 <script src="js/elementary-dom.js"></script>
                 <script type="module">

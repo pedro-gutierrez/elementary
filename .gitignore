@@ -28,3 +28,5 @@ elementary-*.tar
 tags
 
 Dockerfile.*
+
+**/.DS_Store

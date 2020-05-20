@@ -1,6 +1,9 @@
 kind: module
 name: ui_welcome
 spec:
+  init:
+    model:
+      menuStatus: inactive
   decoders:
     http:
       unauthorized:
@@ -15,14 +18,17 @@ spec:
             any: text
           picture:
             any: text
+    ui:
+      menu-status:
+        set-menu-status:
+          any: text
   update:
     welcome-page:
       model:
         view: loading-view
         session: "@data.query.session"
-        memberView: welcome-view
         onProfile:
-          ui: {}
+          ui: member-layout-view
       cmds:
         http: get-profile
         ui: layout-view
@@ -35,8 +41,13 @@ spec:
     profile:
       model:
         profile: "@data.body"
-        view: member-layout-view
+        view: welcome-view
       cmds: "@onProfile"
+    menu-status:
+      model:
+        menuStatus: "@data.set-menu-status"
+      cmds:
+        ui: {}
   encoders:
     get-profile:
       method: get
@@ -47,26 +58,21 @@ spec:
       tag: h1
       children:
         - Hello !
-    member-layout-view:
-      tag: div
-      children:
-        - view: member-nav-view
-        - view: "@memberView"
     member-nav-view:
       view: navbar-view
       params:
         session: "@session"
         profile: "@profile"
+        menuStatus: "@menuStatus"
         menu:
           - route: subscriptions
             icon: fas fa-shopping-cart
           - route: logout
             icon: fas fa-power-off
-
     navbar-view:
       tag: nav
       attrs:
-        class: navbar is-transparent is-fixed-top is-spaced
+        class: navbar is-transparent
         role: navigation
         aria-label: main navigation
       children:
@@ -77,16 +83,24 @@ spec:
             - tag: a
               attrs:
                 role: button
-                class: navbar-burger
+                class:
+                  format: "navbar-burger is-{{ menuStatus }}"
                 aria-label: menu
                 aria-expanded: false
+                onclick:
+                  set-menu-status:
+                    switch: "@menuStatus"
+                    case:
+                      active: inactive
+                      inactive: active
               children:
                 - view: burger-span
                 - view: burger-span
                 - view: burger-span
         - tag: div
           attrs:
-            class: navbar-menu
+            class:
+              format: "navbar-menu is-{{ menuStatus }}"
           children:
             - tag: div
               attrs:
@@ -128,7 +142,7 @@ spec:
       attrs:
         style:
           margin-right: 5px
-        class: 
+        class:
           format: "image is-{{size}}x{{size}}"
       children:
         - tag: img
@@ -150,5 +164,5 @@ spec:
             - view: icon-view
               params:
                 icon: "@icon"
-                title: 
-                  capitalize: "@route"  
+                title:
+                  capitalize: "@route"
