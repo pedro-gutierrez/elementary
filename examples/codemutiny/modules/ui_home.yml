@@ -10,10 +10,11 @@ spec:
     layout-view:
       tag: div
       children:
-        - view: container-view
-          params:
-            content-view: "@view"
-            content: "@"
+        - tag: section 
+          attrs:
+            class: section container is-medium
+          children:
+            - view: "@view"
         - view: footer-view
     member-layout-view:
       tag: div
@@ -21,7 +22,7 @@ spec:
         - view: member-nav-view
         - tag: section 
           attrs:
-            class: section container is-medium
+            class: section container
           children:
             - view: "@view"
         - view: footer-view
@@ -54,13 +55,6 @@ spec:
         class: content
       children:
         - view: "@content-view"
-    container-view:
-      tag: section
-      attrs:
-        class: section container is-medium
-      children:
-        - view: "@content-view"
-          params: "@content"
     social-login-view:
       tag: p
       attrs:
