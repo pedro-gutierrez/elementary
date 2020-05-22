@@ -276,9 +276,13 @@ defmodule Elementary.Http do
     end
 
     def method("get"), do: :get
+    def method("GET"), do: :get
     def method("post"), do: :post
+    def method("POST"), do: :post
     def method("delete"), do: :delete
+    def method("DELETE"), do: :delete
     def method("put"), do: :put
+    def method("PUT"), do: :put
 
     defp response({:ok, %HTTPoison.Response{body: body, headers: headers, status_code: code}}) do
       headers =

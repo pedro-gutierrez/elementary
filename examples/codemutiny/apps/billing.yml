@@ -6,8 +6,12 @@ spec:
       get: "/api/billing/:feature"
   settings:
     - codemutiny
+    - web
+    - named: paypal
   filters:
     - cors
+    - auth
   modules:
     - billing_product
+    - billing_subscription_create
     - http

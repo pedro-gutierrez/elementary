@@ -104,7 +104,7 @@ defmodule Elementary.Resolver do
         %{"spec" => spec} = Spec.find!(specs, kind, name)
         spec
 
-      %{"prefixed" => name} ->
+      %{"named" => name} ->
         %{"spec" => spec} = Spec.find!(specs, kind, name)
         %{name => spec}
     end)

@@ -577,7 +577,7 @@ defmodule Elementary.Compiler do
                   col,
                   where,
                   doc,
-                  upsert: true
+                  upsert: false
                 ) do
              {:ok,
               %Mongo.UpdateResult{

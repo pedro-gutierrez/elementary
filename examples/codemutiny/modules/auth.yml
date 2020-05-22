@@ -7,7 +7,14 @@ spec:
         headers:
           authorization:
             any: text
+      token:
+        query:
+          token:
+            any: text
       anonymous:
+        query:
+          without:
+            - token 
         headers:
           without:
             - authorization
@@ -24,6 +31,11 @@ spec:
     auth:
       model:
         token: "@data.headers.authorization"
+      cmds:
+        service: find_session
+    token:
+      model:
+        token: "@data.query.token"
       cmds:
         service: find_session
     anonymous:

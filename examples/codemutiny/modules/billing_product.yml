@@ -25,7 +25,5 @@ spec:
   encoders:
     find_products:
       store: "@store"
-      find:
-        kind: product
-      from: billing 
+      from: products
       as: products

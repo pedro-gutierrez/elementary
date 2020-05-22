@@ -1,0 +1,9 @@
+kind: settings
+name: paypal 
+spec:
+  client:
+    env: PAYPAL_CLIENT_ID
+  secret:
+    env: PAYPAL_CLIENT_SECRET
+  baseUrl:
+    env: PAYPAL_BASE_URL

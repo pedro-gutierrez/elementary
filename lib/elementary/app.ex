@@ -142,6 +142,7 @@ defmodule Elementary.App do
   end
 
   defp error(context, e) do
+    context = Keyword.take(context, [:app, :event, :data])
     {:error, Keyword.merge(context, error: e) |> Enum.into(%{})}
   end
 end

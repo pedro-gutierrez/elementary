@@ -16,6 +16,13 @@ spec:
         products:
           body:
             any: list
+    ui:
+      subscribe:
+        billing: subscribe
+        plan:
+          any: text
+        product:
+          any: text
   update:
     show-subscriptions:
       model:
@@ -32,6 +39,13 @@ spec:
         products: "@data.products.body"
       cmds:
         ui: member-layout-view
+    subscribe:
+      model:
+        subscription: "@data"
+        view: loading-view
+      cmds:
+        http: create-subscription
+        ui: layout-view
   encoders:
     subscriptions-view:
       tag: div
@@ -53,6 +67,8 @@ spec:
       children:
         loop: "@products"
         with: product-view
+        params:
+          session: "@session"
     product-view:
       tag: div
       attrs:
@@ -60,6 +76,9 @@ spec:
       children:
         loop: "@plans"
         with: plan-view
+        params:
+          session: "@session"
+          product: "@id"
     plan-view:
       tag: div
       attrs:
@@ -82,8 +101,8 @@ spec:
                   attrs:
                     class: plan-price-currency
                   children:
-                    - "£"
-                - 10
+                    - "€"
+                - "@price"
             - "/month"
         - tag: div
           attrs:
@@ -103,12 +122,20 @@ spec:
           attrs:
             class: plan-footer
           children:
-            - tag: button
+            - tag: a
               attrs:
                 class: button is-fullwidth
+                href: 
+                  format: "/api/billing/subscribe?plan={{ plan }}&product={{ product }}&token={{ token }}"
+                  params:
+                    plan: "@id"
+                    product: "@product"
+                    token: "@session"
               children:
                 - "Choose"
     get-products:
       method: get
       path: /api/billing/products
+      headers:
+        authorization: "@session"
       as: products

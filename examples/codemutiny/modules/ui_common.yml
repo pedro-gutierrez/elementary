@@ -1,14 +1,29 @@
 kind: module
 name: ui_common
 spec:
+  decoders:
+    http:
+      not_found:
+        status: 404
+
+  update:
+    not_found:
+      model:
+        view: not-found-view
+      cmds:
+        ui: layout-view
   encoders:
     loading-view:
       tag: div
       children:
         - "Loading..."
+    not-found-view:
+      tag: div
+      children:
+        - "The page you are trying to reach could not be found"
     notification-view:
       tag: div
       attrs:
-        class: notification is -light
+        class: notification is-light
       children:
         - "@message"

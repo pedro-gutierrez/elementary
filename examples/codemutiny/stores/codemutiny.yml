@@ -10,4 +10,4 @@ spec:
         - expire: nonce
           after: 5
         - expire: session
-          after: 60
+          after: 3600

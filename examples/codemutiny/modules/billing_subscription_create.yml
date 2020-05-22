@@ -1,0 +1,166 @@
+kind: module
+name: billing_subscription_create
+spec:
+  decoders:
+    http:
+      create_subscription:
+        method: GET
+        params:
+          feature: subscribe
+        query:
+          plan:
+            any: text
+          product:
+            any: text
+      access_token:
+        body:
+          access_token:
+            any: text
+      approval_pending_received:
+        body:
+          create_time:
+            any: date
+          id:
+            any: text
+          links:
+            first:
+              with:
+                href:
+                  any: text
+                rel:  approve
+          status: APPROVAL_PENDING
+          start_time:
+            any: date
+    store:
+      not_found:
+        product: not_found
+      product:
+        product:
+          id:
+            any: text
+          plans:
+            first:
+              with:
+                id:
+                  any: text
+      subscription_created:
+        subscription: created
+      approval_pending_updated:
+        approval_pending_updated: 1
+      subscription_error:
+        approval_pending_updated: 0
+  update:
+    create_subscription:
+      model:
+        subscription: "@data.query"
+      cmds:
+        store: find_plan
+    not_found:
+      cmds:
+        return: not_found
+    product:
+      model:
+        id:
+          uuid: {}
+      cmds:
+        store: create_subscription
+    subscription_created:
+      cmds:
+        http: get_access_token
+    access_token:
+      model:
+        token: "@data.body.access_token"
+        nonce: "@model.id"
+      cmds:
+        http: create_paypal_subscription
+    approval_pending_received:
+      model:
+        approval_pending: "@data.body"
+      cmds:
+        store: update_approval_pending
+    approval_pending_updated:
+      cmds:
+        return: paypal_redirect
+  encoders:
+    find_plan:
+      store: "@store"
+      fetch:
+        id: "@subscription.product"
+        plans.id: "@subscription.plan"
+      from: products 
+      as: product
+    create_subscription:
+      store: "@store"
+      insert:
+        id: "@id"
+        identity: "@session.identity"
+        product: "@subscription.product"
+        plan: "@subscription.plan"
+        processor: paypal
+        created:
+          now: {}
+      into: subscriptions
+      as: subscription
+    update_approval_pending:
+      store: "@store"
+      update:
+        approval_pending:
+          now: {}
+        external: "@approval_pending.id"
+        approve_url: "@approval_pending.links.href"
+      where:
+        approval_pending: null
+        id: "@id"
+      into: subscriptions
+      as: approval_pending_updated
+    get_access_token:
+      method: POST
+      url: 
+        uri: https://api.sandbox.paypal.com/v1/oauth2/token
+        with:
+          grant_type: client_credentials 
+      headers:
+        accept: application/json
+        accept-language: en_US
+        content-type: application/x-www-form-urlencoded
+        authorization:
+          basic_auth:
+            user: "@paypal.client"
+            password: "@paypal.secret"
+    create_paypal_subscription:
+      method: POST
+      url: https://api.sandbox.paypal.com/v1/billing/subscriptions
+      headers:
+        accept: application/json
+        content-type: application/json
+        authorization:
+          format: "Bearer {{ token }}"
+        prefer: return=representation
+      body:
+        plan_id: "@subscription.plan"
+        start_time: "2020-06-12T06:00:00Z"
+        subscriber:
+          name:
+            given_name: John
+            surname: Doe
+          email_address: customer@example.com
+        application_context:
+          brand_name: example
+          locale: en-US
+          shipping_preference: SET_PROVIDED_ADDRESS
+          user_action: SUBSCRIBE_NOW
+          payment_method: 
+            payer_selected: PAYPAL
+            payee_preferred: IMMEDIATE_PAYMENT_REQUIRED
+          return_url: 
+            format: "{{ baseUrl }}/api/paypal/return?nonce={{ nonce }}"
+            params:
+              baseUrl: "@paypal.baseUrl"
+          cancel_url: 
+            format: "{{ baseUrl }}/api/paypal/cancel=nonce={{ nonce }}"
+            params:
+              baseUrl: "@paypal.baseUrl"
+    paypal_redirect:
+      status: 302
+      headers:
+        location: "@approval_pending.links.href"

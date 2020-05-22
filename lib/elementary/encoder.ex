@@ -37,8 +37,8 @@ defmodule Elementary.Encoder do
     |> result(specs, context)
   end
 
-  def encode(nil = spec, context, _) do
-    result({:error, :unsupported}, spec, context)
+  def encode(nil, _, _) do
+    {:ok, nil}
   end
 
   def encode("@", context, _) do
@@ -618,6 +618,13 @@ defmodule Elementary.Encoder do
       Enum.reduce(entries, %{}, fn %{"key" => key, "value" => value}, acc ->
         Map.put(acc, key, value)
       end)
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"basic_auth" => creds} = spec, context, encoders) do
+    with {:ok, %{"user" => user, "password" => pass}} <- encode(creds, context, encoders) do
+      {:ok, "Basic " <> Base.encode64("#{user}:#{pass}")}
     end
     |> result(spec, context)
   end
