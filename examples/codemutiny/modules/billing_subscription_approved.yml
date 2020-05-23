@@ -1,0 +1,40 @@
+kind: module
+name: billing_subscription_approved
+spec:
+  decoders:
+    http:
+      approved:
+        query:
+          token:
+            any: text
+          subscription_id:
+            any: text
+    store:
+      not_found:
+        approved: 0 
+      updated:
+        approved: 1
+  update:
+    approved:
+      model:
+        external: "@data.query.subscription_id"
+      cmds:
+        store: update_approved
+    not_found:
+      cmds:
+        return: error_redirect
+    updated:
+      cmds:
+        return: session_redirect
+  encoders:
+    update_approved:
+      store: "@store"
+      update:
+        approved:
+          now: {}
+      where:
+        paypal:
+          id: "@external"
+        identity: "@session.identity"
+      into: subscriptions
+      as: approved 

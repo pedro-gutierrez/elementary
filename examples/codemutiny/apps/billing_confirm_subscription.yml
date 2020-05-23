@@ -1,17 +1,14 @@
 kind: app
-name: billing
+name: billing_confirm_subscription
 spec:
   routes:
     codemutiny:
-      get: "/api/billing/:feature"
+      get: "/api/billing/subscriptions/:id/confirm"
   settings:
     - codemutiny
-    - web
     - named: paypal
   filters:
-    - cors
     - auth
   modules:
-    - billing_product
-    - billing_subscription_create
+    - billing_confirm_subscription
     - http

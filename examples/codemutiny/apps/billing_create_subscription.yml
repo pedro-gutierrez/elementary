@@ -1,0 +1,13 @@
+kind: app
+name: billing_create_subscription 
+spec:
+  routes:
+    codemutiny:
+      post: "/api/billing/subscriptions"
+  settings:
+    - codemutiny
+  filters:
+    - auth
+  modules:
+    - billing_create_subscription
+    - http

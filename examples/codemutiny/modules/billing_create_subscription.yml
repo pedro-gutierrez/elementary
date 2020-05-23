@@ -1,0 +1,81 @@
+kind: module
+name: billing_create_subscription
+spec:
+  decoders:
+    http:
+      create:
+        body:
+          id:
+            any: text
+          plan:
+            any: text
+          product:
+            any: text
+    store:
+      not_found:
+        product: not_found
+      product:
+        product:
+          id:
+            any: text
+          name:
+            any: text
+          plans:
+            first:
+              with:
+                name:
+                  any: text
+                price:
+                  any: number
+                id:
+                  any: text
+      created:
+        subscription: created
+  update:
+    create:
+      model:
+        subscription:
+          merge:
+            - "@data.body"
+            - created:
+                now: {}
+      cmds:
+        store: find_plan
+    not_found:
+      cmds:
+        return: not_found
+    product:
+      model:
+        product: "@data.product"
+      cmds:
+        store: create_subscription
+    created:
+      cmds:
+        return: subscription_created 
+  encoders:
+    find_plan:
+      store: "@store"
+      fetch:
+        id: "@subscription.product"
+        plans.id: "@subscription.plan"
+      from: products 
+      as: product
+    create_subscription:
+      store: "@store"
+      insert:
+        merge:
+          - "@subscription"
+          - identity: "@session.identity"
+      into: subscriptions
+      as: subscription
+    subscription_created:
+      status: 201
+      headers:
+        content-type: application/json
+      body:
+        id: "@subscription.id"
+        created: "@subscription.created"
+        product: 
+          id: "@product.id"
+          name: "@product.name"
+        plan: "@product.plans"

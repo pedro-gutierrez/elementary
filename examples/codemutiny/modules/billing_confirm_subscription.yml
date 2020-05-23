@@ -1,16 +1,11 @@
 kind: module
-name: billing_subscription_create
+name: billing_confirm_subscription
 spec:
   decoders:
     http:
-      create_subscription:
-        method: GET
+      confirm_subscription:
         params:
-          feature: subscribe
-        query:
-          plan:
-            any: text
-          product:
+          id:
             any: text
       access_token:
         body:
@@ -33,44 +28,41 @@ spec:
             any: date
     store:
       not_found:
-        product: not_found
-      product:
-        product:
+        subscription: not_found
+      subscription:
+        subscription:
           id:
             any: text
-          plans:
-            first:
-              with:
-                id:
-                  any: text
-      subscription_created:
-        subscription: created
+          plan:
+            any: text
+          product:
+            any: text
+      confirmed:
+        confirmed: 1
       approval_pending_updated:
         approval_pending_updated: 1
       subscription_error:
         approval_pending_updated: 0
   update:
-    create_subscription:
+    confirm_subscription:
       model:
-        subscription: "@data.query"
+        id: "@data.params.id"
       cmds:
-        store: find_plan
+        store: find_subscription
     not_found:
       cmds:
         return: not_found
-    product:
+    subscription:
       model:
-        id:
-          uuid: {}
+        subscription: "@data.subscription"
       cmds:
-        store: create_subscription
-    subscription_created:
+        store: update_confirmed
+    confirmed:
       cmds:
         http: get_access_token
     access_token:
       model:
         token: "@data.body.access_token"
-        nonce: "@model.id"
       cmds:
         http: create_paypal_subscription
     approval_pending_received:
@@ -82,32 +74,33 @@ spec:
       cmds:
         return: paypal_redirect
   encoders:
-    find_plan:
+    find_subscription:
       store: "@store"
       fetch:
-        id: "@subscription.product"
-        plans.id: "@subscription.plan"
-      from: products 
-      as: product
-    create_subscription:
+        id: "@id"
+        confirmed: null 
+        identity: "@session.identity"
+      from: subscriptions
+      as: subscription 
+    update_confirmed:
       store: "@store"
-      insert:
+      update:
+        confirmed:
+          now: {}
+      where:
         id: "@id"
         identity: "@session.identity"
-        product: "@subscription.product"
-        plan: "@subscription.plan"
-        processor: paypal
-        created:
-          now: {}
       into: subscriptions
-      as: subscription
+      as: confirmed 
     update_approval_pending:
       store: "@store"
       update:
         approval_pending:
           now: {}
-        external: "@approval_pending.id"
-        approve_url: "@approval_pending.links.href"
+        external:
+          gateway: paypal
+          id: "@approval_pending.id"
+          approve_url: "@approval_pending.links.href"
       where:
         approval_pending: null
         id: "@id"
@@ -153,11 +146,11 @@ spec:
             payer_selected: PAYPAL
             payee_preferred: IMMEDIATE_PAYMENT_REQUIRED
           return_url: 
-            format: "{{ baseUrl }}/api/paypal/return?nonce={{ nonce }}"
+            format: "{{ baseUrl }}/api/billing/subscription/approved?token={{ id }}"
             params:
               baseUrl: "@paypal.baseUrl"
           cancel_url: 
-            format: "{{ baseUrl }}/api/paypal/cancel=nonce={{ nonce }}"
+            format: "{{ baseUrl }}/api/billing/subscription/cancelled?token={{ id }}"
             params:
               baseUrl: "@paypal.baseUrl"
     paypal_redirect:

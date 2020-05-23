@@ -4,6 +4,7 @@ spec:
   init:
     model:
       products: []
+      subscription: {}
   decoders:
     router:
       show-subscriptions:
@@ -16,13 +17,33 @@ spec:
         products:
           body:
             any: list
+      subscription:
+        subscription:
+          status: 201
+          body:
+            id:
+              any: text
+            product:
+              id:
+                any: text
+              name:
+                any: text
+            plan:
+              id:
+                any: text
+              name:
+                any: text
+              price:
+                any: number
     ui:
-      subscribe:
-        billing: subscribe
-        plan:
-          any: text
-        product:
-          any: text
+      choose-plan:
+        choose:
+          plan:
+            any: text
+          product:
+            any: text
+          id:
+            any: text
   update:
     show-subscriptions:
       model:
@@ -39,13 +60,19 @@ spec:
         products: "@data.products.body"
       cmds:
         ui: member-layout-view
-    subscribe:
+    choose-plan:
       model:
-        subscription: "@data"
-        view: loading-view
+        subscription: "@data.choose"
+        view: loading-view 
       cmds:
         http: create-subscription
         ui: layout-view
+    subscription:
+      model:
+        subscription: "@data.subscription.body"
+        view: plan-selection-confirm-view 
+      cmds:
+        ui: member-layout-view
   encoders:
     subscriptions-view:
       tag: div
@@ -68,7 +95,9 @@ spec:
         loop: "@products"
         with: product-view
         params:
+          subscription: "@subscription"
           session: "@session"
+          action-view: choose-plan-button-view
     product-view:
       tag: div
       attrs:
@@ -77,8 +106,10 @@ spec:
         loop: "@plans"
         with: plan-view
         params:
+          subscription: "@subscription"
           session: "@session"
           product: "@id"
+          action-view: "@action-view"
     plan-view:
       tag: div
       attrs:
@@ -122,20 +153,63 @@ spec:
           attrs:
             class: plan-footer
           children:
-            - tag: a
-              attrs:
-                class: button is-fullwidth
-                href: 
-                  format: "/api/billing/subscribe?plan={{ plan }}&product={{ product }}&token={{ token }}"
-                  params:
-                    plan: "@id"
-                    product: "@product"
-                    token: "@session"
-              children:
-                - "Choose"
+            - view: "@action-view"
+    plan-selection-confirm-view:
+      tag: div
+      attrs:
+        class: content
+      children:
+        - tag: h1
+          children:
+            - Confirm your selection
+        - view: product-view
+          params:
+            subscription: "@subscription"
+            session: "@session"
+            id: "@subscription.product.id"
+            plans:
+              - "@subscription.plan"
+            action-view: confirm-plan-button-view
+    choose-plan-button-view:
+      tag: a
+      attrs:
+        class: button is-fullwidth
+        onclick:
+          choose:
+            plan: "@id"
+            product: "@product"
+            id:
+              uuid: {}
+      children:
+        - "Choose"
+    confirm-plan-button-view:
+      tag: a
+      attrs:
+        class: button is-primary is-fullwidth
+        href: 
+          format: "/api/billing/subscriptions/{{ id }}/confirm?token={{ token }}"
+          params:
+            id: "@subscription.id"
+            token: "@session"
+      children:
+        - view: icon-view
+          params:
+            title: "Pay with Paypal"
+            icon: fab fa-paypal
+        - tag: span
+          children:
+            - "Proceed with payment"
     get-products:
       method: get
       path: /api/billing/products
       headers:
         authorization: "@session"
       as: products
+    create-subscription:
+      method: post 
+      path: /api/billing/subscriptions
+      headers:
+        content-type: application/json
+        authorization: "@session"
+      body: "@subscription"
+      as: subscription 

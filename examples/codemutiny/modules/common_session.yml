@@ -47,10 +47,10 @@ spec:
         http: get_token
     nonce_not_verified:
       cmds:
-        return: error
+        return: error_redirect
     invalid:
       cmds:
-        return: error
+        return: error_redirect
     identity_updated:
       model:
         identity: "@data.identity.id"
@@ -60,7 +60,7 @@ spec:
       model:
         session: "@data.session"
       cmds:
-        return: session
+        return: session_redirect
   encoders:
     create_nonce:
       app: token
@@ -80,13 +80,3 @@ spec:
       params:
         update: "@identity"
       as: identity
-    error:
-      status: 302
-      headers:
-        location:
-          format: "{{ baseUrl }}/#/error"
-    session:
-      status: 302
-      headers:
-        location:
-          format: "{{ baseUrl }}/#?session={{ session }}"

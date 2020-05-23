@@ -1,18 +1,16 @@
 kind: module
-name: billing_product
+name: billing_get_products
 spec:
   decoders:
     http:
-      list_products:
+      get_products:
         method: GET
-        params:
-          feature: products
     store:
       products:
         products:
           any: list
   update:
-    list_products:
+    get_products:
       model:
         data: []
       cmds:

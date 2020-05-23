@@ -1,0 +1,16 @@
+kind: app
+name: billing_get_products
+spec:
+  routes:
+    codemutiny:
+      get: "/api/billing/products"
+  settings:
+    - codemutiny
+      #- web
+      #- named: paypal
+  filters:
+    - cors
+    - auth
+  modules:
+    - billing_get_products
+    - http
