@@ -8,7 +8,12 @@ spec:
   decoders:
     router:
       show-subscriptions:
-        path: /subscriptions
+        route: /subscriptions
+        query:
+          session:
+            any: text
+      show-subscription-approved:
+        route: /subscription/approved
         query:
           session:
             any: text
@@ -53,6 +58,12 @@ spec:
           http: get-products
       cmds:
         http: get-profile
+        ui: layout-view
+    show-subscription-approved:
+      model:
+        session: "@data.query.session"
+        view: subscription-approved-view
+      cmds:
         ui: layout-view
     products:
       model:
@@ -199,6 +210,16 @@ spec:
         - tag: span
           children:
             - "Proceed with payment"
+    subscription-approved-view:
+      tag: div
+      children:
+        - view: dialog-view
+          params:
+            title: Success
+            message: Your subscription has been succesfully processed.
+            session: "@session"
+            actions:
+              - route: subscriptions 
     get-products:
       method: get
       path: /api/billing/products

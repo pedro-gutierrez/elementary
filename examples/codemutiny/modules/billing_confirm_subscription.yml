@@ -43,6 +43,10 @@ spec:
         approval_pending_updated: 1
       subscription_error:
         approval_pending_updated: 0
+    service:
+      nonce:
+        nonce:
+          any: text
   update:
     confirm_subscription:
       model:
@@ -63,6 +67,11 @@ spec:
     access_token:
       model:
         token: "@data.body.access_token"
+      cmds:
+        service: create_nonce
+    nonce:
+      model:
+        nonce: "@data.nonce"
       cmds:
         http: create_paypal_subscription
     approval_pending_received:
@@ -91,16 +100,23 @@ spec:
         id: "@id"
         identity: "@session.identity"
       into: subscriptions
-      as: confirmed 
+      as: confirmed
+    create_nonce:
+      app: token
+      params:
+        create: "nonce"
+        meta:
+          subscription: "@id"
+          session: "@session.id"
+          identity: "@session.identity"
     update_approval_pending:
       store: "@store"
       update:
         approval_pending:
           now: {}
-        external:
-          gateway: paypal
+        gateway:
+          name: paypal
           id: "@approval_pending.id"
-          approve_url: "@approval_pending.links.href"
       where:
         approval_pending: null
         id: "@id"
@@ -146,11 +162,11 @@ spec:
             payer_selected: PAYPAL
             payee_preferred: IMMEDIATE_PAYMENT_REQUIRED
           return_url: 
-            format: "{{ baseUrl }}/api/billing/subscription/approved?token={{ id }}"
+            format: "{{ baseUrl }}/api/billing/subscription/approved?nonce={{ nonce }}"
             params:
               baseUrl: "@paypal.baseUrl"
           cancel_url: 
-            format: "{{ baseUrl }}/api/billing/subscription/cancelled?token={{ id }}"
+            format: "{{ baseUrl }}/api/billing/subscription/cancelled?nonce={{ nonce }}"
             params:
               baseUrl: "@paypal.baseUrl"
     paypal_redirect:

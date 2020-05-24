@@ -33,7 +33,7 @@ spec:
   encoders:
     update:
       store: "@store"
-      update: "@identity"
+      ensure: "@identity"
       where:
         id: "@identity.id"
       into: identities

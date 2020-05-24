@@ -9,18 +9,23 @@ spec:
       get:
         method: GET
     store:
-      profile:
+      found:
         profile:
           any: object
+      not_found:
+        profile: not_found
   update:
     get:
       cmds:
         store: find_profile
-    profile:
+    found:
       model:
         data: "@data.profile"
       cmds:
         return: data
+    not_found:
+      cmds:
+        return: not_found
   encoders:
     find_profile:
       store: "@store"

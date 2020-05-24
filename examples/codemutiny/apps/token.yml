@@ -1,11 +1,10 @@
 kind: app
 name: token
 spec:
+  debug: true
   settings:
     - codemutiny
   modules:
-    - create_nonce
+    - create_token
     - check_token
     - consume_token
-    - create_session
-    - find_session

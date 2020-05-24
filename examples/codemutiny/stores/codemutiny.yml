@@ -5,9 +5,10 @@ spec:
     env: MONGO_URL
   collections:
     identities: {}
+    subscriptions: {}
     tokens:
       indexes:
         - expire: nonce
-          after: 5
+          after: 60
         - expire: session
           after: 3600

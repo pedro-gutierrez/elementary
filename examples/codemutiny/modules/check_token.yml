@@ -7,20 +7,25 @@ spec:
         check:
           any: text
     store:
-      token_found:
+      found:
         token:
           any: object
+      not_found:
+        token: not_found
   update:
     check_token:
       model:
         id: "@data.check"
       cmds:
         store: find_token
-    token_found:
+    found:
       model:
         token: "@data.token"
       cmds:
         stop: token 
+    not_found:
+      cmds:
+        stop: not_found
   encoders:
     find_token:
       store: "@store"
@@ -30,3 +35,5 @@ spec:
       as: token
     token: 
       token: "@token"
+    not_found:
+      token: not_found

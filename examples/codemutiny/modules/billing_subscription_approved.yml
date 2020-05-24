@@ -5,7 +5,7 @@ spec:
     http:
       approved:
         query:
-          token:
+          nonce:
             any: text
           subscription_id:
             any: text
@@ -14,27 +14,68 @@ spec:
         approved: 0 
       updated:
         approved: 1
+    service:
+      authorized:
+        token:
+          meta:
+            subscription:
+              any: text
+            session:
+              any: text
+            identity:
+              any: text
+      unauthorized:
+        token: not_found
   update:
     approved:
       model:
+        token: "@data.query.nonce"
         external: "@data.query.subscription_id"
       cmds:
-        store: update_approved
-    not_found:
+        service: check_token
+    authorized:
+      model:
+        session: "@data.token.meta.session"
+        identity: "@data.token.meta.identity"
+        subscription: "@data.token.meta.subscription"
       cmds:
-        return: error_redirect
+        store: update_subscription
     updated:
       cmds:
-        return: session_redirect
+        return: confirmation_page
+    unauthorized:
+      cmds:
+        return: error_page
+    not_found:
+      cmds:
+        return: error_page
   encoders:
-    update_approved:
+    check_token:
+      app: token
+      params:
+        check: "@token"
+    update_subscription:
       store: "@store"
       update:
         approved:
           now: {}
       where:
-        paypal:
+        id: "@subscription"
+        gateway:
+          name: paypal
           id: "@external"
-        identity: "@session.identity"
+        identity: "@identity"
+        approved: null
       into: subscriptions
-      as: approved 
+      as: approved
+    confirmation_page:
+      status: 302
+      headers:
+        location:
+          format: "{{ baseUrl }}/#/subscription/approved?session={{ session }}"
+    error_page:
+      status: 302
+      headers:
+        location:
+          format: "{{ baseUrl }}/#/subscription/error?session={{ session }}"
+

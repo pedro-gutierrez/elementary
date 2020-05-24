@@ -10,4 +10,4 @@ spec:
     - ui_welcome
     - ui_billing
     - ui_common
-    - ui_errors
+    - ui_notifications

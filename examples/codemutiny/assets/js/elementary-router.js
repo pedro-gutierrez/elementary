@@ -6,8 +6,22 @@ export default (name, _settings, app) => {
         console.error(`[${name}]`, {spec, data, reason});
     }
 
-    function route() {
-        const uri = decodeURI(window.location.hash.substring(1))
+    function encodeHash(target) {
+        var uri = "/" + target.route;
+        var queryParts = [];
+        if (target.query) {
+            for (var q in target.query) {
+                if (target.query.hasOwnProperty(q) && target.query[q] &&  target.query[q].length) {
+                    queryParts.push(q + "=" + target.query[q]);
+                }
+            }
+        }
+
+        return queryParts.length ? encodeURI(uri + "?" + queryParts.join("&")) : encodeURI(uri);
+    }
+
+    function decodeHash(uri) {
+        uri = decodeURI(uri);
 
         var path = "/"
         var query = {}
@@ -24,25 +38,34 @@ export default (name, _settings, app) => {
             if (!path.startsWith("/")) path="/"+path;
         }
 
-        update({
-            effect: name,
-            path: path,
-            query: query
-        });
+        return {path, query};
     }
 
     return (_encoders, data, model) => {
-        if (!data) return route();
-        const {err, value} = encode(data, model);
-        if (err) return error(spec, data, err);
-        const {action, target} = value;
-        switch (action) {
-            case 'navigate':
-                window.location.hash = '#/' + target;
-                return route();
-            default:
-                console.warn("[elementary-router] not implemented", req);
-                return;
+        if (!data) {
+            const {path, query} = decodeHash(window.location.hash.substring(1))
+            update({
+                effect: name,
+                route: path,
+                query: query
+            });
+        } else {
+            const {err, value} = encode(data, model);
+            if (err) return error(spec, data, err);
+            const {action, target} = value;
+            switch (action) {
+                case 'navigate':
+                    window.location.hash = '#' + encodeHash(target);
+                    update({
+                        effect: name,
+                        route: "/" + target.route,
+                        query: target.query 
+
+                    });
+                    break;
+                default:
+                    console.warn("[elementary-router] not implemented", value);
+            }
         }
     };
 }

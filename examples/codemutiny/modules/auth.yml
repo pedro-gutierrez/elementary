@@ -19,14 +19,15 @@ spec:
           without:
             - authorization
     service:
-      session_not_found:
-        session: not_found
-      session_found:
-        session:
-          identity:
-            any: text
+      not_found:
+        token: not_found
+      found:
+        token:
           id:
             any: text
+          meta:
+            identity:
+              any: text
   update:
     auth:
       model:
@@ -41,15 +42,17 @@ spec:
     anonymous:
       cmds:
         stop: unauthorized
-    session_not_found:
+    not_found:
       cmds:
         stop: unauthorized
-    session_found:
+    found:
       model:
-        session: "@data.session"
+        session:
+          merge:
+            - "@data.token.meta"
+            - id: "@data.token.id"
   encoders:
     find_session:
       app: token
       params:
-        find:
-          session: "@token"
+        check: "@token"

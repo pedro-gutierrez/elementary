@@ -561,7 +561,7 @@ defmodule Elementary.Compiler do
            |> log(%{insert: col, doc: doc})
          end
 
-         def update(col, where, doc) when is_map(doc) do
+         def update(col, where, doc, upsert \\ false) when is_map(doc) do
            where = Elementary.Kit.with_mongo_id(where)
 
            doc =
@@ -577,7 +577,7 @@ defmodule Elementary.Compiler do
                   col,
                   where,
                   doc,
-                  upsert: false
+                  upsert: upsert
                 ) do
              {:ok,
               %Mongo.UpdateResult{

@@ -1,0 +1,41 @@
+kind: module
+name: create_token
+spec:
+  decoders:
+    caller:
+      create:
+        create:
+          one_of:
+            - session
+            - nonce 
+        meta:
+          any: object
+    store:
+      created: "created"
+  update:
+    create:
+      model:
+        token:
+          merge:
+            - entries:
+                - key: "@data.create"
+                  value:
+                    now: {}
+            - id:
+                uuid: {}
+              kind: "@data.create"
+              meta: "@data.meta"
+      cmds:
+        store: create
+    created:
+      cmds:
+        stop: created 
+  encoders:
+    create:
+      store: "@store"
+      insert: "@token"
+      into: tokens
+    created: 
+      entries:
+        - key: "@token.kind"
+          value: "@token.id"

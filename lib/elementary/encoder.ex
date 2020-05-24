@@ -192,6 +192,9 @@ defmodule Elementary.Encoder do
 
       {:ok, other} ->
         {:error, %{"error" => "unexpected", "data" => other, "expected" => "all_maps|all_lists"}}
+
+      {:error, _} = error ->
+        error
     end
     |> result(spec, context)
   end

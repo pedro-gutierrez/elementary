@@ -159,6 +159,19 @@ export default (appUrl, appEffects, deps) => {
         return { value };
     }
 
+    function encodeMaybeWith(spec, ctx) {
+        var obj = {}
+        for (var i=0; i<spec.maybe_with.length; i++) {
+            var prop = spec.maybe_with[i];
+            var {value} = encode("@"+prop, ctx);
+            if (value && value.length) {
+                obj[prop] = value
+            }
+       }
+
+        return {value: obj};
+    }
+
     function encodeEqual(spec, ctx) {
         if (!spec.equal.length) return { value: false };
         var { err, value } = encode(spec.equal[0], ctx);
@@ -981,6 +994,7 @@ export default (appUrl, appEffects, deps) => {
                 if (spec.format_date) return encodeFormatDate(spec, ctx);
                 if (spec.timestamp) return encodeTimestamp(spec, ctx);
                 if (spec.maybe) return encodeMaybe(spec, ctx);
+                if (spec.maybe_with) return encodeMaybeWith(spec, ctx);
                 if (spec.equal) return encodeEqual(spec, ctx);
                 if (spec.either) return encodeEither(spec, ctx);
                 if (spec.one_of) return encodeOneOf(spec, ctx);

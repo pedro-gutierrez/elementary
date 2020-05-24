@@ -79,6 +79,19 @@ defmodule Elementary.Effect do
     |> effect_result(spec)
   end
 
+  def apply("store", %{"store" => store, "where" => query, "ensure" => doc, "into" => col} = spec)
+      when is_map(doc) do
+    {:ok, store} = Elementary.Index.get("store", store)
+
+    query = Kit.with_mongo_id(query)
+
+    case store.update(col, query, doc, true) do
+      {:ok, updated} -> updated
+      {:error, e} -> "#{e}"
+    end
+    |> effect_result(spec)
+  end
+
   def apply("store", %{"store" => store, "delete" => query, "from" => col} = spec) do
     {:ok, store} = Elementary.Index.get("store", store)
 

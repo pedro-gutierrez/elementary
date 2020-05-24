@@ -37,13 +37,3 @@ spec:
       headers:
         content-type: application/json
       body: {}
-    error_redirect:
-      status: 302
-      headers:
-        location:
-          format: "{{ baseUrl }}/#/error"
-    session_redirect:
-      status: 302
-      headers:
-        location:
-          format: "{{ baseUrl }}/#?session={{ session }}"

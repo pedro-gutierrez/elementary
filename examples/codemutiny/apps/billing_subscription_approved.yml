@@ -1,13 +1,12 @@
 kind: app
 name: billing_subscription_approved
 spec:
+  debug: true
   routes:
     codemutiny:
       get: "/api/billing/subscription/approved"
   settings:
     - codemutiny
-  filters:
-    - auth
   modules:
     - billing_subscription_approved
     - http

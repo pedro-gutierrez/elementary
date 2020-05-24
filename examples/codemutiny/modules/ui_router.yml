@@ -5,20 +5,29 @@ spec:
     ui:
       navigate:
         navigate:
-          any: text
+          route:
+            any: text
+          query:
+            any: object
     router:
       home-page:
-        path: "/"
+        route:
+          one_of:
+            - /
+            - /home
         query:
           without:
             - session
       welcome-page:
-        path: "/"
+        route:
+          one_of:
+            - /
+            - /home
         query:
           session:
             any: text
       error-page:
-        path: "/error"
+        route: "/error"
   update:
     navigate:
       model:
@@ -39,3 +48,8 @@ spec:
     navigate:
       action: navigate 
       target: "@route"
+    encode-route:
+      route: "@route"
+      query:
+        maybe_with:
+          - session

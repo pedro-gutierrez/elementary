@@ -159,7 +159,7 @@ spec:
             class: is-light button
             onclick:
               navigate:
-                format: "{{ route}}?session={{ session }}"
+                encoder: encode-route
           children:
             - view: icon-view
               params:

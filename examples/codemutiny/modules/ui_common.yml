@@ -21,9 +21,3 @@ spec:
       tag: div
       children:
         - "The page you are trying to reach could not be found"
-    notification-view:
-      tag: div
-      attrs:
-        class: notification is-light
-      children:
-        - "@message"
