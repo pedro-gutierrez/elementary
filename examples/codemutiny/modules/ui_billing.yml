@@ -3,7 +3,8 @@ name: ui_billing
 spec:
   init:
     model:
-      products: []
+      plans: []
+      subscriptions: []
       subscription: {}
   decoders:
     router:
@@ -18,8 +19,8 @@ spec:
           session:
             any: text
     http:
-      products:
-        products:
+      plans:
+        plans:
           body:
             any: list
       subscription:
@@ -28,18 +29,23 @@ spec:
           body:
             id:
               any: text
-            product:
-              id:
-                any: text
-              name:
-                any: text
             plan:
               id:
+                any: text
+              product:
                 any: text
               name:
                 any: text
               price:
                 any: number
+              items:
+                any: list
+
+      subscriptions:
+        subscriptions:
+          status: 200
+          body:
+            any: list
     ui:
       choose-plan:
         choose:
@@ -55,7 +61,7 @@ spec:
         session: "@data.query.session"
         view: loading-view
         onProfile:
-          http: get-products
+          http: get-plans
       cmds:
         http: get-profile
         ui: layout-view
@@ -65,23 +71,29 @@ spec:
         view: subscription-approved-view
       cmds:
         ui: layout-view
-    products:
+    plans:
       model:
         view: subscriptions-view
-        products: "@data.products.body"
+        plans: "@data.plans.body"
       cmds:
+        http: get-subscriptions
         ui: member-layout-view
+    subscriptions:
+      model:
+        subscriptions: "@data.subscriptions.body"
+      cmds:
+        ui: {}
     choose-plan:
       model:
         subscription: "@data.choose"
-        view: loading-view 
+        view: loading-view
       cmds:
         http: create-subscription
         ui: layout-view
     subscription:
       model:
         subscription: "@data.subscription.body"
-        view: plan-selection-confirm-view 
+        view: plan-selection-confirm-view
       cmds:
         ui: member-layout-view
   encoders:
@@ -93,34 +105,24 @@ spec:
         - tag: h1
           children:
             - Select a plan
-        - view: products-view
+        - view: pricing-view
+          params:
+            plans: "@plans"
+            action-view: choose-plan-button-view
+            session: "@session"
+            subscription: "@subscription"
         - tag: h1
           children:
-            - Past subscriptions 
-        - view: notification-view
-          params:
-            message: You have no past subscriptions
-    products-view:
-      tag: div
-      children:
-        loop: "@products"
-        with: product-view
-        params:
-          subscription: "@subscription"
-          session: "@session"
-          action-view: choose-plan-button-view
-    product-view:
+            - Your subscriptions
+        - view: subscriptions-list-view
+    pricing-view:
       tag: div
       attrs:
         class: pricing-table
       children:
         loop: "@plans"
+        as: plan
         with: plan-view
-        params:
-          subscription: "@subscription"
-          session: "@session"
-          product: "@id"
-          action-view: "@action-view"
     plan-view:
       tag: div
       attrs:
@@ -130,7 +132,7 @@ spec:
           attrs:
             class: plan-header
           children:
-            - "@name"
+            - "@plan.name"
         - tag: div
           attrs:
             class: plan-price
@@ -144,27 +146,35 @@ spec:
                     class: plan-price-currency
                   children:
                     - "€"
-                - "@price"
+                - "@plan.price"
             - "/month"
         - tag: div
           attrs:
             class: plan-items
           children:
-            - tag: div
-              attrs:
-                class: plan-item
-              children:
-                - "5 passes/year"
-            - tag: div
-              attrs:
-                class: plan-item
-              children:
-                - "-"
+            loop: "@plan.items"
+            with: plan-item-view
         - tag: div
           attrs:
             class: plan-footer
           children:
             - view: "@action-view"
+    plan-item-view:
+      tag: div
+      attrs:
+        class: plan-item
+      children:
+        - text:
+            either:
+              - when: "@enabled"
+                format: "{{ limit }} {{ feature }}"
+                params:
+                  limit:
+                    maybe: "@limit"
+                  feature:
+                    capitalize: "@feature"
+              - "-"
+
     plan-selection-confirm-view:
       tag: div
       attrs:
@@ -173,22 +183,21 @@ spec:
         - tag: h1
           children:
             - Confirm your selection
-        - view: product-view
+        - view: pricing-view
           params:
-            subscription: "@subscription"
-            session: "@session"
-            id: "@subscription.product.id"
-            plans:
+            plans: 
               - "@subscription.plan"
-            action-view: confirm-plan-button-view
+            action-view: confirm-plan-button-view 
+            session: "@session"
+            subscription: "@subscription"
     choose-plan-button-view:
       tag: a
       attrs:
         class: button is-fullwidth
         onclick:
           choose:
-            plan: "@id"
-            product: "@product"
+            plan: "@plan.id"
+            product: "@plan.product"
             id:
               uuid: {}
       children:
@@ -197,7 +206,7 @@ spec:
       tag: a
       attrs:
         class: button is-primary is-fullwidth
-        href: 
+        href:
           format: "/api/billing/subscriptions/{{ id }}/confirm?token={{ token }}"
           params:
             id: "@subscription.id"
@@ -219,18 +228,40 @@ spec:
             message: Your subscription has been succesfully processed.
             session: "@session"
             actions:
-              - route: subscriptions 
-    get-products:
+              - route: subscriptions
+    subscriptions-list-view:
+      tag: table
+      children:
+        - tag: tbody
+          children:
+            loop: "@subscriptions"
+            with: subscription-item-view
+    subscription-item-view: 
+      tag: tr
+      children:
+        - tag: td
+          children:
+            - "@plan.name"
+        - tag: td 
+          children:
+            - maybe: "@approved"
+    get-plans:
       method: get
-      path: /api/billing/products
+      path: /api/billing/plans
       headers:
         authorization: "@session"
-      as: products
+      as: plans 
+    get-subscriptions:
+      method: get
+      path: /api/billing/subscriptions
+      headers:
+        authorization: "@session"
+      as: subscriptions
     create-subscription:
-      method: post 
+      method: post
       path: /api/billing/subscriptions
       headers:
         content-type: application/json
         authorization: "@session"
       body: "@subscription"
-      as: subscription 
+      as: subscription

@@ -129,7 +129,18 @@ defmodule Elementary.Effect do
   def apply("store", %{"store" => store, "from" => col} = spec) do
     {:ok, store} = Elementary.Index.get("store", store)
 
-    case store.find_all(col, spec["find"] || %{}) do
+    opts = []
+
+    opts =
+      case spec["sort"] do
+        nil ->
+          opts
+
+        sort ->
+          Keyword.put(opts, :sort, sort)
+      end
+
+    case store.find_all(col, spec["find"] || %{}, opts) do
       {:ok, items} -> items
       {:error, e} -> "#{e}"
     end

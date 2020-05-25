@@ -1,0 +1,13 @@
+kind: app
+name: billing_get_subscriptions
+spec:
+  routes:
+    codemutiny:
+      get: "/api/billing/subscriptions"
+  settings:
+    - codemutiny
+  filters:
+    - auth
+  modules:
+    - billing_get_subscriptions
+    - http

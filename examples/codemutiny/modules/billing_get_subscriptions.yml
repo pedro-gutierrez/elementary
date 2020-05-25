@@ -1,0 +1,47 @@
+kind: module
+name: billing_get_subscriptions
+spec:
+  decoders:
+    http:
+      get_subscriptions:
+        method: GET
+    store:
+      subscriptions:
+        subscriptions:
+          any: list
+  update:
+    get_subscriptions:
+      model:
+        data: []
+      cmds:
+        store: find_subscriptions 
+    subscriptions:
+      model:
+        data: "@data.subscriptions"
+      cmds:
+        return: data
+  encoders:
+    find_subscriptions:
+      store: "@store"
+      aggregate:
+        - $match:
+            identity: "@session.identity"
+            approval_pending:
+              $exists: true
+        - $lookup:
+            from: plans
+            localField: plan
+            foreignField: id
+            as: plan 
+        - $replaceRoot:
+            newRoot:
+              $mergeObjects:
+                - $$ROOT
+                - plan:
+                    $arrayElemAt:
+                      - "$plan"
+                      - 0 
+        - $sort:
+            approval_pending: -1
+      from: subscriptions
+      as: subscriptions

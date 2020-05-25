@@ -611,13 +611,34 @@ defmodule Elementary.Compiler do
          end
 
          def find_all(col, query, opts \\ []) do
+           opts =
+             case opts[:sort] do
+               nil ->
+                 []
+
+               sort ->
+                 [
+                   sort:
+                     Enum.map(sort, fn
+                       {k, "asc"} ->
+                         {k, 1}
+
+                       {k, "desc"} ->
+                         {k, -1}
+                     end)
+                 ]
+             end
+
+           opts =
+             Keyword.merge(opts,
+               skip: Keyword.get(opts, :offset, 0),
+               limit: Keyword.get(opts, :limit, 20)
+             )
+
            query = Elementary.Kit.with_mongo_id(query)
 
            {:ok,
-            Mongo.find(@store, col, query,
-              skip: Keyword.get(opts, :offset, 0),
-              limit: Keyword.get(opts, :limit, 20)
-            )
+            Mongo.find(@store, col, query, opts)
             |> Stream.map(&Elementary.Kit.without_mongo_id(&1))
             |> Enum.to_list()}
            |> log(%{find_all: col, query: query, opts: opts})

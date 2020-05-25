@@ -14,21 +14,18 @@ spec:
     store:
       not_found:
         product: not_found
-      product:
-        product:
-          id:
-            any: text
+      plan:
+        plan:
           name:
             any: text
-          plans:
-            first:
-              with:
-                name:
-                  any: text
-                price:
-                  any: number
-                id:
-                  any: text
+          price:
+            any: number
+          id:
+            any: text
+          product:
+            any: text
+          items:
+            any: list
       created:
         subscription: created
   update:
@@ -44,9 +41,9 @@ spec:
     not_found:
       cmds:
         return: not_found
-    product:
+    plan:
       model:
-        product: "@data.product"
+        plan: "@data.plan"
       cmds:
         store: create_subscription
     created:
@@ -56,10 +53,10 @@ spec:
     find_plan:
       store: "@store"
       fetch:
-        id: "@subscription.product"
-        plans.id: "@subscription.plan"
-      from: products 
-      as: product
+        product: "@subscription.product"
+        id: "@subscription.plan"
+      from: plans
+      as: plan 
     create_subscription:
       store: "@store"
       insert:
@@ -75,7 +72,4 @@ spec:
       body:
         id: "@subscription.id"
         created: "@subscription.created"
-        product: 
-          id: "@product.id"
-          name: "@product.name"
-        plan: "@product.plans"
+        plan: "@plan"

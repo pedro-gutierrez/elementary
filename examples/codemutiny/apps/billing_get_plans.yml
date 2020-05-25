@@ -1,0 +1,13 @@
+kind: app
+name: billing_get_plans
+spec:
+  routes:
+    codemutiny:
+      get: "/api/billing/plans"
+  settings:
+    - codemutiny
+  filters:
+    - auth
+  modules:
+    - billing_get_plans
+    - http

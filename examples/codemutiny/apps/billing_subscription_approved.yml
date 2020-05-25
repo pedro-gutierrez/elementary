@@ -1,7 +1,6 @@
 kind: app
 name: billing_subscription_approved
 spec:
-  debug: true
   routes:
     codemutiny:
       get: "/api/billing/subscription/approved"

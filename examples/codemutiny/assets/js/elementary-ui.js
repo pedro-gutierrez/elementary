@@ -385,7 +385,6 @@ export default (name, settings, app) => {
         if (spec.tag) return compileTag(views, spec, ctx);
         if (spec.text) return compileText(views, spec, ctx);
         if (spec.loop) return compileLoop(views, spec, ctx);
-        if (spec.either) return compileEither(views, spec, ctx);
         //if (spec.map) return compileMapbox(views, spec, ctx);
         if (spec.timestamp) return compileTimestamp(views, spec, ctx);
         if (spec.code) return compileCode(views, spec, ctx);
