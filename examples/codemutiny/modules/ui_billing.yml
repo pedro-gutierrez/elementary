@@ -80,7 +80,7 @@ spec:
         view: subscription-unauthorized-view
       cmds:
         ui: layout-view
-    show-subscription-unknown-view:
+    show-subscription-unknown:
       model:
         view: subscription-unknown-view
       cmds:
@@ -248,7 +248,7 @@ spec:
         - view: dialog-view
           params:
             title: Unknown subscription 
-            message: The subscription was not found in our records. Please try again
+            message: The subscription was not found in our records. This is more likely an error on our side. We are already on it.
             actions:
               - route: home 
     subscription-approved-view:
