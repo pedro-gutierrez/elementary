@@ -26,7 +26,8 @@ spec:
             loop: "@actions"
             with: dialog-action-view
             params:
-              session: "@session"
+              session: 
+                maybe: "@session"
     dialog-action-view:
       tag: a
       attrs:

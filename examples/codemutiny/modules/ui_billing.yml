@@ -248,7 +248,7 @@ spec:
         - view: dialog-view
           params:
             title: Unknown subscription 
-            message: The subscription was not found in our records. This is more likely an error on our side. We are already on it.
+            message: Apologies! This is an error on our side, we are already fixing it.
             actions:
               - route: home 
     subscription-approved-view:
