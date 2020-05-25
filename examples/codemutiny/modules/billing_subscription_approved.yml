@@ -48,7 +48,7 @@ spec:
         return: unauthorized_subscription_page
     not_found:
       cmds:
-        return: unknown_subscription_error_page
+        return: unknown_subscription_page
   encoders:
     check_token:
       app: token
