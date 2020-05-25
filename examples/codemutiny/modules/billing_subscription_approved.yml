@@ -45,10 +45,10 @@ spec:
         return: confirmation_page
     unauthorized:
       cmds:
-        return: error_page
+        return: unauthorized_subscription_page
     not_found:
       cmds:
-        return: error_page
+        return: unknown_subscription_error_page
   encoders:
     check_token:
       app: token
@@ -73,9 +73,13 @@ spec:
       headers:
         location:
           format: "{{ baseUrl }}/#/subscription/approved?session={{ session }}"
-    error_page:
+    unauthorized_subscription_page:
       status: 302
       headers:
         location:
-          format: "{{ baseUrl }}/#/subscription/error?session={{ session }}"
-
+          format: "{{ baseUrl }}/#/subscription/unauthorized"
+    unknown_subscription_page:
+      status: 302
+      headers:
+        location:
+          format: "{{ baseUrl }}/#/subscription/unknown"

@@ -18,6 +18,10 @@ spec:
         query:
           session:
             any: text
+      show-subscription-unauthorized:
+        route: /subscription/unauthorized
+      show-subscription-unknown:
+        route: /subscription/unknown
     http:
       plans:
         plans:
@@ -69,6 +73,16 @@ spec:
       model:
         session: "@data.query.session"
         view: subscription-approved-view
+      cmds:
+        ui: layout-view
+    show-subscription-unauthorized:
+      model:
+        view: subscription-unauthorized-view
+      cmds:
+        ui: layout-view
+    show-subscription-unknown-view:
+      model:
+        view: subscription-unknown-view
       cmds:
         ui: layout-view
     plans:
@@ -219,6 +233,24 @@ spec:
         - tag: span
           children:
             - "Proceed with payment"
+    subscription-unauthorized-view:
+      tag: div
+      children:
+        - view: dialog-view
+          params:
+            title: Expired subscription
+            message: Your subscription request expired. Please try again.
+            actions:
+              - route: home 
+    subscription-unknown-view:
+      tag: div
+      children:
+        - view: dialog-view
+          params:
+            title: Unknown subscription 
+            message: The subscription was not found in our records. Please try again
+            actions:
+              - route: home 
     subscription-approved-view:
       tag: div
       children:
