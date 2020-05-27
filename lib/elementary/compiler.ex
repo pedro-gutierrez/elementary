@@ -455,7 +455,7 @@ defmodule Elementary.Compiler do
          defp log(data, meta, opts \\ []) do
            if :enable == (opts[:log] || :enable) do
              meta
-             |> with_log_payload(data)
+             |> with_log_payload(data, opts[:data] || :full)
              |> with_log_duration(opts)
              |> with_log_meta()
              |> Elementary.Logger.log()
@@ -464,15 +464,19 @@ defmodule Elementary.Compiler do
            data
          end
 
-         defp with_log_payload(meta, {:ok, data}) do
+         defp with_log_payload(meta, {:ok, data}, :summary) when is_list(data) do
+           Map.put(meta, :result, %{list: %{size: length(data)}})
+         end
+
+         defp with_log_payload(meta, {:ok, data}, _) do
            Map.put(meta, :result, data)
          end
 
-         defp with_log_payload(meta, {:error, reason}) do
+         defp with_log_payload(meta, {:error, reason}, _) do
            Map.put(meta, :result, reason)
          end
 
-         defp with_log_payload(meta, other) do
+         defp with_log_payload(meta, other, _) do
            Map.put(meta, :result, other)
          end
 
@@ -741,7 +745,10 @@ defmodule Elementary.Compiler do
             Mongo.find(@store, col, query, opts)
             |> Stream.map(&Elementary.Kit.without_mongo_id(&1))
             |> Enum.to_list()}
-           |> log(%{collection: col, op: :find, where: query, options: opts}, started: started)
+           |> log(%{collection: col, op: :find, where: query, options: opts},
+             started: started,
+             data: :summary
+           )
          end
 
          def find_one(col, query) do
@@ -766,7 +773,10 @@ defmodule Elementary.Compiler do
             Mongo.aggregate(@store, col, p, opts)
             |> Stream.map(&Elementary.Kit.without_mongo_id(&1))
             |> Enum.to_list()}
-           |> log(%{collection: col, op: :aggregate, pipeline: p, options: opts}, started: started)
+           |> log(%{collection: col, op: :aggregate, pipeline: p, options: opts},
+             started: started,
+             data: :summary
+           )
          end
 
          defp mongo_error(%{write_errors: [error]}) do
