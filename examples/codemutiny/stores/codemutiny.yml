@@ -5,8 +5,13 @@ spec:
     env: MONGO_URL
   collections:
     log:
-      max: 5000
+      max: 100000
       size: 10240000
+      indexes:
+        - lookup: kind
+        - lookup: name
+        - lookup: time
+        - lookup: level
     identities: {}
     subscriptions: {}
     tokens:

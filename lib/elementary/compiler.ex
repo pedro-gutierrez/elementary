@@ -596,6 +596,9 @@ defmodule Elementary.Compiler do
 
          def ensure_indexes(col, indices) do
            Enum.map(indices, fn
+             %{"lookup" => field} when is_binary(field) ->
+               {"_#{field}_", [unique: false, key: [{field, 1}]]}
+
              %{"unique" => field} when is_binary(field) ->
                {"_#{field}_", [unique: true, key: [{field, 1}]]}
 
