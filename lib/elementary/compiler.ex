@@ -105,6 +105,7 @@ defmodule Elementary.Compiler do
          end
 
          def log(%{kind: "app", name: "logs"}), do: :ok
+         def log(%{kind: "app", name: "index"}), do: :ok
 
          def log(data) do
            :ok = unquote(store).insert("log", data, log: :disable)
