@@ -571,7 +571,7 @@ defmodule Elementary.Compiler do
            with {:error, %Mongo.Error{code: 48}} <- Mongo.create(@store, col, opts) do
              :ok
            end
-           |> log(%{collection: col, op: :create})
+           |> log(%{collection: col, op: :create}, log: :disabled)
          end
 
          def collection_create_opts(%{"max" => max, "size" => size}) do
@@ -642,7 +642,7 @@ defmodule Elementary.Compiler do
              {:error, %{message: msg}} ->
                {:error, msg}
            end
-           |> log(%{collection: col, op: :ensure_index, index: name})
+           |> log(%{collection: col, op: :ensure_index, index: name}, log: :disabled)
          end
 
          def insert(col, doc, opts \\ []) when is_map(doc) do
