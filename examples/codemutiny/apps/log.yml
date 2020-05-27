@@ -1,0 +1,14 @@
+kind: app
+name: logs
+spec:
+  routes:
+    codemutiny:
+      get: "/api/logs"
+  settings:
+    - admin
+    - codemutiny
+  filters:
+    - admin
+  modules:
+    - logs
+    - http

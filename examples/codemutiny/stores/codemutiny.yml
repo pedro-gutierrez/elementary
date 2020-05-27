@@ -4,6 +4,9 @@ spec:
   url:
     env: MONGO_URL
   collections:
+    log:
+      max: 5000
+      size: 10240000
     identities: {}
     subscriptions: {}
     tokens:

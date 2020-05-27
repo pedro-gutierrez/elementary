@@ -86,6 +86,71 @@ defmodule Elementary.Compiler do
       )
   end
 
+  defp compile(_specs, %{"kind" => "logger" = kind, "name" => name, "spec" => spec}) do
+    store = spec["store"]
+
+    {:ok, store} = Elementary.Index.get("store", store)
+
+    [
+      {module_name(name, kind),
+       quote do
+         @name unquote(name)
+         @kind unquote(kind)
+         @store unquote(store)
+         def name(), do: @name
+         def kind(), do: @kind
+
+         def store() do
+           @store
+         end
+
+         def log(%{kind: "app", name: "logs"}), do: :ok
+
+         def log(data) do
+           :ok = unquote(store).insert("log", data, log: :disable)
+         end
+
+         def query(q) do
+           query = maybe_timerange_query(q)
+
+           IO.inspect(query)
+           unquote(store).find_all("log", query, sort: %{"$natural": "desc"})
+         end
+
+         defp maybe_timerange_query(%{"from" => from, "to" => to} = q) do
+           with {:ok, from, _} <- DateTime.from_iso8601(from),
+                {:ok, to, _} <- DateTime.from_iso8601(to) do
+             q
+             |> Map.drop(["from", "to"])
+             |> Map.put("time", %{
+               "$gte" => from,
+               "$lt" => to
+             })
+           else
+             _ ->
+               q
+           end
+         end
+
+         defp maybe_timerange_query(%{"from" => from} = q) do
+           case DateTime.from_iso8601(from) do
+             {:ok, from, _} ->
+               q
+               |> Map.drop(["from"])
+               |> Map.put("time", %{
+                 "$gte" => from
+               })
+
+             _ ->
+               q
+           end
+         end
+
+         defp maybe_timerange_query(q), do: q
+       end}
+    ]
+  end
+
   defp compile(_specs, %{"kind" => kind, "name" => name, "spec" => spec})
        when kind == "app" or kind == "module" do
     init = spec["init"] || %{}
@@ -389,22 +454,45 @@ defmodule Elementary.Compiler do
          def kind(), do: "store"
          def debug(), do: @debug
 
-         defp log(msg, tag, debug \\ @debug)
-
-         defp log(data, _, false), do: data
-
-         defp log(data, meta, true) do
-           Logger.info(
-             "#{
-               inspect(
-                 store: @store,
-                 meta: meta,
-                 data: data
-               )
-             }"
-           )
+         defp log(data, meta, opts \\ []) do
+           if :enable == (opts[:log] || :enable) do
+             meta
+             |> with_log_payload(data)
+             |> with_log_duration(opts)
+             |> with_log_meta()
+             |> Elementary.Logger.log()
+           end
 
            data
+         end
+
+         defp with_log_payload(meta, {:ok, data}) do
+           Map.put(meta, :result, data)
+         end
+
+         defp with_log_payload(meta, {:error, reason}) do
+           Map.put(meta, :result, reason)
+         end
+
+         defp with_log_payload(meta, other) do
+           Map.put(meta, :result, other)
+         end
+
+         defp with_log_duration(meta, opts) do
+           case opts[:started] do
+             nil ->
+               meta
+
+             started ->
+               Map.put(meta, :duration, Elementary.Kit.millis_since(started))
+           end
+         end
+
+         defp with_log_meta(meta) do
+           Map.merge(meta, %{
+             kind: "store",
+             name: @name
+           })
          end
 
          def child_spec(opts) do
@@ -435,13 +523,12 @@ defmodule Elementary.Compiler do
                  {:halt, mongo_error(e)}
              end
            end)
-           |> log(:empty)
          end
 
          def reset() do
            Enum.reduce_while(@collections, :ok, fn {col, spec}, _ ->
              with :ok <- drop_collection(col),
-                  :ok <- create_collection(col),
+                  :ok <- create_collection(col, spec),
                   :ok <- ensure_indexes(col, spec["indexes"] || []) do
                {:cont, :ok}
              else
@@ -449,10 +536,11 @@ defmodule Elementary.Compiler do
                  {:halt, mongo_error(e)}
              end
            end)
-           |> log(:reset)
          end
 
          def ping() do
+           started = Elementary.Kit.millis()
+
            case Mongo.ping(@store) do
              {:ok, _} ->
                :ok
@@ -460,7 +548,7 @@ defmodule Elementary.Compiler do
              {:error, e} ->
                {:error, mongo_error(e)}
            end
-           |> log(:ping)
+           |> log(%{op: :ping}, started: started)
          end
 
          def empty_collection(col) do
@@ -471,15 +559,23 @@ defmodule Elementary.Compiler do
              {:error, e} ->
                {:halt, mongo_error(e)}
            end
-           |> log(%{empty: col})
+           |> log(%{collection: col, op: :empty})
          end
 
-         def create_collection(col) do
-           with {:error, %Mongo.Error{code: 48}} <- Mongo.create(@store, col) do
+         def create_collection(col, spec) do
+           opts = collection_create_opts(spec)
+
+           with {:error, %Mongo.Error{code: 48}} <- Mongo.create(@store, col, opts) do
              :ok
            end
-           |> log(%{create: col})
+           |> log(%{collection: col, op: :create})
          end
+
+         def collection_create_opts(%{"max" => max, "size" => size}) do
+           [capped: true, max: max, size: size]
+         end
+
+         def collection_create_opts(_), do: []
 
          def drop_collection(col) do
            case Mongo.drop_collection(@store, col) do
@@ -492,7 +588,7 @@ defmodule Elementary.Compiler do
              {:error, e} ->
                {:halt, mongo_error(e)}
            end
-           |> log(%{drop: col})
+           |> log(%{collection: col, op: :drop}, log: :disabled)
          end
 
          def ensure_indexes(col, indices) do
@@ -521,7 +617,6 @@ defmodule Elementary.Compiler do
                        }"
              end
            end)
-           |> log(%{ensure_indices: col, indices: indices})
          end
 
          def ensure_index(col, name, opts) do
@@ -541,10 +636,11 @@ defmodule Elementary.Compiler do
              {:error, %{message: msg}} ->
                {:error, msg}
            end
-           |> log(%{ensure_index: col, index: name})
+           |> log(%{collection: col, op: :ensure_index, index: name})
          end
 
-         def insert(col, doc) when is_map(doc) do
+         def insert(col, doc, opts \\ []) when is_map(doc) do
+           started = Elementary.Kit.millis()
            doc = Elementary.Kit.with_mongo_id(doc)
 
            case Mongo.insert_one(
@@ -558,10 +654,11 @@ defmodule Elementary.Compiler do
              {:error, e} ->
                {:error, mongo_error(e)}
            end
-           |> log(%{insert: col, doc: doc})
+           |> log(%{collection: col, op: :insert, doc: doc}, Keyword.put(opts, :started, started))
          end
 
          def update(col, where, doc, upsert \\ false) when is_map(doc) do
+           started = Elementary.Kit.millis()
            where = Elementary.Kit.with_mongo_id(where)
 
            doc =
@@ -590,10 +687,13 @@ defmodule Elementary.Compiler do
              {:error, e} ->
                {:error, mongo_error(e)}
            end
-           |> log(%{update: col, where: where, doc: doc})
+           |> log(%{collection: col, op: :update, where: where, doc: doc, upsert: upsert},
+             started: started
+           )
          end
 
          def delete(col, doc) when is_map(doc) do
+           started = Elementary.Kit.millis()
            doc = Elementary.Kit.with_mongo_id(doc)
 
            case Mongo.delete_one(
@@ -607,10 +707,12 @@ defmodule Elementary.Compiler do
              {:error, e} ->
                {:error, mongo_error(e)}
            end
-           |> log(%{delete: col, doc: doc})
+           |> log(%{collection: col, op: :delete, where: doc}, started: started)
          end
 
          def find_all(col, query, opts \\ []) do
+           started = Elementary.Kit.millis()
+
            opts =
              case opts[:sort] do
                nil ->
@@ -641,10 +743,11 @@ defmodule Elementary.Compiler do
             Mongo.find(@store, col, query, opts)
             |> Stream.map(&Elementary.Kit.without_mongo_id(&1))
             |> Enum.to_list()}
-           |> log(%{find_all: col, query: query, opts: opts})
+           |> log(%{collection: col, op: :find, where: query, options: opts}, started: started)
          end
 
          def find_one(col, query) do
+           started = Elementary.Kit.millis()
            query = Elementary.Kit.with_mongo_id(query)
 
            case Mongo.find_one(@store, col, query) do
@@ -654,17 +757,18 @@ defmodule Elementary.Compiler do
              doc ->
                {:ok, Elementary.Kit.without_mongo_id(doc)}
            end
-           |> log(%{find_one: col, query: query})
+           |> log(%{collection: col, op: :find_one, where: query}, started: started)
          end
 
          def aggregate(col, p, opts \\ []) do
+           started = Elementary.Kit.millis()
            p = pipeline(p)
 
            {:ok,
             Mongo.aggregate(@store, col, p, opts)
             |> Stream.map(&Elementary.Kit.without_mongo_id(&1))
             |> Enum.to_list()}
-           |> log(%{aggregate: col, pipeline: p, opts: opts})
+           |> log(%{collection: col, op: :aggregate, pipeline: p, options: opts}, started: started)
          end
 
          defp mongo_error(%{write_errors: [error]}) do

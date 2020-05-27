@@ -1,0 +1,4 @@
+kind: logger
+name: default 
+spec:
+  store: codemutiny

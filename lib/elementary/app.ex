@@ -11,7 +11,7 @@ defmodule Elementary.App do
         cmd(mod, effect, enc, model)
 
       {:error, e} ->
-        error([app: mod, phase: :init], e)
+        error([app: mod.name(), phase: :init], e)
     end
   end
 
@@ -19,7 +19,8 @@ defmodule Elementary.App do
     res =
       mod.filters
       |> Enum.reduce_while(model, fn filter, model ->
-        res =
+        {next, _} =
+          res =
           case decode(filter, effect, data, model) do
             {:ok, model} ->
               {:cont, model}
@@ -28,7 +29,7 @@ defmodule Elementary.App do
               {:halt, other}
           end
 
-        debug(mod, filter: filter, data: data, model: model, result: res)
+        debug(mod, %{filter: filter.name(), result: next})
         res
       end)
       |> case do
@@ -46,11 +47,9 @@ defmodule Elementary.App do
   end
 
   def decode(mod, effect, data, model) do
-    debug(mod, decode: effect, data: data, model: model)
-
     case mod.decode(effect, data, model) do
       {:ok, event, decoded} ->
-        debug(mod, decoded: event, data: decoded)
+        debug(mod, %{decode: effect, event: event})
 
         case update(mod, event, decoded, model) do
           {:ok, model2} ->
@@ -60,16 +59,16 @@ defmodule Elementary.App do
             stop
 
           {:error, e} ->
-            error([app: mod, event: event, data: decoded, model: model], e)
+            error([app: mod.name(), event: event, data: decoded, model: model], e)
         end
 
       {:error, e} ->
-        error([app: mod, effect: effect], e)
+        error([app: mod.name(), effect: effect], e)
     end
   end
 
   def update(mod, event, data, model0) do
-    debug(mod, event: event, data: data, model: model0)
+    debug(mod, %{update: event})
 
     case mod.update(event, data, model0) do
       {:ok, model, cmds} when is_map(cmds) and map_size(cmds) == 1 ->
@@ -86,7 +85,7 @@ defmodule Elementary.App do
         {:ok, model}
 
       {:error, e} ->
-        error([app: mod, update: event], e)
+        error([app: mod.name(), update: event], e)
     end
   end
 
@@ -110,35 +109,31 @@ defmodule Elementary.App do
           end
 
         {:error, e} ->
-          error([app: mod, encoder: enc], e)
+          error([app: mod.name(), encoder: enc], e)
       end
 
-    debug(mod, effect: effect, encoder: enc, model: model, result: res)
+    debug(mod, %{cmd: %{effect: effect, encoder: enc}})
     res
   end
 
   def effect(mod, effect, encoded, model) do
-    debug(mod, effect: effect, data: encoded, model: model)
-
     with {:ok, data} <- Elementary.Effect.apply(effect, encoded) do
       decode(mod, effect, data, model)
     else
       {:error, e} ->
-        error([app: mod, effect: effect, data: encoded], e)
+        error([app: mod.name(), effect: effect, data: encoded], e)
 
       other ->
-        error([app: mod, effect: effect, data: encoded], %{unexpected: other})
+        error([app: mod.name(), effect: effect, data: encoded], %{unexpected: other})
     end
   end
 
   defp debug(mod, info) do
-    case mod.debug() do
-      true ->
-        Logger.info("#{inspect(Keyword.put(info, :app, mod.name()))}")
-
-      false ->
-        :ok
-    end
+    Map.merge(info, %{
+      kind: mod.kind(),
+      name: mod.name()
+    })
+    |> Elementary.Logger.log()
   end
 
   defp error(context, e) do

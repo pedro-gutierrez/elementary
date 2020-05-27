@@ -80,8 +80,16 @@ defmodule Elementary.Kit do
     ceil(duration(since) / 1000)
   end
 
-  def now() do
-    System.system_time(:microsecond)
+  def now(unit \\ :microsecond) do
+    System.system_time(unit)
+  end
+
+  def millis() do
+    now(:millisecond)
+  end
+
+  def millis_since(start) do
+    millis() - start
   end
 
   def datetime_from_mongo_id(id) do
@@ -128,11 +136,17 @@ defmodule Elementary.Kit do
 
   def without_mongo_id(%{"_id" => id} = doc) do
     doc
-    |> Map.put("id", id)
+    |> Map.put("id", encode_mongo_id(id))
     |> Map.drop(["_id"])
   end
 
   def without_mongo_id(doc), do: doc
+
+  defp encode_mongo_id(%BSON.ObjectId{} = id) do
+    BSON.ObjectId.encode!(id)
+  end
+
+  defp encode_mongo_id(id), do: id
 
   def stream_from_data(data) when is_binary(data) do
     {:ok, pid} = StringIO.open(data)

@@ -1,0 +1,26 @@
+kind: module
+name: logs
+spec:
+  decoders:
+    http:
+      query:
+        query:
+          any: object
+    logs:
+      logs:
+        any: list
+
+  update:
+    query:
+      model: 
+        query: "@data.query"
+      cmds:
+        logs: query
+    logs:
+      model:
+        data: "@data"
+      cmds:
+        return: data
+  encoders:
+    query:
+      query: "@query"

@@ -23,7 +23,7 @@ defmodule Elementary.Application do
     Logger.configure(level: :info)
 
     {:ok, pid} =
-      Supervisor.start_link(children ++ [Elementary.Compiler, Elementary.Test],
+      Supervisor.start_link(children ++ [Elementary.Compiler, Elementary.Test, Elementary.Logger],
         strategy: :one_for_one,
         name: Elementary.Supervisor
       )
