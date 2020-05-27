@@ -112,7 +112,7 @@ defmodule Elementary.Compiler do
 
          def query(q) do
            query = maybe_timerange_query(q)
-           unquote(store).find_all("log", query, sort: %{"$natural": "desc"})
+           unquote(store).find_all("log", query, sort: %{"time" => "desc"})
          end
 
          defp maybe_timerange_query(%{"from" => from, "to" => to} = q) do
