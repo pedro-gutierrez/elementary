@@ -112,8 +112,6 @@ defmodule Elementary.Compiler do
 
          def query(q) do
            query = maybe_timerange_query(q)
-
-           IO.inspect(query)
            unquote(store).find_all("log", query, sort: %{"$natural": "desc"})
          end
 
