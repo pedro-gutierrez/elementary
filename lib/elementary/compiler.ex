@@ -112,7 +112,11 @@ defmodule Elementary.Compiler do
          end
 
          def query(q) do
-           query = maybe_timerange_query(q)
+           query =
+             q
+             |> maybe_timerange_query()
+             |> maybe_cast_status_code()
+
            unquote(store).find_all("log", query, sort: %{"time" => "desc"})
          end
 
@@ -146,6 +150,18 @@ defmodule Elementary.Compiler do
          end
 
          defp maybe_timerange_query(q), do: q
+
+         defp maybe_cast_status_code(%{"status" => code} = q) do
+           case Integer.parse(code) do
+             {code, ""} ->
+               Map.put(q, "status", code)
+
+             _ ->
+               q
+           end
+         end
+
+         defp maybe_cast_status_code(q), do: q
        end}
     ]
   end
