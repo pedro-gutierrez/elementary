@@ -117,7 +117,7 @@ defmodule Elementary.Compiler do
              |> maybe_timerange_query()
              |> maybe_cast_status_code()
 
-           unquote(store).find_all("log", query, sort: %{"time" => "desc"})
+           unquote(store).find_all("log", query, sort: %{"time" => "desc", "$natural" => "desc"})
          end
 
          defp maybe_timerange_query(%{"from" => from, "to" => to} = q) do
