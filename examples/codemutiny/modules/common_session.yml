@@ -19,9 +19,10 @@ spec:
         nonce:
           any: text
       nonce_verified:
-        consumed: true
+        token:
+          any: object
       nonce_not_verified:
-        consumed: false
+        token: not_found
       identity_updated:
         identity:
           id:

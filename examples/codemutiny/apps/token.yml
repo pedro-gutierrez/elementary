@@ -6,4 +6,3 @@ spec:
   modules:
     - create_token
     - check_token
-    - consume_token

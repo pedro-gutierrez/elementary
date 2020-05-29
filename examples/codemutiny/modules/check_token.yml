@@ -6,6 +6,9 @@ spec:
       check_token:
         check:
           any: text
+      consume_token:
+        consume:
+          any: text
     store:
       found:
         token:
@@ -16,6 +19,13 @@ spec:
     check_token:
       model:
         id: "@data.check"
+        delete: false
+      cmds:
+        store: find_token
+    consume_token:
+      model:
+        id: "@data.consume"
+        delete: true 
       cmds:
         store: find_token
     found:
@@ -32,6 +42,7 @@ spec:
       fetch:
         id: "@id"
       from: tokens
+      delete: "@delete"
       as: token
     token: 
       token: "@token"

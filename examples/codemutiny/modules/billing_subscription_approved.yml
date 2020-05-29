@@ -32,7 +32,7 @@ spec:
         token: "@data.query.nonce"
         external: "@data.query.subscription_id"
       cmds:
-        service: check_token
+        service: consume_token
     authorized:
       model:
         session: "@data.token.meta.session"
@@ -50,10 +50,11 @@ spec:
       cmds:
         return: unknown_subscription_page
   encoders:
-    check_token:
+    consume_token:
       app: token
       params:
         check: "@token"
+        consume: true
     update_subscription:
       store: "@store"
       update:

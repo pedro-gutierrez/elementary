@@ -71,6 +71,18 @@ defmodule Elementary.Effect do
     |> effect_result(spec)
   end
 
+  def apply("store", %{"store" => store, "from" => col, "fetch" => query} = spec) do
+    {:ok, store} = Elementary.Index.get("store", store)
+
+    query = Kit.with_mongo_id(query)
+
+    case store.find_one(col, query, remove: spec["delete"] || false) do
+      {:ok, item} -> item
+      {:error, e} -> "#{e}"
+    end
+    |> effect_result(spec)
+  end
+
   def apply("store", %{"store" => store, "where" => query, "update" => doc, "into" => col} = spec)
       when is_map(doc) do
     {:ok, store} = Elementary.Index.get("store", store)
@@ -104,18 +116,6 @@ defmodule Elementary.Effect do
 
     case store.delete(col, query) do
       {:ok, deleted} -> deleted
-      {:error, e} -> "#{e}"
-    end
-    |> effect_result(spec)
-  end
-
-  def apply("store", %{"store" => store, "from" => col, "fetch" => query} = spec) do
-    {:ok, store} = Elementary.Index.get("store", store)
-
-    query = Kit.with_mongo_id(query)
-
-    case store.find_one(col, query) do
-      {:ok, item} -> item
       {:error, e} -> "#{e}"
     end
     |> effect_result(spec)

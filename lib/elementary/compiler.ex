@@ -771,18 +771,27 @@ defmodule Elementary.Compiler do
            )
          end
 
-         def find_one(col, query) do
+         def find_one(col, query, opts \\ []) do
            started = Elementary.Kit.millis()
            query = Elementary.Kit.with_mongo_id(query)
 
-           case Mongo.find_one(@store, col, query) do
+           {res, op} =
+             case opts[:delete] do
+               true ->
+                 {Mongo.find_one_and_delete(@store, col, query), :find_one_and_delete}
+
+               _ ->
+                 {Mongo.find_one(@store, col, query), :find_one}
+             end
+
+           case res do
              nil ->
                {:error, :not_found}
 
              doc ->
                {:ok, Elementary.Kit.without_mongo_id(doc)}
            end
-           |> log(%{collection: col, op: :find_one, where: query}, started: started)
+           |> log(%{collection: col, op: op, where: query}, started: started)
          end
 
          def aggregate(col, p, opts \\ []) do
