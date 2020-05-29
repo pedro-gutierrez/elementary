@@ -53,8 +53,7 @@ spec:
     consume_token:
       app: token
       params:
-        check: "@token"
-        consume: true
+        consume: "@token"
     update_subscription:
       store: "@store"
       update:
