@@ -118,6 +118,12 @@ spec:
       children:
         - tag: h1
           children:
+            - Your subscription
+        - view: subscription-summary-view
+          params:
+            head: "@subscriptions"
+        - tag: h1
+          children:
             - Select a plan
         - view: pricing-view
           params:
@@ -129,6 +135,8 @@ spec:
           children:
             - Your subscriptions
         - view: subscriptions-list-view
+          params:
+            subscriptions: "@subscriptions"
     pricing-view:
       tag: div
       attrs:
@@ -261,9 +269,43 @@ spec:
             session: "@session"
             actions:
               - route: subscriptions
+    subscription-summary-view:
+      tag: div
+      children:
+        - "Your subscription to to plan "
+        - tag: strong
+          children:
+            - "@plan.name"
+        - " was approved "
+        - tag: strong
+          children:
+            - maybe:
+                format_date:
+                  date: "@approved"
+                  pattern: relative
+        - " and is currently "
+        - tag: strong
+          children:
+            - capitalize:
+                encoder: subscription-status
     subscriptions-list-view:
       tag: table
+      attrs:
+        class: table
       children:
+        - tag: thead
+          children:
+            - tag: tr
+              children:
+                - tag: th
+                  children:
+                    - Plan
+                - tag: th
+                  children:
+                    - Approved
+                - tag: th
+                  children:
+                    - Status
         - tag: tbody
           children:
             loop: "@subscriptions"
@@ -276,7 +318,27 @@ spec:
             - "@plan.name"
         - tag: td 
           children:
-            - maybe: "@approved"
+            - maybe:
+                format_date: 
+                  date: "@approved"
+                  pattern: relative
+        - tag: td
+          children:
+            - view: tag-view
+              params:
+                let:
+                  status:
+                    encoder: subscription-status
+                in:
+                  title:
+                    capitalize: "@status"
+                  style:
+                    switch: "@status"
+                    case:
+                      active: is-primary
+                      cancelled: is-danger
+                      pending: is-warning
+                    default: ""
     get-plans:
       method: get
       path: /api/billing/plans
@@ -297,3 +359,15 @@ spec:
         authorization: "@session"
       body: "@subscription"
       as: subscription
+    subscription-status:
+      either:
+        - when:
+            has: "cancelled"
+          then: "cancelled"
+        - when:
+            has: "approved"
+          then: "active"
+        - when:
+            has: "confirmed"
+          then: "pending"
+        - "draft"

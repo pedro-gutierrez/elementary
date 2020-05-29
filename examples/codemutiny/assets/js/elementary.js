@@ -786,10 +786,12 @@ export default (appUrl, appEffects, deps) => {
         if (err) return error(spec, ctx, err);
         var clause = spec["case"][value];
         if (!clause) {
-            clause = spec["default"]
-            if (!clause) return error(spec, ctx, {
+            if (!hasProp(spec, "default")) return error(spec, ctx, {
                 error: "no_clause"
             });
+
+            clause = spec["default"]
+
         }
         var { err: clauseErr, value: clauseValue} = encode(clause, ctx);
         if (clauseErr) return error(clause, ctx, clauseErr);

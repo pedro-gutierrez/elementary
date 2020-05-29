@@ -29,13 +29,14 @@ spec:
                 <link rel="stylesheet" href="css/bulma-pricingtable.min.css"/>
                 <script src="js/mustache.min.js"></script>
                 <script src="js/elementary-dom.js"></script>
+                <script src="js/moment.min.js"></script>
                 <script type="module">
                   import {default as ui} from "/js/elementary-ui.js";
                   import {default as events} from "/js/elementary-events.js";
                   import {default as http} from "/js/elementary-http.js";
                   import {default as router} from "/js/elementary-router.js";
                   import {default as app} from "/js/elementary.js";
-                  app("/js/app.js", {ui, events, http, router}, {Mustache})
+                  app("/js/app.js", {ui, events, http, router}, {Mustache, moment})
                 </script>
               </head>
               <body>

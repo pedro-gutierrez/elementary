@@ -102,6 +102,13 @@ spec:
         href: "@url"
       children:
         - "@title"
+    tag-view:
+      tag: span
+      attrs:
+        class: 
+          format: "tag is-light {{ style }}"
+      children:
+        - "@title"
     footer-view:
       tag: footer
       attrs:
