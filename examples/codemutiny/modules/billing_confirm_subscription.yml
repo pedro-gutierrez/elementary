@@ -144,6 +144,7 @@ spec:
         content-type: application/json
         authorization:
           format: "Bearer {{ token }}"
+        PayPal-Request-Id: "@nonce"
         prefer: return=representation
       body:
         plan_id: "@subscription.plan"
