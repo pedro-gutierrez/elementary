@@ -42,7 +42,7 @@ spec:
         store: update_subscription
     updated:
       cmds:
-        return: confirmation_page
+        return: subscriptions_page
     unauthorized:
       cmds:
         return: unauthorized_subscription_page
@@ -68,11 +68,11 @@ spec:
         approved: null
       into: subscriptions
       as: approved
-    confirmation_page:
+    subscriptions_page:
       status: 302
       headers:
         location:
-          format: "{{ baseUrl }}/#/subscription/approved?session={{ session }}"
+          format: "{{ baseUrl }}/#/subscriptions?session={{ session }}"
     unauthorized_subscription_page:
       status: 302
       headers:

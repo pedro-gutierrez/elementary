@@ -120,8 +120,14 @@ spec:
           children:
             - Your subscription
         - view: subscription-summary-view
+          when:
+            is_set: "@subscriptions"
           params:
             head: "@subscriptions"
+        - view: no-subscription-view
+          when:
+            not:
+              is_set: "@subscriptions"
         - tag: h1
           children:
             - Select a plan
@@ -204,7 +210,7 @@ spec:
       children:
         - tag: h1
           children:
-            - Confirm your selection
+            - Confirm your plan 
         - view: pricing-view
           params:
             plans: 
@@ -269,6 +275,10 @@ spec:
             session: "@session"
             actions:
               - route: subscriptions
+    no-subscription-view:
+      tag: p
+      children:
+        - You currently have no subscriptions
     subscription-summary-view:
       tag: div
       children:

@@ -376,9 +376,33 @@ export default (name, settings, app) => {
     //        key: id,
     //    }]};
     //}
+    //
+    //
+    //
 
+    function compileErrorView(views, ctx) {
+        return compileTag(views, {
+            tag: "p",
+            attrs: {
+                style: {
+                    padding: "15px"
+                },
+                class: "has-text-danger has-background-light"
+            },
+            children: [
+                "There was an error rendering this view",
+            ]
+        }, ctx);
+    }
 
     function compile(views, spec, ctx) {
+        var {view, err} = compileUnsafe(views, spec, ctx);
+        if (!err) return {view};
+        event("$error", err);
+        return compileErrorView(views, ctx);
+    }
+
+    function compileUnsafe(views, spec, ctx) {
         if (typeof (spec) == "string") return compileText(views, { text: spec }, ctx);
         if (Array.isArray(spec)) return compileList(views, spec, ctx);
         if (spec.view) return compileViewRef(views, spec, ctx);
