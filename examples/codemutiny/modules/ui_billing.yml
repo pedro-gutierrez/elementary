@@ -141,8 +141,14 @@ spec:
           children:
             - Your subscriptions
         - view: subscriptions-list-view
+          when:
+            is_set: "@subscriptions"
           params:
             subscriptions: "@subscriptions"
+        - view: no-subscription-view
+          when:
+            not:
+              is_set: "@subscriptions"
     pricing-view:
       tag: div
       attrs:
