@@ -14,6 +14,12 @@ spec:
     store:
       not_found:
         product: not_found
+      no_active_subscriptions:
+        active_subscriptions:
+          empty: list
+      active_subscriptions:
+        active_subscriptions:
+          non_empty: list
       plan:
         plan:
           name:
@@ -31,11 +37,13 @@ spec:
   update:
     create:
       model:
-        subscription:
-          merge:
-            - "@data.body"
-            - created:
-                now: {}
+        subscription: "@data.body"
+      cmds:
+        store: find_active_subscriptions
+    active_subscriptions:
+      cmds:
+        return: conflict
+    no_active_subscriptions:
       cmds:
         store: find_plan
     not_found:
@@ -57,6 +65,13 @@ spec:
         id: "@subscription.plan"
       from: plans
       as: plan 
+    find_active_subscriptions:
+      store: "@store"
+      find:
+        identity: "@session.identity"
+        cancelled: null
+      from: subscriptions
+      as: active_subscriptions
     create_subscription:
       store: "@store"
       insert:

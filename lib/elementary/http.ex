@@ -53,6 +53,21 @@ defmodule Elementary.Http do
 
   @version "0.1"
 
+  # This is left here as a reference for 
+  # performance testing, in order to measure the impact
+  # of our framework in response times
+  ## defp init(req, state) do
+  ##  req =
+  ##    :cowboy_req.reply(
+  ##      200,
+  ##      %{},
+  ##      "hello",
+  ##      req
+  ##    )
+
+  ##  {:ok, req, state}
+  ## end
+
   def init(
         %{
           bindings: params,

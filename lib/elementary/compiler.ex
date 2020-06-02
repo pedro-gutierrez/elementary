@@ -392,7 +392,7 @@ defmodule Elementary.Compiler do
            {:ok, pid} =
              :cowboy.start_clear(
                @name,
-               [{:port, @port}],
+               %{num_acceptors: :erlang.system_info(:schedulers), socket_opts: [port: @port]},
                %{:env => %{:dispatch => dispatch}}
              )
 
@@ -1198,6 +1198,8 @@ defmodule Elementary.Compiler do
   defp compile(_specs, _), do: []
 
   defp defmod(mod, content) do
+    :code.purge(mod)
+    :code.delete(mod)
     {:module, mod, _, _} = Module.create(mod, content, Macro.Env.location(__ENV__))
     {:ok, mod}
   end

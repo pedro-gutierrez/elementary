@@ -27,6 +27,9 @@ spec:
         plans:
           body:
             any: list
+      already_subscribed:
+        subscription:
+          status: 409
       subscription:
         subscription:
           status: 201
@@ -104,6 +107,11 @@ spec:
       cmds:
         http: create-subscription
         ui: layout-view
+    already_subscribed:
+      model:
+        view: already-subscribed-view
+      cmds:
+        ui: member-layout-view
     subscription:
       model:
         subscription: "@data.subscription.body"
@@ -208,7 +216,16 @@ spec:
                   feature:
                     capitalize: "@feature"
               - "-"
-
+    already-subscribed-view:
+      tag: div
+      children:
+        - view: dialog-view
+          params:
+            title: You are already subscribed 
+            message: It seems you already have a subscription. Please cancel it before subscribing again.
+            session: "@session"
+            actions:
+              - route: subscriptions 
     plan-selection-confirm-view:
       tag: div
       attrs:
