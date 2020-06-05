@@ -1,0 +1,94 @@
+kind: module
+name: billing_paypal
+spec:
+  decoders:
+    http:
+      access_token:
+        body:
+          access_token:
+            any: text
+      approval_pending_received:
+        body:
+          create_time:
+            any: date
+          id:
+            any: text
+          links:
+            first:
+              with:
+                href:
+                  any: text
+                rel:  approve
+          status: APPROVAL_PENDING
+          start_time:
+            any: date
+      cancellation_confirmed:
+        paypal_cancellation:
+          status: 204
+      cancellation_not_confirmed:
+        paypal_cancellation:
+          status:
+            other_than: 204
+  encoders:
+    get_access_token:
+      method: POST
+      url: 
+        uri: https://api.sandbox.paypal.com/v1/oauth2/token
+        with:
+          grant_type: client_credentials 
+      headers:
+        accept: application/json
+        accept-language: en_US
+        content-type: application/x-www-form-urlencoded
+        authorization:
+          basic_auth:
+            user: "@paypal.client"
+            password: "@paypal.secret"
+    create_paypal_subscription:
+      method: POST
+      url: https://api.sandbox.paypal.com/v1/billing/subscriptions
+      headers:
+        accept: application/json
+        content-type: application/json
+        authorization:
+          format: "Bearer {{ token }}"
+        PayPal-Request-Id: "@nonce"
+        prefer: return=representation
+      body:
+        plan_id: "@subscription.plan"
+        start_time: "2020-06-12T06:00:00Z"
+        subscriber:
+          name:
+            given_name: John
+            surname: Doe
+          email_address: customer@example.com
+        application_context:
+          brand_name: example
+          locale: en-US
+          shipping_preference: SET_PROVIDED_ADDRESS
+          user_action: SUBSCRIBE_NOW
+          payment_method: 
+            payer_selected: PAYPAL
+            payee_preferred: IMMEDIATE_PAYMENT_REQUIRED
+          return_url: 
+            format: "{{ baseUrl }}/api/billing/subscription/approved?nonce={{ nonce }}"
+            params:
+              baseUrl: "@paypal.baseUrl"
+          cancel_url: 
+            format: "{{ baseUrl }}/api/billing/subscription/cancelled?nonce={{ nonce }}"
+            params:
+              baseUrl: "@paypal.baseUrl"
+    cancel_paypal_subscription:
+      method: POST
+      url: 
+        format: "https://api.sandbox.paypal.com/v1/billing/subscriptions/{{ id }}/cancel"
+        params:
+          id: "@subscription.gateway.id"
+      headers:
+        accept: application/json
+        content-type: application/json
+        authorization:
+          format: "Bearer {{ token }}"
+      body:
+        reason: "Not satisfied with the service"
+      as: paypal_cancellation

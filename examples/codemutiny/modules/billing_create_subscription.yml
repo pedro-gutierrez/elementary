@@ -37,7 +37,12 @@ spec:
   update:
     create:
       model:
-        subscription: "@data.body"
+        subscription: 
+          merge:
+            - "@data.body"
+            - identity: "@model.session.identity"
+              created:
+                now: {}
       cmds:
         store: find_active_subscriptions
     active_subscriptions:
@@ -70,14 +75,13 @@ spec:
       find:
         identity: "@session.identity"
         cancelled: null
+        approval_pending:
+          $exists: true
       from: subscriptions
       as: active_subscriptions
     create_subscription:
       store: "@store"
-      insert:
-        merge:
-          - "@subscription"
-          - identity: "@session.identity"
+      insert: "@subscription"
       into: subscriptions
       as: subscription
     subscription_created:

@@ -1,15 +1,15 @@
 kind: app
-name: billing_confirm_subscription
+name: billing_cancel_subscription 
 spec:
   routes:
     codemutiny:
-      get: "/api/billing/subscriptions/:id/confirm"
+      post: "/api/billing/subscriptions/:id/cancel"
   settings:
     - codemutiny
     - named: paypal
   filters:
     - auth
   modules:
-    - billing_confirm_subscription
+    - billing_cancel_subscription
     - billing_paypal
     - http

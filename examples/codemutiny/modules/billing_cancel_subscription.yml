@@ -1,0 +1,72 @@
+kind: module
+name: billing_cancel_subscription
+spec:
+  decoders:
+    http:
+      cancel:
+        params:
+          id:
+            any: text
+    store:
+      not_found:
+        subscription: not_found
+      found:
+        subscription:
+          id:
+            any: text
+          gateway:
+            id:
+              any: text
+      cancelled:
+        cancellation: 1
+      error:
+        cancellation: 0
+  update:
+    cancel:
+      model:
+        subscription: "@data.params.id"
+      cmds:
+        store: find_subscription
+    found:
+      model:
+        subscription: "@data.subscription"
+      cmds:
+        http: get_access_token
+    not_found:
+      cmds:
+        return: not_found
+    access_token:
+      model:
+        token: "@data.body.access_token"
+      cmds:
+        http: cancel_paypal_subscription
+    cancellation_confirmed:
+      cmds:
+        store: cancel_subscription
+    cancelled:
+      cmds:
+        return: created
+    error:
+      cmds:
+        return: not_found
+    cancellation_not_confirmed:
+      cmds:
+        return: not_found
+  encoders:
+    find_subscription:
+      store: "@store"
+      fetch:
+        identity: "@session.identity"
+        id: "@subscription"
+        cancelled: null
+      from: subscriptions
+      as: subscription
+    cancel_subscription:
+      store: "@store"
+      update:
+        cancelled:
+          now: {}
+      where:
+        id: "@subscription.id"
+      into: subscriptions
+      as: cancellation

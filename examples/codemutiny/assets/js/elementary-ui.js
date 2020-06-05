@@ -160,6 +160,9 @@ export default (name, settings, app) => {
         let { tag, attrs = {}, children = [] } = spec;
         var { err, value } = encode(attrs, ctx);
         if (err) return error(spec, attrs, err);
+        var { err, value: shouldDisplay } = encode(spec.when || true, ctx);
+        if (err) return error(spec, ctx, err);
+        if (!shouldDisplay) return { view: ['div'] };
         var { err, view } = compile(views, children, ctx);
         if (err) return error(spec, children, err);
         var attrs2 = attrsWithEvHandlers(value, ctx);

@@ -53,6 +53,13 @@ spec:
           status: 200
           body:
             any: list
+      cancelled:
+        cancellation:
+          status: 201
+      cancellation-error:
+        cancellation:
+          status:
+            other_than: 201
     ui:
       choose-plan:
         choose:
@@ -62,6 +69,9 @@ spec:
             any: text
           id:
             any: text
+      cancel-subscription:
+        cancel-subscription:
+          any: text
   update:
     show-subscriptions:
       model:
@@ -116,6 +126,23 @@ spec:
       model:
         subscription: "@data.subscription.body"
         view: plan-selection-confirm-view
+      cmds:
+        ui: member-layout-view
+    cancel-subscription:
+      model:
+        view: loading-view
+        subscription: "@data.cancel-subscription"
+      cmds:
+        ui: layout-view
+        http: cancel-subscription
+    cancelled:
+      model:
+        view: subscription-cancelled-view
+      cmds:
+        ui: member-layout-view
+    cancellation-error:
+      model:
+        view: subscription-not-cancelled-view
       cmds:
         ui: member-layout-view
   encoders:
@@ -294,7 +321,27 @@ spec:
         - view: dialog-view
           params:
             title: Success
-            message: Your subscription has been succesfully processed.
+            message: Your subscription has been successfully processed.
+            session: "@session"
+            actions:
+              - route: subscriptions
+    subscription-cancelled-view:
+      tag: div
+      children:
+        - view: dialog-view
+          params:
+            title: Success
+            message: Your subscription has been successfully cancelled.
+            session: "@session"
+            actions:
+              - route: subscriptions
+    subscription-not-cancelled-view:
+      tag: div
+      children:
+        - view: dialog-view
+          params:
+            title: Cancellation error 
+            message: There was an error while cancelling your subscription.
             session: "@session"
             actions:
               - route: subscriptions
@@ -305,7 +352,7 @@ spec:
     subscription-summary-view:
       tag: div
       children:
-        - "Your subscription to to plan "
+        - "Your subscription to plan "
         - tag: strong
           children:
             - "@plan.name"
@@ -339,6 +386,9 @@ spec:
                 - tag: th
                   children:
                     - Status
+                - tag: th
+                  children:
+                    - ""
         - tag: tbody
           children:
             loop: "@subscriptions"
@@ -372,6 +422,18 @@ spec:
                       cancelled: is-danger
                       pending: is-warning
                     default: ""
+        - tag: td
+          children:
+            - tag: button 
+              when:
+                not:
+                  has: "cancelled"
+              attrs:
+                class: button is-small is-danger is-light is-pulled-right
+                onclick:
+                  cancel-subscription: "@id"
+              children:
+                - "Cancel"
     get-plans:
       method: get
       path: /api/billing/plans
@@ -392,6 +454,13 @@ spec:
         authorization: "@session"
       body: "@subscription"
       as: subscription
+    cancel-subscription:
+      method: post
+      path: 
+        format: "/api/billing/subscriptions/{{ subscription }}/cancel"
+      headers:
+        authorization: "@session"
+      as: cancellation
     subscription-status:
       either:
         - when:
