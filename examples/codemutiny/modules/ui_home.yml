@@ -40,6 +40,13 @@ spec:
       attrs:
         class: container mx-auto flex flex-col px-5 py-24 justify-center items-center 
       children:
+        - view: citation-view
+          params:
+            quote: |
+              Tho others, who give an Account of their Voyages, do generally attempt 
+              to imitate the style and method which is us’d by Authors that write ashore, 
+              I rather choose to keep to the Language of the Sea, which is more genuine, and natural.
+            author: "Woodes Rogers"
         - view: hero-title-view
         - view: products-view
           params:
@@ -53,15 +60,7 @@ spec:
               - title: "Consulting"
                 description: "Have a new software project in mind, not sure where to start? Surely we can help"
                 icon: fas fa-hands-helping
-
         - view: social-login-view
-        - view: citation-view
-          params:
-            quote: |
-              Tho others, who give an Account of their Voyages, do generally attempt 
-              to imitate the style and method which is us’d by Authors that write ashore, 
-              I rather choose to keep to the Language of the Sea, which is more genuine, and natural.
-            author: "Woodes Rogers"
     member-layout-view:
       tag: div
       children:
@@ -115,14 +114,13 @@ spec:
       children:
         - tag: h1
           attrs:
-            class: title-font text-5xl mb-4 font-medium text-gray-400 tracking-wider
+            class: title-font text-5xl mb-4 font-medium text-gray-400 tracking-widest uppercase 
           children:
             - view: icon-view
               params:
-                margin: mx-2
-                size: text-5xl
+                margin: mx-4
+                size: text-5xl fa-3x
                 icon: fas fa-skull-crossbones
-            - "@title"
     title-view:
       tag: div
       attrs:
@@ -142,7 +140,7 @@ spec:
     social-login-view:
       tag: div
       attrs:
-        class: py-24 flex 
+        class: py-24 flex-col md:flex-row text-center
       children:
         - view: social-button-view
           params:
@@ -167,7 +165,7 @@ spec:
     social-button-view:
       tag: a
       attrs:
-        class: bg-gray-200 inline-flex mx-2 py-3 px-5 rounded-lg items-center hover:bg-gray-300 focus:outline-none
+        class: min-w-full md:min-w-0 bg-gray-200 inline-flex my-2 mx-2 py-3 px-5 rounded-lg hover:bg-gray-300 focus:outline-none text-center items-center
         href: "@url"
       children:
         - view: icon-view
@@ -211,7 +209,7 @@ spec:
       children:
         - tag: div
           attrs:
-            class: flex flex-wrap sm:-m-4 -mx-4 -mb-10 -mt-4
+            class: flex flex-col md:flex-row sm:-m-4 -mx-4 -mb-10 -mt-4
           children:
             loop: "@products"
             with: product-view
