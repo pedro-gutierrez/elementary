@@ -40,6 +40,7 @@ spec:
       attrs:
         class: container mx-auto flex flex-col px-5 py-24 justify-center items-center 
       children:
+        - view: hero-title-view
         - view: citation-view
           params:
             quote: |
@@ -47,7 +48,6 @@ spec:
               to imitate the style and method which is us’d by Authors that write ashore, 
               I rather choose to keep to the Language of the Sea, which is more genuine, and natural.
             author: "Woodes Rogers"
-        - view: hero-title-view
         - view: products-view
           params:
             products:
@@ -205,7 +205,7 @@ spec:
     products-view:
       tag: div
       attrs:
-        class: container px-5 mx-auto
+        class: container py-24 px-5 mx-auto
       children:
         - tag: div
           attrs:
