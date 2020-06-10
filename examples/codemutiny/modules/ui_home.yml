@@ -3,9 +3,25 @@ name: ui_home
 spec:
   init:
     model:
+      display-mode: dark 
       view: home-view
     cmds:
       router: {}
+  decoders:
+    ui:
+      switch-display-mode:
+        switch-display-mode: ""
+
+  update:
+    switch-display-mode:
+      model:
+        display-mode:
+          switch: "@model.display-mode"
+          case:
+            light: dark
+          default: light
+      cmds:
+        ui: {}
   encoders:
     layout-view:
       tag: div
@@ -13,9 +29,12 @@ spec:
         - view: header-view
           params:
             view: "@view"
+            display-mode: "@display-mode"
             nav:
               - route: home
-              - route: login 
+              - route: login
+              - content-view: display-mode-switcher-view
+                route: plop
         - view: "@view"
         - view: footer-view
     footer-view:
@@ -68,12 +87,16 @@ spec:
                 class: md:ml-auto flex flex-wrap items-center text-base justify-center
               children:
                 loop: "@nav"
-                with: header-link-view
+                with: header-nav-item-view
+    header-nav-item-view:
+      view:
+        maybe: "@content-view"
+        otherwise: header-link-view
     header-link-view:
       tag: a
       attrs:
         href: "#"
-        class: 
+        class:
           format: "mr-5 hover:text-gray-900{{ extra }}"
           params:
             extra:
@@ -89,10 +112,23 @@ spec:
             encoder: encode-route
       children:
         - capitalize: "@route"
+    display-mode-switcher-view:
+      tag: a
+      attrs:
+        href: "#"
+        onclick: switch-display-mode
+      children:
+        - view: icon-view
+          params:
+            icon:
+              switch: "@display-mode"
+              case:
+                dark: fas fa-sun
+              default: fas fa-moon
     home-view:
       tag: div
       attrs:
-        class: container mx-auto flex flex-col px-5 py-24 justify-center items-center 
+        class: container mx-auto flex flex-col px-5 py-24 justify-center items-center
       children:
         - view: hero-view
         - view: products-view
@@ -111,7 +147,7 @@ spec:
       tag: div
       children:
         - view: member-nav-view
-        - tag: section 
+        - tag: section
           attrs:
             class: section container
           children:
@@ -132,7 +168,7 @@ spec:
               children:
                 - tag: p
                   attrs:
-                    class: leading-relaxed text-4xl text-gray-300 
+                    class: leading-relaxed text-4xl text-gray-300
                   children:
                     - view: icon-view
                       params:
@@ -160,7 +196,7 @@ spec:
                       ##  children:
                       ##    - tag: h1
                       ##      attrs:
-                      ##        class: title-font text-5xl mb-4 font-medium text-gray-400 tracking-widest uppercase 
+                      ##        class: title-font text-5xl mb-4 font-medium text-gray-400 tracking-widest uppercase
                       ##      children:
                       ##        - view: icon-view
                       ##          params:
@@ -187,14 +223,14 @@ spec:
           children:
             - tag: h1
               attrs:
-                class: title-font text-4xl mb-4 font-medium text-gray-900
+                class: title-font text-5xl mb-4 font-medium text-gray-900
               children:
-                - Software that outlives technology
+                - Software that survives storms. Technology too.
             - view: citation-view
               params:
                 quote: |
-                  Tho others, who give an Account of their Voyages, do generally attempt 
-                  to imitate the style and method which is us’d by Authors that write ashore, 
+                  Tho others, who give an Account of their Voyages, do generally attempt
+                  to imitate the style and method which is us’d by Authors that write ashore,
                   I rather choose to keep to the Language of the Sea, which is more genuine, and natural.
                 author: "Woodes Rogers"
 
@@ -262,9 +298,9 @@ spec:
     icon-view:
       tag: i
       attrs:
-        title: 
+        title:
           maybe: "@title"
-        class: 
+        class:
           format: "{{ icon }} {{ margin }} {{ color }} {{ size }}"
     link-view:
       tag: a
@@ -275,7 +311,7 @@ spec:
     tag-view:
       tag: span
       attrs:
-        class: 
+        class:
           format: "tag is-light {{ style }}"
       children:
         - "@title"

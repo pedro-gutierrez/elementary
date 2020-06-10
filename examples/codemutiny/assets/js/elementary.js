@@ -155,8 +155,9 @@ export default (appUrl, appEffects, deps) => {
     }
 
     function encodeMaybe(spec, ctx) {
-        const { value } = encode(spec.maybe, ctx);
-        return { value };
+        const { err, value } = encode(spec.maybe, ctx);
+        if (!err || !spec.otherwise) return {value};
+        return encode(spec.otherwise, ctx);
     }
 
     function encodeMaybeWith(spec, ctx) {
