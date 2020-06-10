@@ -10,6 +10,12 @@ spec:
     layout-view:
       tag: div
       children:
+        - view: header-view
+          params:
+            view: "@view"
+            nav:
+              - route: home
+              - route: login 
         - view: "@view"
         - view: footer-view
     footer-view:
@@ -35,19 +41,60 @@ spec:
                         margin: mx-1
                         title: "Skull"
                     - "© 2020 Codemutiny"
+    header-view:
+      tag: header
+      attrs:
+        class: text-gray-700 body-font
+      children:
+        - tag: div
+          attrs:
+            class: container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center
+          children:
+            - tag: a
+              attrs:
+                class: flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0
+              children:
+                - view: icon-view
+                  params:
+                    size: text-xl
+                    icon: fa fa-skull-crossbones
+                - tag: span
+                  attrs:
+                    class: ml-3 text-xl
+                  children:
+                    - Codemutiny
+            - tag: nav
+              attrs:
+                class: md:ml-auto flex flex-wrap items-center text-base justify-center
+              children:
+                loop: "@nav"
+                with: header-link-view
+    header-link-view:
+      tag: a
+      attrs:
+        href: "#"
+        class: 
+          format: "mr-5 hover:text-gray-900{{ extra }}"
+          params:
+            extra:
+              either:
+                - when:
+                    equal:
+                      - "@view"
+                      - format: "{{ route }}-view"
+                  then: " items-center bg-gray-200 border-0 py-1 px-3 focus:outline-none hover:bg-gray-300 rounded text-base"
+                - ""
+        onclick:
+          navigate:
+            encoder: encode-route
+      children:
+        - capitalize: "@route"
     home-view:
       tag: div
       attrs:
         class: container mx-auto flex flex-col px-5 py-24 justify-center items-center 
       children:
-        - view: hero-title-view
-        - view: citation-view
-          params:
-            quote: |
-              Tho others, who give an Account of their Voyages, do generally attempt 
-              to imitate the style and method which is us’d by Authors that write ashore, 
-              I rather choose to keep to the Language of the Sea, which is more genuine, and natural.
-            author: "Woodes Rogers"
+        - view: hero-view
         - view: products-view
           params:
             products:
@@ -60,7 +107,6 @@ spec:
               - title: "Consulting"
                 description: "Have a new software project in mind, not sure where to start? Surely we can help"
                 icon: fas fa-hands-helping
-        - view: social-login-view
     member-layout-view:
       tag: div
       children:
@@ -78,7 +124,7 @@ spec:
       children:
         - tag: div
           attrs:
-            class: container px-5 py-24 mx-auto
+            class: container px-5 mx-auto
           children:
             - tag: div
               attrs:
@@ -107,20 +153,51 @@ spec:
                     class: text-gray-900 font-medium title-font tracking-wider text-sm
                   children:
                     - "@author"
-    hero-title-view:
-      tag: div
+                      ##hero-e-view:
+                      ##  tag: div
+                      ##  attrs:
+                      ##    class: w-full md:w-2/3 flex flex-col mb-16 items-center text-center
+                      ##  children:
+                      ##    - tag: h1
+                      ##      attrs:
+                      ##        class: title-font text-5xl mb-4 font-medium text-gray-400 tracking-widest uppercase 
+                      ##      children:
+                      ##        - view: icon-view
+                      ##          params:
+                      ##            margin: mx-4
+                      ##            size: text-5xl fa-3x
+                      ##            icon: fas fa-skull-crossbones
+    hero-view:
+      tag: section
       attrs:
-        class: w-full md:w-2/3 flex flex-col mb-16 items-center text-center
+        class: text-gray-700 body-font
       children:
-        - tag: h1
+        - tag: div
           attrs:
-            class: title-font text-5xl mb-4 font-medium text-gray-400 tracking-widest uppercase 
+            class: container mx-auto flex mb-10 px-5 items-center justify-center flex-col
           children:
             - view: icon-view
               params:
                 margin: mx-4
-                size: text-5xl fa-3x
+                size: fa-10x
                 icon: fas fa-skull-crossbones
+        - tag: div
+          attrs:
+            class: text-center w-full
+          children:
+            - tag: h1
+              attrs:
+                class: title-font text-4xl mb-4 font-medium text-gray-900
+              children:
+                - Software that outlives technology
+            - view: citation-view
+              params:
+                quote: |
+                  Tho others, who give an Account of their Voyages, do generally attempt 
+                  to imitate the style and method which is us’d by Authors that write ashore, 
+                  I rather choose to keep to the Language of the Sea, which is more genuine, and natural.
+                author: "Woodes Rogers"
+
     title-view:
       tag: div
       attrs:
