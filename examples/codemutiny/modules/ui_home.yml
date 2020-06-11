@@ -3,7 +3,7 @@ name: ui_home
 spec:
   init:
     model:
-      display-mode: dark 
+      display-mode: light 
       view: home-view
     cmds:
       router: {}
@@ -11,7 +11,6 @@ spec:
     ui:
       switch-display-mode:
         switch-display-mode: ""
-
   update:
     switch-display-mode:
       model:
@@ -25,6 +24,11 @@ spec:
   encoders:
     layout-view:
       tag: div
+      attrs:
+        class:
+          format: "{{ bg-color }}"
+          params:
+            encoder: theme-colors
       children:
         - view: header-view
           params:
@@ -60,10 +64,28 @@ spec:
                         margin: mx-1
                         title: "Skull"
                     - "© 2020 Codemutiny"
+    theme-colors:
+      switch: "@display-mode"
+      case:
+        dark:
+          fg-color: text-gray-500
+          bg-color: bg-gray-900
+          bg-color-active: bg-gray-800
+          bg-color-active-hover: bg-gray-700 
+          fg-hover: text-white
+        light:
+          fg-color: text-gray-700
+          fg-hover: text-gray-900
+          bg-color-active: bg-gray-200
+          bg-color-active-hover: bg-gray-300 
     header-view:
       tag: header
       attrs:
-        class: text-gray-700 body-font
+        #class: text-gray-700 body-font
+        class: 
+          format: "{{ fg-color }} {{ bg-color }} body-font"
+          params:
+            encoder: theme-colors
       children:
         - tag: div
           attrs:
@@ -71,7 +93,11 @@ spec:
           children:
             - tag: a
               attrs:
-                class: flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0
+                class: 
+                  format: "flex title-font font-medium items-center mb-4 md:mb-0 {{ fg-color }}"
+                  params:
+                    encoder: theme-colors
+
               children:
                 - view: icon-view
                   params:
@@ -97,16 +123,20 @@ spec:
       attrs:
         href: "#"
         class:
-          format: "mr-5 hover:text-gray-900{{ extra }}"
+          format: "mr-5 hover:{{ fg-hover }} {{ extra }} {{ bg-color-active }} hover:{{ bg-color-active-hover }}"
           params:
-            extra:
-              either:
-                - when:
-                    equal:
-                      - "@view"
-                      - format: "{{ route }}-view"
-                  then: " items-center bg-gray-200 border-0 py-1 px-3 focus:outline-none hover:bg-gray-300 rounded text-base"
-                - ""
+            merge:
+              - encoder: theme-colors
+              - choose: "@view"
+                when: 
+                  format: "{{ route }}-view"
+                then:
+                  fg-hover: none
+                  extra: "border-0 py-1 px-3 focus:outline-none rounded text-base"
+                otherwise:
+                  extra: ""
+                  bg-color-active: none
+                  bg-color-active-hover: none
         onclick:
           navigate:
             encoder: encode-route

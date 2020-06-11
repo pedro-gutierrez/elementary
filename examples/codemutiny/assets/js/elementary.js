@@ -799,6 +799,18 @@ export default (appUrl, appEffects, deps) => {
         return { value: clauseValue };
     }
 
+    function encodeChoose(spec, ctx) {
+        var {err, value : v1} = encode(spec.choose, ctx);
+        if (err) return error(spec.choose, ctx, err);
+        var {err, value: when} = encode(spec.when, ctx);
+        if (err) return error(spec.when, ctx, err);
+        if (when === v1) {
+            return encode(spec.then, ctx);
+        } else {
+            return encode(spec.otherwise, ctx);
+        }
+    }
+
     function encodePipeline(spec, ctx) {
         var specs = spec.pipeline;
         if (!Array.isArray(specs)) return error(spec, ctx, "not a list of specs");
@@ -993,6 +1005,7 @@ export default (appUrl, appEffects, deps) => {
                 if (Array.isArray(spec)) return encodeList(spec, ctx);
                 if (spec.object) return encodeObject(spec, ctx);
                 if (hasProp(spec, "switch")) return encodeSwitch(spec, ctx);
+                if (spec.choose) return encodeChoose(spec, ctx);
                 if (spec.format) return encodeFormat(spec, ctx);
                 if (spec.format_date) return encodeFormatDate(spec, ctx);
                 if (spec.timestamp) return encodeTimestamp(spec, ctx);
