@@ -26,7 +26,7 @@ spec:
       tag: div
       attrs:
         class:
-          format: "{{ bg-color }}"
+          format: "{{ bg-color }} {{ fg-color }}"
           params:
             encoder: theme-colors
       children:
@@ -44,11 +44,17 @@ spec:
     footer-view:
       tag: footer
       attrs:
-        class: text-gray-700 body-font
+        class:
+          format: "{{ fg-color }} {{ bg-color }} body-font"
+          params:
+            encoder: theme-colors
       children:
         - tag: div
           attrs:
-            class: bg-gray-200
+            class: 
+              format: "{{ bg-color-active }}"
+              params:
+                encoder: theme-colors
           children:
             - tag: div
               attrs:
@@ -69,12 +75,14 @@ spec:
       case:
         dark:
           fg-color: text-gray-500
+          fg-color-active: text-white
+          fg-hover: text-white
           bg-color: bg-gray-900
           bg-color-active: bg-gray-800
           bg-color-active-hover: bg-gray-700 
-          fg-hover: text-white
         light:
           fg-color: text-gray-700
+          fg-color-active: text-gray-900
           fg-hover: text-gray-900
           bg-color-active: bg-gray-200
           bg-color-active-hover: bg-gray-300 
@@ -163,6 +171,7 @@ spec:
         - view: hero-view
         - view: products-view
           params:
+            display-mode: "@display-mode"
             products:
               - title: "Full Pass"
                 description: "Don't look, simply find your last minute pass to your next favourite social event"
@@ -186,7 +195,7 @@ spec:
     citation-view:
       tag: section
       attrs:
-        class: text-gray-700 body-font
+        class: body-font
       children:
         - tag: div
           attrs:
@@ -198,7 +207,7 @@ spec:
               children:
                 - tag: p
                   attrs:
-                    class: leading-relaxed text-4xl text-gray-300
+                    class: leading-relaxed text-4xl
                   children:
                     - view: icon-view
                       params:
@@ -249,11 +258,14 @@ spec:
                 icon: fas fa-skull-crossbones
         - tag: div
           attrs:
-            class: text-center w-full
+            class: 
+              format: "text-center w-full {{ fg-color }}"
+              params:
+                encoder: theme-colors
           children:
             - tag: h1
               attrs:
-                class: title-font text-5xl mb-4 font-medium text-gray-900
+                class: title-font text-5xl mb-4 font-medium
               children:
                 - Software that survives storms. Technology too.
             - view: citation-view
@@ -356,6 +368,8 @@ spec:
           children:
             loop: "@products"
             with: product-view
+            params:
+              display-mode: "@display-mode"
     product-view:
       tag: div
       attrs:
@@ -363,7 +377,10 @@ spec:
       children:
         - tag: div
           attrs:
-            class: w-20 h-20 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 mb-5 flex-shrink-0
+            class: 
+              format: "w-20 h-20 inline-flex items-center justify-center rounded-full {{ bg-color-active }} text-indigo-500 mb-5 flex-shrink-0"
+              params:
+                encoder: theme-colors
           children:
             - view: icon-view
               params:
@@ -375,7 +392,10 @@ spec:
           children:
             - tag: h2
               attrs:
-                class: text-gray-900 text-lg title-font font-medium mb-3
+                class: 
+                  format: "{{ fg-color-active }} text-lg title-font font-medium mb-3"
+                  params:
+                    encoder: theme-colors
               children:
                 - "@title"
             - tag: p
