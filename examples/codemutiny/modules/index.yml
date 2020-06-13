@@ -7,6 +7,18 @@ spec:
         any: object
   update:
     index:
+      model:
+        let:
+          mode:
+            maybe: "@data.query.mode"
+            otherwise: light
+        in:
+          displayMode: "@mode"
+          bodyStyle:
+            switch: "@mode"
+            case:
+              dark: "text-gray-500 bg-gray-900"
+            default: "text-gray-700"
       cmds:
         return: index
   encoders:
@@ -35,9 +47,9 @@ spec:
                   import {default as http} from "/js/elementary-http.js";
                   import {default as router} from "/js/elementary-router.js";
                   import {default as app} from "/js/elementary.js";
-                  app("/js/app.js", {ui, events, http, router}, {Mustache, moment})
+                  app("/js/app.js", {ui, events, http, router}, {Mustache, moment}, {displayMode: "{{displayMode}}"})
                 </script>
               </head>
-              <body>
+              <body class="{{bodyStyle}}">
               </body>
             </html>

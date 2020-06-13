@@ -1,0 +1,18 @@
+kind: module
+name: ui_login
+spec:
+  decoders:
+    router:
+      show-login-page:
+        route: /login
+  update:
+    show-login-page:
+      model:
+        view: login-view
+      cmds:
+        ui: layout-view
+  encoders:
+    login-view:
+      tag: p
+      children:
+        - this is the login view

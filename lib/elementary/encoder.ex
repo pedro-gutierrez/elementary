@@ -80,6 +80,17 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"maybe" => path} = spec, context, encoders) do
+    case encode(path, context, encoders) do
+      {:ok, _} = res ->
+        res
+
+      {:error, _} ->
+        encode(spec["otherwise"] || "", context, encoders)
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"one_of" => exprs} = spec, context, encoders) when is_list(exprs) do
     Enum.reduce_while(exprs, false, fn expr, _ ->
       case encode(expr, context, encoders) do

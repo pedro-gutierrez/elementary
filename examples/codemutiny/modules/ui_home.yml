@@ -3,19 +3,18 @@ name: ui_home
 spec:
   init:
     model:
-      display-mode: light 
       view: home-view
     cmds:
       router: {}
   decoders:
     ui:
-      switch-display-mode:
-        switch-display-mode: ""
+      switch-displayMode:
+        switch-displayMode: ""
   update:
-    switch-display-mode:
+    switch-displayMode:
       model:
-        display-mode:
-          switch: "@model.display-mode"
+        displayMode:
+          switch: "@model.displayMode"
           case:
             light: dark
           default: light
@@ -33,11 +32,11 @@ spec:
         - view: header-view
           params:
             view: "@view"
-            display-mode: "@display-mode"
+            displayMode: "@displayMode"
             nav:
               - route: home
               - route: login
-              - content-view: display-mode-switcher-view
+              - content-view: displayMode-switcher-view
                 route: plop
         - view: "@view"
         - view: footer-view
@@ -51,7 +50,7 @@ spec:
       children:
         - tag: div
           attrs:
-            class: 
+            class:
               format: "{{ bg-color-active }}"
               params:
                 encoder: theme-colors
@@ -71,7 +70,7 @@ spec:
                         title: "Skull"
                     - "© 2020 Codemutiny"
     theme-colors:
-      switch: "@display-mode"
+      switch: "@displayMode"
       case:
         dark:
           fg-color: text-gray-500
@@ -79,18 +78,18 @@ spec:
           fg-hover: text-white
           bg-color: bg-gray-900
           bg-color-active: bg-gray-800
-          bg-color-active-hover: bg-gray-700 
+          bg-color-active-hover: bg-gray-700
         light:
           fg-color: text-gray-700
           fg-color-active: text-gray-900
           fg-hover: text-gray-900
           bg-color-active: bg-gray-200
-          bg-color-active-hover: bg-gray-300 
+          bg-color-active-hover: bg-gray-300
     header-view:
       tag: header
       attrs:
         #class: text-gray-700 body-font
-        class: 
+        class:
           format: "{{ fg-color }} {{ bg-color }} body-font"
           params:
             encoder: theme-colors
@@ -101,11 +100,10 @@ spec:
           children:
             - tag: a
               attrs:
-                class: 
+                class:
                   format: "flex title-font font-medium items-center mb-4 md:mb-0 {{ fg-color }}"
                   params:
                     encoder: theme-colors
-
               children:
                 - view: icon-view
                   params:
@@ -136,7 +134,7 @@ spec:
             merge:
               - encoder: theme-colors
               - choose: "@view"
-                when: 
+                when:
                   format: "{{ route }}-view"
                 then:
                   fg-hover: none
@@ -150,16 +148,22 @@ spec:
             encoder: encode-route
       children:
         - capitalize: "@route"
-    display-mode-switcher-view:
+    displayMode-switcher-view:
       tag: a
       attrs:
-        href: "#"
-        onclick: switch-display-mode
+        href: 
+          format: "/?mode={{ mode }}"
+          params:
+            mode:
+              switch: "@displayMode"
+              case:
+                dark: light
+              default: dark
       children:
         - view: icon-view
           params:
             icon:
-              switch: "@display-mode"
+              switch: "@displayMode"
               case:
                 dark: fas fa-sun
               default: fas fa-moon
@@ -171,7 +175,7 @@ spec:
         - view: hero-view
         - view: products-view
           params:
-            display-mode: "@display-mode"
+            displayMode: "@displayMode"
             products:
               - title: "Full Pass"
                 description: "Don't look, simply find your last minute pass to your next favourite social event"
@@ -258,7 +262,7 @@ spec:
                 icon: fas fa-skull-crossbones
         - tag: div
           attrs:
-            class: 
+            class:
               format: "text-center w-full {{ fg-color }}"
               params:
                 encoder: theme-colors
@@ -369,7 +373,7 @@ spec:
             loop: "@products"
             with: product-view
             params:
-              display-mode: "@display-mode"
+              displayMode: "@displayMode"
     product-view:
       tag: div
       attrs:
@@ -377,7 +381,7 @@ spec:
       children:
         - tag: div
           attrs:
-            class: 
+            class:
               format: "w-20 h-20 inline-flex items-center justify-center rounded-full {{ bg-color-active }} text-indigo-500 mb-5 flex-shrink-0"
               params:
                 encoder: theme-colors
@@ -392,7 +396,7 @@ spec:
           children:
             - tag: h2
               attrs:
-                class: 
+                class:
                   format: "{{ fg-color-active }} text-lg title-font font-medium mb-3"
                   params:
                     encoder: theme-colors

@@ -7,6 +7,7 @@ spec:
   modules:
     - ui_router
     - ui_home
+    - ui_login
     - ui_welcome
     - ui_billing
     - ui_common

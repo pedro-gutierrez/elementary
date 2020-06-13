@@ -1,4 +1,4 @@
-export default (appUrl, appEffects, deps) => {
+export default (appUrl, appEffects, deps, initialState) => {
 
     var {Mustache, moment} = deps;
 
@@ -1598,8 +1598,8 @@ export default (appUrl, appEffects, deps) => {
 
     function init(app) {
         const { init } = app;
-        const { model, cmds } = init;
-
+        var { model, cmds } = init;
+        model = Object.assign(initialState, model);
         const t0 = new Date();
         const { err, value } = encodeModelWithDefault(model, {}, withSettings({}))
         if (err) {
