@@ -8,10 +8,10 @@ spec:
       router: {}
   decoders:
     ui:
-      switch-displayMode:
-        switch-displayMode: ""
+      switch-display-mode:
+        switch-display-mode: ""
   update:
-    switch-displayMode:
+    switch-display-mode:
       model:
         displayMode:
           switch: "@model.displayMode"
@@ -36,7 +36,7 @@ spec:
             nav:
               - route: home
               - route: login
-              - content-view: displayMode-switcher-view
+              - content-view: display-mode-switcher-view
                 route: plop
         - view: "@view"
         - view: footer-view
@@ -148,7 +148,7 @@ spec:
             encoder: encode-route
       children:
         - capitalize: "@route"
-    displayMode-switcher-view:
+    display-mode-switcher-view:
       tag: a
       attrs:
         href: 
@@ -296,51 +296,6 @@ spec:
         class: content
       children:
         - view: "@content-view"
-    social-login-view:
-      tag: div
-      attrs:
-        class: py-24 flex-col md:flex-row text-center
-      children:
-        - view: social-button-view
-          params:
-            url: /api/google/session
-            title: Start with Google
-            icon: fab fa-google
-        - view: social-button-view
-          params:
-            url: /api/github/session
-            title: Start with Github
-            icon: fab fa-github
-        - view: social-button-view
-          params:
-            url: /api/facebook/session
-            title: Start with Facebook
-            icon: fab fa-facebook-square
-        - view: social-button-view
-          params:
-            url: /api/linkedin/session
-            title: Start with LinkedIn
-            icon: fab fa-linkedin-in
-    social-button-view:
-      tag: a
-      attrs:
-        class: min-w-full md:min-w-0 bg-gray-200 inline-flex my-2 mx-2 py-3 px-5 rounded-lg hover:bg-gray-300 focus:outline-none text-center items-center
-        href: "@url"
-      children:
-        - view: icon-view
-          params:
-            icon: "@icon"
-            size: text-2xl
-            color: text-gray-600
-        - tag: span
-          attrs:
-            class: ml-4 flex items-start flex-col leading-none
-          children:
-            - tag: span
-              attrs:
-                class: text-gray-600 mb-1
-              children:
-                - "@title"
     icon-view:
       tag: i
       attrs:
