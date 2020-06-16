@@ -52,6 +52,74 @@ spec:
         - tag: div
           attrs:
             class:
+              format: "border-t {{ section-border-color }}"
+              params:
+                encoder: theme-colors
+          children:
+            - tag: div
+              attrs:
+                class: container px-5 py-8 flex flex-wrap mx-auto items-center
+              children:
+                - tag: div
+                  attrs:
+                    class: flex md:flex-no-wrap flex-wrap justify-center md:justify-start
+                  children:
+                    - tag: input
+                      attrs:
+                        class:
+                          format: "sm:w-64 w-40 {{ input-bg-color }} rounded sm:mr-4 mr-2 border {{ input-border-color }} {{ input-fg-color }} focus:outline-none focus:border-{{ theme }}-500 text-base py-2 px-4"
+                          params:
+                            merge:
+                              - theme: "@theme"
+                              - encoder: theme-colors
+                        placeholder: Enter your email
+                        type: text
+                      children: []
+                    - tag: button
+                      attrs:
+                        class:
+                          format: "inline-flex text-white bg-{{ theme }}-500 border-0 py-2 px-6 focus:outline-none hover:bg-{{ theme }}-600 rounded"
+                      children:
+                        - Susbcribe
+                    - tag: p
+                      attrs:
+                        class: text-gray-600 text-sm md:ml-6 md:mt-0 mt-2 text-center sm:text-left
+                      children:
+                        - Get notified about updates, new features and promotions
+                - tag: span
+                  attrs:
+                    class: inline-flex lg:ml-auto lg:mt-0 mt-6 w-full justify-center md:justify-start md:w-auto
+                  children:
+                    - tag: a
+                      attrs:
+                        href: "https://www.facebook.com"
+                        class: text-gray-600 mx-1
+                      children:
+                        - view: icon-view
+                          params:
+                            icon: fab fa-facebook-f
+                    - tag: a
+                      attrs:
+                        href: "https://www.twitter.com"
+                        class: text-gray-600 mx-1
+                      children:
+                        - view: icon-view
+                          params:
+                            icon: fab fa-twitter
+                    - tag: a
+                      attrs:
+                        href: "https://www.linkedin.com"
+                        class: text-gray-600 mx-1
+                      children:
+                        - view: icon-view
+                          params:
+                            icon: fab fa-linkedin-in
+
+
+
+        - tag: div
+          attrs:
+            class:
               format: "{{ bg-color-active }}"
               params:
                 encoder: theme-colors
@@ -80,12 +148,20 @@ spec:
           bg-color: bg-gray-900
           bg-color-active: bg-gray-800
           bg-color-active-hover: bg-gray-700
+          input-bg-color: bg-gray-800
+          input-border-color: border-gray-700
+          input-fg-color: text-white
+          section-border-color: border-gray-800
         light:
           fg-color: text-gray-700
           fg-color-active: text-gray-900
           fg-hover: text-gray-900
           bg-color-active: bg-gray-200
           bg-color-active-hover: bg-gray-300
+          input-bg-color: bg-gray-100
+          input-border-color: border-gray-400
+          input-fg-color: ""
+          section-border-color: border-gray-200
     header-view:
       tag: header
       attrs:
@@ -185,7 +261,7 @@ spec:
     theme-switcher-button-view:
       tag: a
       attrs:
-        href: 
+        href:
           format: "/?theme={{ theme }}&mode={{ displayMode }}"
         class: mx-1
       children:
@@ -253,7 +329,7 @@ spec:
                     - "@quote"
                 - tag: span
                   attrs:
-                    class: 
+                    class:
                       format: "inline-block h-1 w-10 rounded bg-{{ theme }}-500 mt-8 mb-6"
                   children: []
                 - tag: h2
@@ -403,7 +479,7 @@ spec:
                 - "@description"
             - tag: a
               attrs:
-                class: 
+                class:
                   format: "mt-3 text-{{ theme }}-500 inline-flex items-center"
               children:
                 - Learn More
