@@ -11,10 +11,10 @@ spec:
         let:
           mode:
             maybe: "@data.query.mode"
-            otherwise: light
+            otherwise: dark
           theme:
             maybe: "@data.query.theme"
-            otherwise: purple
+            otherwise: pink 
         in:
           displayMode: "@mode"
           theme: "@theme"
