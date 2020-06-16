@@ -334,23 +334,12 @@ spec:
                   children: []
                 - tag: h2
                   attrs:
-                    class: text-gray-900 font-medium title-font tracking-wider text-sm
+                    class: 
+                      format: "{{ fg-color-active }} font-medium title-font tracking-wider text-sm"
+                      params:
+                        encoder: theme-colors
                   children:
                     - "@author"
-                      ##hero-e-view:
-                      ##  tag: div
-                      ##  attrs:
-                      ##    class: w-full md:w-2/3 flex flex-col mb-16 items-center text-center
-                      ##  children:
-                      ##    - tag: h1
-                      ##      attrs:
-                      ##        class: title-font text-5xl mb-4 font-medium text-gray-400 tracking-widest uppercase
-                      ##      children:
-                      ##        - view: icon-view
-                      ##          params:
-                      ##            margin: mx-4
-                      ##            size: text-5xl fa-3x
-                      ##            icon: fas fa-skull-crossbones
     hero-view:
       tag: section
       attrs:
@@ -380,28 +369,13 @@ spec:
             - view: citation-view
               params:
                 theme: "@theme"
+                displayMode: "@displayMode"
                 quote: |
                   Tho others, who give an Account of their Voyages, do generally attempt
                   to imitate the style and method which is us’d by Authors that write ashore,
                   I rather choose to keep to the Language of the Sea, which is more genuine, and natural.
                 author: "Woodes Rogers"
 
-    title-view:
-      tag: div
-      attrs:
-        class: w-full md:w-2/3 flex flex-col mb-16 items-center text-center
-      children:
-        - tag: h1
-          attrs:
-            class: title-font sm:text-4xl text-3xl mb-4 font-medium text-gray-900
-          children:
-            - "@title"
-    subtitle-view:
-      tag: h2
-      attrs:
-        class: content
-      children:
-        - view: "@content-view"
     icon-view:
       tag: i
       attrs:
