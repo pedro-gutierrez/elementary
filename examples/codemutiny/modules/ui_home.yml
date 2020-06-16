@@ -33,6 +33,7 @@ spec:
           params:
             view: "@view"
             displayMode: "@displayMode"
+            theme: "@theme"
             nav:
               - route: home
               - route: login
@@ -152,8 +153,9 @@ spec:
       attrs:
         class: mx-1
         href:
-          format: "/?mode={{ mode }}"
+          format: "/?mode={{ mode }}&theme={{ theme}}"
           params:
+            theme: "@theme"
             mode:
               switch: "@displayMode"
               case:
@@ -173,15 +175,18 @@ spec:
         class: switcher
       children:
         loop:
+          - theme: indigo
+          - theme: orange
           - theme: red
           - theme: teal
+          - theme: pink
           - theme: purple
         with: theme-switcher-button-view
     theme-switcher-button-view:
       tag: a
       attrs:
         href: 
-          format: "/?theme={{ theme }}"
+          format: "/?theme={{ theme }}&mode={{ displayMode }}"
         class: mx-1
       children:
         - view: icon-view
@@ -197,10 +202,11 @@ spec:
         - view: hero-view
         - view: products-view
           params:
+            theme: "@theme"
             displayMode: "@displayMode"
             products:
               - title: "Full Pass"
-                description: "Don't look, simply find your last minute pass to your next favourite social event"
+                description: "Your last minute pass to your next favourite social event"
                 icon: fas fa-ticket-alt
               - title: "Cloud"
                 description: "Relax, and let us run your APIs, rock solid, on the BEAM"
@@ -247,7 +253,8 @@ spec:
                     - "@quote"
                 - tag: span
                   attrs:
-                    class: inline-block h-1 w-10 rounded bg-indigo-500 mt-8 mb-6
+                    class: 
+                      format: "inline-block h-1 w-10 rounded bg-{{ theme }}-500 mt-8 mb-6"
                   children: []
                 - tag: h2
                   attrs:
@@ -296,6 +303,7 @@ spec:
                 - Software that survives storms. Technology too.
             - view: citation-view
               params:
+                theme: "@theme"
                 quote: |
                   Tho others, who give an Account of their Voyages, do generally attempt
                   to imitate the style and method which is us’d by Authors that write ashore,
@@ -350,6 +358,7 @@ spec:
             loop: "@products"
             with: product-view
             params:
+              theme: "@theme"
               displayMode: "@displayMode"
     product-view:
       tag: div
@@ -359,9 +368,17 @@ spec:
         - tag: div
           attrs:
             class:
-              format: "w-20 h-20 inline-flex items-center justify-center rounded-full {{ bg-color-active }} text-indigo-500 mb-5 flex-shrink-0"
+              format: "w-20 h-20 inline-flex items-center justify-center rounded-full bg-{{ background}} text-{{ theme }}-500 mb-5 flex-shrink-0"
               params:
-                encoder: theme-colors
+                merge:
+                  - theme: "@theme"
+                  - encoder: theme-colors
+                  - background:
+                      switch: "@displayMode"
+                      case:
+                        dark: gray-800
+                      default:
+                        format: "{{ theme }}-100"
           children:
             - view: icon-view
               params:
@@ -386,6 +403,7 @@ spec:
                 - "@description"
             - tag: a
               attrs:
-                class: mt-3 text-indigo-500 inline-flex items-center
+                class: 
+                  format: "mt-3 text-{{ theme }}-500 inline-flex items-center"
               children:
                 - Learn More
