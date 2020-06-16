@@ -25,7 +25,7 @@ spec:
               children:
                 - tag: h1
                   attrs:
-                    class: 
+                    class:
                       format: "sm:text-3xl text-2xl font-medium title-font mb-4 {{ fg-color-active }}"
                       params:
                         encoder: theme-colors
@@ -35,7 +35,7 @@ spec:
                   attrs:
                     class: mx-auto leading-relaxed text-base
                   children:
-                    - We only collect the information you choose to give us, and we process it with your consent. We only require the minimum amount of personal information that is necessary to fulfill the purpose of your interaction with us. We don't sell it to third parties. 
+                    - We only collect the information you choose to give us, and we process it with your consent. We only require the minimum amount of personal information that is necessary to fulfill the purpose of your interaction with us. We don't sell it to third parties.
             - view: social-login-buttons-view
               params:
                 displayMode: "@displayMode"
@@ -73,7 +73,7 @@ spec:
             - tag: a
               attrs:
                 href: "@url"
-                class: 
+                class:
                   format: "px-8 py-10 relative z-10 w-full rounded text-center {{ bg-color-active }} hover:{{ bg-color-active-hover }}"
                   params:
                     encoder: theme-colors

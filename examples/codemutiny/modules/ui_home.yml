@@ -36,8 +36,8 @@ spec:
             nav:
               - route: home
               - route: login
+              - content-view: theme-switcher-view
               - content-view: display-mode-switcher-view
-                route: plop
         - view: "@view"
         - view: footer-view
     footer-view:
@@ -88,7 +88,6 @@ spec:
     header-view:
       tag: header
       attrs:
-        #class: text-gray-700 body-font
         class:
           format: "{{ fg-color }} {{ bg-color }} body-font"
           params:
@@ -151,7 +150,8 @@ spec:
     display-mode-switcher-view:
       tag: a
       attrs:
-        href: 
+        class: mx-1
+        href:
           format: "/?mode={{ mode }}"
           params:
             mode:
@@ -167,6 +167,28 @@ spec:
               case:
                 dark: fas fa-sun
               default: fas fa-moon
+    theme-switcher-view:
+      tag: div
+      attrs:
+        class: switcher
+      children:
+        loop:
+          - theme: red
+          - theme: teal
+          - theme: purple
+        with: theme-switcher-button-view
+    theme-switcher-button-view:
+      tag: a
+      attrs:
+        href: 
+          format: "/?theme={{ theme }}"
+        class: mx-1
+      children:
+        - view: icon-view
+          params:
+            color:
+              format: "text-{{ theme }}-500"
+            icon: fas fa-circle
     home-view:
       tag: div
       attrs:

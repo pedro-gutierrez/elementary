@@ -12,8 +12,12 @@ spec:
           mode:
             maybe: "@data.query.mode"
             otherwise: light
+          theme:
+            maybe: "@data.query.theme"
+            otherwise: purple
         in:
           displayMode: "@mode"
+          theme: "@theme"
           bodyStyle:
             switch: "@mode"
             case:
@@ -47,7 +51,10 @@ spec:
                   import {default as http} from "/js/elementary-http.js";
                   import {default as router} from "/js/elementary-router.js";
                   import {default as app} from "/js/elementary.js";
-                  app("/js/app.js", {ui, events, http, router}, {Mustache, moment}, {displayMode: "{{displayMode}}"})
+                  app("/js/app.js", {ui, events, http, router}, {Mustache, moment}, {
+                    displayMode: "{{displayMode}}", 
+                    theme: "{{theme}}"
+                  })
                 </script>
               </head>
               <body class="{{bodyStyle}}">
