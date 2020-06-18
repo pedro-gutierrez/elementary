@@ -127,7 +127,7 @@ export default (name, settings, app) => {
         if (!value) return { view: ['div'] };
         var { err, value } = encode(spec.params || "@", ctx);
         if (err) return error(spec, ctx, err);
-        return compile(views, view, value);
+        return compile(views, view, Object.assign({}, ctx, value));
     }
 
     function attrsWithEvHandlers(attrs, ctx) {

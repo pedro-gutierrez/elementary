@@ -14,9 +14,43 @@ spec:
         ui: layout-view
   encoders:
     loading-view:
-      tag: div
+      view: hero-view
+      params:
+        title: Loading
+        icon: fas fa-hourglass-start
+    hero-view:
+      tag: section
+      attrs:
+        class: text-gray-700 body-font
       children:
-        - "Loading..."
+        - tag: div
+          attrs:
+            class: container mx-auto flex mb-10 px-5 items-center justify-center flex-col
+          children:
+            - view: icon-view
+              params:
+                margin: mx-4
+                size: fa-10x
+                icon: "@icon"
+        - tag: div
+          attrs:
+            class:
+              format: "text-center w-full {{ fg-color }}"
+              params:
+                encoder: theme-colors
+          children:
+            - tag: h1
+              attrs:
+                class: title-font text-5xl mb-4 font-medium
+              children:
+                - "@title"
+    icon-view:
+      tag: i
+      attrs:
+        title:
+          maybe: "@title"
+        class:
+          format: "{{ icon }} {{ margin }} {{ color }} {{ size }}"
     not-found-view:
       tag: div
       children:

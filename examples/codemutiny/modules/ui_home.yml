@@ -21,6 +21,19 @@ spec:
       cmds:
         ui: {}
   encoders:
+    empty-layout-view:
+      tag: div
+      attrs:
+        class:
+          format: "{{ bg-color }} {{ fg-color }}"
+          params:
+            encoder: theme-colors
+      children:
+        - tag: div
+          attrs:
+            class: container mx-auto flex flex-col px-5 py-24 justify-center items-center
+          children: 
+             - view: "@view"
     layout-view:
       tag: div
       attrs:
@@ -32,14 +45,16 @@ spec:
         - view: header-view
           params:
             view: "@view"
-            displayMode: "@displayMode"
-            theme: "@theme"
             nav:
               - route: home
               - route: login
               - content-view: theme-switcher-view
               - content-view: display-mode-switcher-view
-        - view: "@view"
+        - tag: div
+          attrs:
+            class: container mx-auto flex flex-col px-5 py-24 justify-center items-center
+          children: 
+             - view: "@view"
         - view: footer-view
     footer-view:
       tag: footer
@@ -272,14 +287,21 @@ spec:
             icon: fas fa-circle
     home-view:
       tag: div
-      attrs:
-        class: container mx-auto flex flex-col px-5 py-24 justify-center items-center
       children:
         - view: hero-view
+          params:
+            icon: fas fa-skull-crossbones
+            title: |
+              Software that survives storms. Technology too
+        - view: citation-view
+          params:
+            quote: |
+              Tho others, who give an Account of their Voyages, do generally attempt
+              to imitate the style and method which is us’d by Authors that write ashore,
+              I rather choose to keep to the Language of the Sea, which is more genuine, and natural.
+            author: "Woodes Rogers"
         - view: products-view
           params:
-            theme: "@theme"
-            displayMode: "@displayMode"
             products:
               - title: "Full Pass"
                 description: "Your last minute pass to your next favourite social event"
@@ -340,49 +362,6 @@ spec:
                         encoder: theme-colors
                   children:
                     - "@author"
-    hero-view:
-      tag: section
-      attrs:
-        class: text-gray-700 body-font
-      children:
-        - tag: div
-          attrs:
-            class: container mx-auto flex mb-10 px-5 items-center justify-center flex-col
-          children:
-            - view: icon-view
-              params:
-                margin: mx-4
-                size: fa-10x
-                icon: fas fa-skull-crossbones
-        - tag: div
-          attrs:
-            class:
-              format: "text-center w-full {{ fg-color }}"
-              params:
-                encoder: theme-colors
-          children:
-            - tag: h1
-              attrs:
-                class: title-font text-5xl mb-4 font-medium
-              children:
-                - Software that survives storms. Technology too.
-            - view: citation-view
-              params:
-                theme: "@theme"
-                displayMode: "@displayMode"
-                quote: |
-                  Tho others, who give an Account of their Voyages, do generally attempt
-                  to imitate the style and method which is us’d by Authors that write ashore,
-                  I rather choose to keep to the Language of the Sea, which is more genuine, and natural.
-                author: "Woodes Rogers"
-
-    icon-view:
-      tag: i
-      attrs:
-        title:
-          maybe: "@title"
-        class:
-          format: "{{ icon }} {{ margin }} {{ color }} {{ size }}"
     link-view:
       tag: a
       attrs:
@@ -407,9 +386,6 @@ spec:
           children:
             loop: "@products"
             with: product-view
-            params:
-              theme: "@theme"
-              displayMode: "@displayMode"
     product-view:
       tag: div
       attrs:

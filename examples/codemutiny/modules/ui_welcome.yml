@@ -30,8 +30,8 @@ spec:
         onProfile:
           ui: member-layout-view
       cmds:
-        http: get-profile
-        ui: layout-view
+        #        http: get-profile
+        ui: empty-layout-view
     unauthorized:
       model:
         session: ""
