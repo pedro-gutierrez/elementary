@@ -10,7 +10,7 @@ spec:
       model:
         view: login-view
       cmds:
-        ui: layout-view
+        ui: public-layout-view
   encoders:
     login-view:
       tag: section

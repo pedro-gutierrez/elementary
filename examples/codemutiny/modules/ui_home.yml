@@ -21,270 +21,72 @@ spec:
       cmds:
         ui: {}
   encoders:
-    empty-layout-view:
+    mailing-list-form-view:
       tag: div
       attrs:
         class:
-          format: "{{ bg-color }} {{ fg-color }}"
+          format: "border-t {{ section-border-color }}"
           params:
             encoder: theme-colors
       children:
         - tag: div
           attrs:
-            class: container mx-auto flex flex-col px-5 py-24 justify-center items-center
-          children: 
-             - view: "@view"
-    layout-view:
-      tag: div
-      attrs:
-        class:
-          format: "{{ bg-color }} {{ fg-color }}"
-          params:
-            encoder: theme-colors
-      children:
-        - view: header-view
-          params:
-            view: "@view"
-            nav:
-              - route: home
-              - route: login
-              - content-view: theme-switcher-view
-              - content-view: display-mode-switcher-view
-        - tag: div
-          attrs:
-            class: container mx-auto flex flex-col px-5 py-24 justify-center items-center
-          children: 
-             - view: "@view"
-        - view: footer-view
-    footer-view:
-      tag: footer
-      attrs:
-        class:
-          format: "{{ fg-color }} {{ bg-color }} body-font"
-          params:
-            encoder: theme-colors
-      children:
-        - tag: div
-          attrs:
-            class:
-              format: "border-t {{ section-border-color }}"
-              params:
-                encoder: theme-colors
+            class: container px-5 py-8 flex flex-wrap mx-auto items-center
           children:
             - tag: div
               attrs:
-                class: container px-5 py-8 flex flex-wrap mx-auto items-center
+                class: flex md:flex-no-wrap flex-wrap justify-center md:justify-start
               children:
-                - tag: div
+                - tag: input
                   attrs:
-                    class: flex md:flex-no-wrap flex-wrap justify-center md:justify-start
-                  children:
-                    - tag: input
-                      attrs:
-                        class:
-                          format: "sm:w-64 w-40 {{ input-bg-color }} rounded sm:mr-4 mr-2 border {{ input-border-color }} {{ input-fg-color }} focus:outline-none focus:border-{{ theme }}-500 text-base py-2 px-4"
-                          params:
-                            merge:
-                              - theme: "@theme"
-                              - encoder: theme-colors
-                        placeholder: Enter your email
-                        type: text
-                      children: []
-                    - tag: button
-                      attrs:
-                        class:
-                          format: "inline-flex text-white bg-{{ theme }}-500 border-0 py-2 px-6 focus:outline-none hover:bg-{{ theme }}-600 rounded"
-                      children:
-                        - Susbcribe
-                    - tag: p
-                      attrs:
-                        class: text-gray-600 text-sm md:ml-6 md:mt-0 mt-2 text-center sm:text-left
-                      children:
-                        - Get notified about updates, new features and promotions
-                - tag: span
+                    class:
+                      format: "sm:w-64 w-40 {{ input-bg-color }} rounded sm:mr-4 mr-2 border {{ input-border-color }} {{ input-fg-color }} focus:outline-none focus:border-{{ theme }}-500 text-base py-2 px-4"
+                      params:
+                        merge:
+                          - theme: "@theme"
+                          - encoder: theme-colors
+                    placeholder: Enter your email
+                    type: text
+                  children: []
+                - tag: button
                   attrs:
-                    class: inline-flex lg:ml-auto lg:mt-0 mt-6 w-full justify-center md:justify-start md:w-auto
+                    class:
+                      format: "inline-flex text-white bg-{{ theme }}-500 border-0 py-2 px-6 focus:outline-none hover:bg-{{ theme }}-600 rounded"
                   children:
-                    - tag: a
-                      attrs:
-                        href: "https://www.facebook.com"
-                        class: text-gray-600 mx-1
-                      children:
-                        - view: icon-view
-                          params:
-                            icon: fab fa-facebook-f
-                    - tag: a
-                      attrs:
-                        href: "https://www.twitter.com"
-                        class: text-gray-600 mx-1
-                      children:
-                        - view: icon-view
-                          params:
-                            icon: fab fa-twitter
-                    - tag: a
-                      attrs:
-                        href: "https://www.linkedin.com"
-                        class: text-gray-600 mx-1
-                      children:
-                        - view: icon-view
-                          params:
-                            icon: fab fa-linkedin-in
-
-
-
-        - tag: div
-          attrs:
-            class:
-              format: "{{ bg-color-active }}"
-              params:
-                encoder: theme-colors
-          children:
-            - tag: div
-              attrs:
-                class: container mx-auto py-4 px-5 flex flex-wrap flex-col sm:flex-row
-              children:
+                    - Susbcribe
                 - tag: p
                   attrs:
-                    class: text-gray-500 text-sm text-center sm:text-left
+                    class: text-gray-600 text-sm md:ml-6 md:mt-0 mt-2 text-center sm:text-left
+                  children:
+                    - Get notified about updates, new features and promotions
+            - tag: span
+              attrs:
+                class: inline-flex lg:ml-auto lg:mt-0 mt-6 w-full justify-center md:justify-start md:w-auto
+              children:
+                - tag: a
+                  attrs:
+                    href: "https://www.facebook.com"
+                    class: text-gray-600 mx-1
                   children:
                     - view: icon-view
                       params:
-                        icon: fa fa-skull-crossbones
-                        margin: mx-1
-                        title: "Skull"
-                    - "© 2020 Codemutiny"
-    theme-colors:
-      switch: "@displayMode"
-      case:
-        dark:
-          fg-color: text-gray-500
-          fg-color-active: text-white
-          fg-hover: text-white
-          bg-color: bg-gray-900
-          bg-color-active: bg-gray-800
-          bg-color-active-hover: bg-gray-700
-          input-bg-color: bg-gray-800
-          input-border-color: border-gray-700
-          input-fg-color: text-white
-          section-border-color: border-gray-800
-        light:
-          fg-color: text-gray-700
-          fg-color-active: text-gray-900
-          fg-hover: text-gray-900
-          bg-color-active: bg-gray-200
-          bg-color-active-hover: bg-gray-300
-          input-bg-color: bg-gray-100
-          input-border-color: border-gray-400
-          input-fg-color: ""
-          section-border-color: border-gray-200
-    header-view:
-      tag: header
-      attrs:
-        class:
-          format: "{{ fg-color }} {{ bg-color }} body-font"
-          params:
-            encoder: theme-colors
-      children:
-        - tag: div
-          attrs:
-            class: container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center
-          children:
-            - tag: a
-              attrs:
-                class:
-                  format: "flex title-font font-medium items-center mb-4 md:mb-0 {{ fg-color }}"
-                  params:
-                    encoder: theme-colors
-              children:
-                - view: icon-view
-                  params:
-                    size: text-xl
-                    icon: fa fa-skull-crossbones
-                - tag: span
+                        icon: fab fa-facebook-f
+                - tag: a
                   attrs:
-                    class: ml-3 text-xl
+                    href: "https://www.twitter.com"
+                    class: text-gray-600 mx-1
                   children:
-                    - Codemutiny
-            - tag: nav
-              attrs:
-                class: md:ml-auto flex flex-wrap items-center text-base justify-center
-              children:
-                loop: "@nav"
-                with: header-nav-item-view
-    header-nav-item-view:
-      view:
-        maybe: "@content-view"
-        otherwise: header-link-view
-    header-link-view:
-      tag: a
-      attrs:
-        href: "#"
-        class:
-          format: "mr-5 hover:{{ fg-hover }} {{ extra }} {{ bg-color-active }} hover:{{ bg-color-active-hover }}"
-          params:
-            merge:
-              - encoder: theme-colors
-              - choose: "@view"
-                when:
-                  format: "{{ route }}-view"
-                then:
-                  fg-hover: none
-                  extra: "border-0 py-1 px-3 focus:outline-none rounded text-base"
-                otherwise:
-                  extra: ""
-                  bg-color-active: none
-                  bg-color-active-hover: none
-        onclick:
-          navigate:
-            encoder: encode-route
-      children:
-        - capitalize: "@route"
-    display-mode-switcher-view:
-      tag: a
-      attrs:
-        class: mx-1
-        href:
-          format: "/?mode={{ mode }}&theme={{ theme}}"
-          params:
-            theme: "@theme"
-            mode:
-              switch: "@displayMode"
-              case:
-                dark: light
-              default: dark
-      children:
-        - view: icon-view
-          params:
-            icon:
-              switch: "@displayMode"
-              case:
-                dark: fas fa-sun
-              default: fas fa-moon
-    theme-switcher-view:
-      tag: div
-      attrs:
-        class: switcher
-      children:
-        loop:
-          - theme: indigo
-          - theme: orange
-          - theme: red
-          - theme: teal
-          - theme: pink
-          - theme: purple
-        with: theme-switcher-button-view
-    theme-switcher-button-view:
-      tag: a
-      attrs:
-        href:
-          format: "/?theme={{ theme }}&mode={{ displayMode }}"
-        class: mx-1
-      children:
-        - view: icon-view
-          params:
-            color:
-              format: "text-{{ theme }}-500"
-            icon: fas fa-circle
+                    - view: icon-view
+                      params:
+                        icon: fab fa-twitter
+                - tag: a
+                  attrs:
+                    href: "https://www.linkedin.com"
+                    class: text-gray-600 mx-1
+                  children:
+                    - view: icon-view
+                      params:
+                        icon: fab fa-linkedin-in
     home-view:
       tag: div
       children:
@@ -312,16 +114,6 @@ spec:
               - title: "Consulting"
                 description: "Have a new software project in mind, not sure where to start? Surely we can help"
                 icon: fas fa-hands-helping
-    member-layout-view:
-      tag: div
-      children:
-        - view: member-nav-view
-        - tag: section
-          attrs:
-            class: section container
-          children:
-            - view: "@view"
-        - view: footer-view
     citation-view:
       tag: section
       attrs:
@@ -356,7 +148,7 @@ spec:
                   children: []
                 - tag: h2
                   attrs:
-                    class: 
+                    class:
                       format: "{{ fg-color-active }} font-medium title-font tracking-wider text-sm"
                       params:
                         encoder: theme-colors

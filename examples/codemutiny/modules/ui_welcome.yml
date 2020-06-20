@@ -1,9 +1,6 @@
 kind: module
 name: ui_welcome
 spec:
-  init:
-    model:
-      menuStatus: inactive
   decoders:
     http:
       unauthorized:
@@ -30,7 +27,7 @@ spec:
         onProfile:
           ui: member-layout-view
       cmds:
-        #        http: get-profile
+        http: get-profile
         ui: empty-layout-view
     unauthorized:
       model:
@@ -58,111 +55,3 @@ spec:
       tag: h1
       children:
         - Hello !
-    member-nav-view:
-      view: navbar-view
-      params:
-        session: "@session"
-        profile: "@profile"
-        menuStatus: "@menuStatus"
-        menu:
-          - route: subscriptions
-            icon: fas fa-shopping-cart
-          - route: logout
-            icon: fas fa-power-off
-    navbar-view:
-      tag: nav
-      attrs:
-        class: navbar is-transparent
-        role: navigation
-        aria-label: main navigation
-      children:
-        - tag: div
-          attrs:
-            class: navbar-brand
-          children:
-            - tag: a
-              attrs:
-                role: button
-                class:
-                  format: "navbar-burger is-{{ menuStatus }}"
-                aria-label: menu
-                aria-expanded: false
-                onclick:
-                  set-menu-status:
-                    switch: "@menuStatus"
-                    case:
-                      active: inactive
-                      inactive: active
-              children:
-                - view: burger-span
-                - view: burger-span
-                - view: burger-span
-        - tag: div
-          attrs:
-            class:
-              format: "navbar-menu is-{{ menuStatus }}"
-          children:
-            - tag: div
-              attrs:
-                class: navbar-start
-              children: []
-            - tag: div
-              attrs:
-                class: navbar-end
-              children:
-                - tag: div
-                  attrs:
-                    class: navbar-item
-                  children:
-                    - tag: div
-                      attrs:
-                        class: field is-grouped
-                      children:
-                        loop: "@menu"
-                        with: navbar-item-view
-    burger-span:
-      tag: span
-      attrs:
-        aria-hidden: true
-      children: []
-    welcome-view:
-      tag: div
-      children:
-        - tag: h1
-          children:
-            - format: "Welcome {{name}}"
-              params:
-                name: "@profile.name"
-        - view: avatar-view
-          params:
-            url: "@profile.picture"
-        - view: user-menu-view
-    avatar-view:
-      tag: figure
-      attrs:
-        style:
-          margin-right: 5px
-        class:
-          format: "image is-{{size}}x{{size}}"
-      children:
-        - tag: img
-          attrs:
-            class: is-rounded
-            src: "@url"
-    navbar-item-view:
-      tag: p
-      attrs:
-        class: control
-      children:
-        - tag: a
-          attrs:
-            class: is-light button
-            onclick:
-              navigate:
-                encoder: encode-route
-          children:
-            - view: icon-view
-              params:
-                icon: "@icon"
-                title:
-                  capitalize: "@route"

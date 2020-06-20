@@ -81,23 +81,23 @@ spec:
           http: get-plans
       cmds:
         http: get-profile
-        ui: layout-view
+        ui: public-layout-view
     show-subscription-approved:
       model:
         session: "@data.query.session"
         view: subscription-approved-view
       cmds:
-        ui: layout-view
+        ui: public-layout-view
     show-subscription-unauthorized:
       model:
         view: subscription-unauthorized-view
       cmds:
-        ui: layout-view
+        ui: public-layout-view
     show-subscription-unknown:
       model:
         view: subscription-unknown-view
       cmds:
-        ui: layout-view
+        ui: public-layout-view
     plans:
       model:
         view: subscriptions-view
@@ -116,7 +116,7 @@ spec:
         view: loading-view
       cmds:
         http: create-subscription
-        ui: layout-view
+        ui: public-layout-view
     already_subscribed:
       model:
         view: already-subscribed-view
@@ -133,7 +133,7 @@ spec:
         view: loading-view
         subscription: "@data.cancel-subscription"
       cmds:
-        ui: layout-view
+        ui: public-layout-view
         http: cancel-subscription
     cancelled:
       model:

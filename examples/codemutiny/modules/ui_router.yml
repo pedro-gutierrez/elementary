@@ -38,12 +38,12 @@ spec:
       model:
         view: home-view
       cmds:
-        ui: layout-view
+        ui: public-layout-view
     error-page:
       model:
         view: error-view
       cmds:
-        ui: layout-view
+        ui: public-layout-view
   encoders:
     navigate:
       action: navigate 

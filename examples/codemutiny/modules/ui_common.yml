@@ -11,13 +11,227 @@ spec:
       model:
         view: not-found-view
       cmds:
-        ui: layout-view
+        ui: public-layout-view
   encoders:
+    layout-view:
+      tag: div
+      attrs:
+        class:
+          format: "{{ bg-color }} {{ fg-color }}"
+          params:
+            encoder: theme-colors
+      children:
+        - view: header-view
+          params:
+            view: "@view"
+            nav: "@nav"
+        - tag: div
+          attrs:
+            class: container mx-auto flex flex-col px-5 py-24 justify-center items-center
+          children:
+             - view: "@view"
+        - view: footer-view
+          params:
+            content-view:
+              maybe: "@footer"
+    empty-layout-view:
+      tag: div
+      attrs:
+        class:
+          format: "{{ bg-color }} {{ fg-color }}"
+          params:
+            encoder: theme-colors
+      children:
+        - tag: div
+          attrs:
+            class: container mx-auto flex flex-col px-5 py-24 justify-center items-center
+          children:
+             - view: "@view"
+    public-layout-view:
+      view: layout-view
+      params:
+        nav:
+          - route: home
+          - route: login
+          - content-view: theme-switcher-view
+          - content-view: display-mode-switcher-view
+        footer: mailing-list-form-view
+    member-layout-view:
+      view: layout-view
+      params:
+        nav:
+          - content-view: theme-switcher-view
+          - content-view: display-mode-switcher-view
     loading-view:
       view: hero-view
       params:
         title: Loading
         icon: fas fa-hourglass-start
+    footer-view:
+      tag: footer
+      attrs:
+        class:
+          format: "{{ fg-color }} {{ bg-color }} body-font"
+          params:
+            encoder: theme-colors
+      children:
+        - view: 
+            maybe: "@footer"
+        - tag: div
+          attrs:
+            class:
+              format: "{{ bg-color-active }}"
+              params:
+                encoder: theme-colors
+          children:
+            - tag: div
+              attrs:
+                class: container mx-auto py-4 px-5 flex flex-wrap flex-col sm:flex-row
+              children:
+                - tag: p
+                  attrs:
+                    class: text-gray-500 text-sm text-center sm:text-left
+                  children:
+                    - view: icon-view
+                      params:
+                        icon: fa fa-skull-crossbones
+                        margin: mx-1
+                        title: "Skull"
+                    - "© 2020 Codemutiny"
+    theme-colors:
+      switch: "@displayMode"
+      case:
+        dark:
+          fg-color: text-gray-500
+          fg-color-active: text-white
+          fg-hover: text-white
+          bg-color: bg-gray-900
+          bg-color-active: bg-gray-800
+          bg-color-active-hover: bg-gray-700
+          input-bg-color: bg-gray-800
+          input-border-color: border-gray-700
+          input-fg-color: text-white
+          section-border-color: border-gray-800
+        light:
+          fg-color: text-gray-700
+          fg-color-active: text-gray-900
+          fg-hover: text-gray-900
+          bg-color-active: bg-gray-200
+          bg-color-active-hover: bg-gray-300
+          input-bg-color: bg-gray-100
+          input-border-color: border-gray-400
+          input-fg-color: ""
+          section-border-color: border-gray-200
+    header-view:
+      tag: header
+      attrs:
+        class:
+          format: "{{ fg-color }} {{ bg-color }} body-font"
+          params:
+            encoder: theme-colors
+      children:
+        - tag: div
+          attrs:
+            class: container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center
+          children:
+            - tag: a
+              attrs:
+                class:
+                  format: "flex title-font font-medium items-center mb-4 md:mb-0 {{ fg-color }}"
+                  params:
+                    encoder: theme-colors
+              children:
+                - view: icon-view
+                  params:
+                    size: text-xl
+                    icon: fa fa-skull-crossbones
+                - tag: span
+                  attrs:
+                    class: ml-3 text-xl
+                  children:
+                    - Codemutiny
+            - tag: nav
+              attrs:
+                class: md:ml-auto flex flex-wrap items-center text-base justify-center
+              children:
+                loop: "@nav"
+                with: header-nav-item-view
+    header-nav-item-view:
+      view:
+        maybe: "@content-view"
+        otherwise: header-link-view
+    header-link-view:
+      tag: a
+      attrs:
+        href: "#"
+        class:
+          format: "mr-5 hover:{{ fg-hover }} {{ extra }} {{ bg-color-active }} hover:{{ bg-color-active-hover }}"
+          params:
+            merge:
+              - encoder: theme-colors
+              - choose: "@view"
+                when:
+                  format: "{{ route }}-view"
+                then:
+                  fg-hover: none
+                  extra: "border-0 py-1 px-3 focus:outline-none rounded text-base"
+                otherwise:
+                  extra: ""
+                  bg-color-active: none
+                  bg-color-active-hover: none
+        onclick:
+          navigate:
+            encoder: encode-route
+      children:
+        - capitalize: "@route"
+    display-mode-switcher-view:
+      tag: a
+      attrs:
+        class: mx-1
+        href:
+          format: "/?mode={{ mode }}&theme={{ theme}}&session={{ session }}"
+          params:
+            session: 
+              maybe: "@session"
+            theme: "@theme"
+            mode:
+              switch: "@displayMode"
+              case:
+                dark: light
+              default: dark
+      children:
+        - view: icon-view
+          params:
+            icon:
+              switch: "@displayMode"
+              case:
+                dark: fas fa-sun
+              default: fas fa-moon
+    theme-switcher-view:
+      tag: div
+      attrs:
+        class: switcher
+      children:
+        loop:
+          - theme: indigo
+          - theme: orange
+          - theme: red
+          - theme: teal
+          - theme: pink
+          - theme: purple
+        with: theme-switcher-button-view
+    theme-switcher-button-view:
+      tag: a
+      attrs:
+        href:
+          format: "/?theme={{ theme }}&mode={{ displayMode }}&session={{ session }}"
+        class: mx-1
+      children:
+        - view: icon-view
+          params:
+            color:
+              format: "text-{{ theme }}-500"
+            icon: fas fa-circle
     hero-view:
       tag: section
       attrs:

@@ -52,18 +52,18 @@ export default (name, settings, app) => {
         }
     }
 
-
-    function hash(s) {
-        for (var i = 0, h = 1; i < s.length; i++)
-            h = Math.imul(h + s.charCodeAt(i) | 0, 2654435761);
-        return (h ^ h >>> 17) >>> 0;
-    };
+    //function hash(s) {
+    //    for (var i = 0, h = 1; i < s.length; i++)
+    //        h = Math.imul(h + s.charCodeAt(i) | 0, 2654435761);
+    //    return (h ^ h >>> 17) >>> 0;
+    //};
 
     function resolve(views, spec, ctx) {
         switch (typeof (spec)) {
             case 'object':
                 const { err, value } = encode(spec, ctx);
                 if (err) return error(spec, ctx, err);
+                if (!value) return emptyView();
                 if (typeof (value) != 'string') return error(value, ctx, "not_a_string");
                 return resolve(views, value, ctx);
             case 'string':
@@ -117,14 +117,19 @@ export default (name, settings, app) => {
         return { view: out };
     }
 
+    function emptyView() {
+        return {view: ['div']};
+    }
+
     function compileViewRef(views, spec, ctx) {
         var { err, value } = encode(spec.view, ctx);
         if (err) return error(spec.view, ctx, "cannot encode referenced view spec");
+        if (!value && spec.view.maybe) return emptyView();
         var { err, view } = resolve(views, value, ctx);
         if (err) return error(spec, ctx, err);
         var { err, value } = encode(spec.when || true, ctx);
         if (err) return error(spec, ctx, err);
-        if (!value) return { view: ['div'] };
+        if (!value) return emptyView();
         var { err, value } = encode(spec.params || "@", ctx);
         if (err) return error(spec, ctx, err);
         return compile(views, view, Object.assign({}, ctx, value));
