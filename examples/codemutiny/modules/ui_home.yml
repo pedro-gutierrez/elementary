@@ -5,7 +5,6 @@ spec:
     model:
       view: home-view
     cmds:
-      storage: {}
       router: {}
   encoders:
     mailing-list-form-view:

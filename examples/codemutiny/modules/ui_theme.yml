@@ -8,6 +8,9 @@ spec:
     cmds:
       storage: {}
   decoders:
+    storage:
+      storage:
+        any: object
     ui:
       display-mode:
         display-mode:
@@ -16,19 +19,18 @@ spec:
         theme:
           any: text
   update:
+    storage:
+      model:
+        merge:
+          - "@model"
+          - "@data"
+      cmds:
+        ui: {}
     display-mode:
       model:
-        let:
-          display-mode: "@data.display-mode"
-        in:
-          display-mode: "@display-mode"
-          body-class:
-            switch: "@display-mode"
-            case:
-              dark: text-gray-500 bg-gray-900
-            default: text-gray-700
+        display-mode: "@data.display-mode"
       cmds:
-        ui: body-class
+        ui: {}
         storage: display-mode
     theme:
       model:
@@ -38,13 +40,14 @@ spec:
         storage: theme
   encoders:
     body-class:
-      bodyClass: "@body-class"
+      switch: "@display-mode"
+      case:
+        dark: text-gray-500 bg-gray-900
+        light: text-gray-700
     display-mode:
-      write:
-        display-mode: "@display-mode"
+      display-mode: "@display-mode"
     theme:
-      write:
-        theme: "@theme"
+      theme: "@theme"
     theme-colors:
       switch: "@display-mode"
       case:

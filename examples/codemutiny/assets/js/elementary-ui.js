@@ -426,7 +426,7 @@ export default (name, settings, app) => {
     }
 
     function render(view, bodyClass) {
-        document.body.className = bodyClass;
+        if (bodyClass) document.body.className = bodyClass;
         IncrementalDOM.patch(document.body, jsonml2idom, view);
     }
 
@@ -438,19 +438,20 @@ export default (name, settings, app) => {
         return Object.assign(ctx, { context: spec.context });
     }
 
+    function encodeBodyClass(encoders, model) {
+        var enc = encoders["body-class"];
+        if (!enc) return {value: null};
+        return encode(enc, model);
+    }
+
     return (views, v, model) => {
-        var bodyClass =  settings.bodyClass;
-        if (v && v.bodyClass) {
-            var {err, value} = encode(v.bodyClass, model);
-            if (err) {
-                console.error("Can't compile body class", {err, bodyClass: v.bodyClass});
-                return;
-            }
-            bodyClass = value;
-            delete v.bodyClass;
+        var {err, value: bodyClass} = encodeBodyClass(views, model);
+        if (err) {
+            console.error("Can't compile body class", err);
+            return;
         }
 
-        if (v && Object.keys(v).length) state.view = v;
+        if (v) state.view = v;
 
         var c = tc(() => {
             return compile(views, state.view, model);
