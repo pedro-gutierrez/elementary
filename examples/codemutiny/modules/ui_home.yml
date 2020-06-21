@@ -5,21 +5,8 @@ spec:
     model:
       view: home-view
     cmds:
+      storage: {}
       router: {}
-  decoders:
-    ui:
-      switch-display-mode:
-        switch-display-mode: ""
-  update:
-    switch-display-mode:
-      model:
-        displayMode:
-          switch: "@model.displayMode"
-          case:
-            light: dark
-          default: light
-      cmds:
-        ui: {}
   encoders:
     mailing-list-form-view:
       tag: div
@@ -192,7 +179,7 @@ spec:
                   - theme: "@theme"
                   - encoder: theme-colors
                   - background:
-                      switch: "@displayMode"
+                      switch: "@display-mode"
                       case:
                         dark: gray-800
                       default:

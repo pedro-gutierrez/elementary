@@ -38,7 +38,7 @@ spec:
                     - We only collect the information you choose to give us, and we process it with your consent. We only require the minimum amount of personal information that is necessary to fulfill the purpose of your interaction with us. We don't sell it to third parties.
             - view: social-login-buttons-view
               params:
-                displayMode: "@displayMode"
+                display-mode: "@display-mode"
                 buttons:
                   - url: /api/google/session
                     title: Start with Google
@@ -60,7 +60,7 @@ spec:
         loop: "@buttons"
         with: social-login-button-view
         params:
-          displayMode: "@displayMode"
+          display-mode: "@display-mode"
     social-login-button-view:
       tag: div
       attrs:

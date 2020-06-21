@@ -98,30 +98,6 @@ spec:
                         margin: mx-1
                         title: "Skull"
                     - "© 2020 Codemutiny"
-    theme-colors:
-      switch: "@displayMode"
-      case:
-        dark:
-          fg-color: text-gray-500
-          fg-color-active: text-white
-          fg-hover: text-white
-          bg-color: bg-gray-900
-          bg-color-active: bg-gray-800
-          bg-color-active-hover: bg-gray-700
-          input-bg-color: bg-gray-800
-          input-border-color: border-gray-700
-          input-fg-color: text-white
-          section-border-color: border-gray-800
-        light:
-          fg-color: text-gray-700
-          fg-color-active: text-gray-900
-          fg-hover: text-gray-900
-          bg-color-active: bg-gray-200
-          bg-color-active-hover: bg-gray-300
-          input-bg-color: bg-gray-100
-          input-border-color: border-gray-400
-          input-fg-color: ""
-          section-border-color: border-gray-200
     header-view:
       tag: header
       attrs:
@@ -184,54 +160,6 @@ spec:
             encoder: encode-route
       children:
         - capitalize: "@route"
-    display-mode-switcher-view:
-      tag: a
-      attrs:
-        class: mx-1
-        href:
-          format: "/?mode={{ mode }}&theme={{ theme}}&session={{ session }}"
-          params:
-            session: 
-              maybe: "@session"
-            theme: "@theme"
-            mode:
-              switch: "@displayMode"
-              case:
-                dark: light
-              default: dark
-      children:
-        - view: icon-view
-          params:
-            icon:
-              switch: "@displayMode"
-              case:
-                dark: fas fa-sun
-              default: fas fa-moon
-    theme-switcher-view:
-      tag: div
-      attrs:
-        class: switcher
-      children:
-        loop:
-          - theme: indigo
-          - theme: orange
-          - theme: red
-          - theme: teal
-          - theme: pink
-          - theme: purple
-        with: theme-switcher-button-view
-    theme-switcher-button-view:
-      tag: a
-      attrs:
-        href:
-          format: "/?theme={{ theme }}&mode={{ displayMode }}&session={{ session }}"
-        class: mx-1
-      children:
-        - view: icon-view
-          params:
-            color:
-              format: "text-{{ theme }}-500"
-            icon: fas fa-circle
     hero-view:
       tag: section
       attrs:

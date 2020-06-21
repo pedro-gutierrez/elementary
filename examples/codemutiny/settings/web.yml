@@ -6,3 +6,4 @@ spec:
   title: Code Mutiny
   baseUrl:
     env: ELEMENTARY_WEBROOT
+  body-class: text-gray-500 bg-gray-900

@@ -1,4 +1,4 @@
-export default (appUrl, appEffects, deps, initialState) => {
+export default (appUrl, appEffects, deps) => {
 
     var {Mustache, moment} = deps;
 
@@ -1439,7 +1439,7 @@ export default (appUrl, appEffects, deps, initialState) => {
     }
 
     function withSettings(m) {
-        return Object.assign({}, m, state.app.settings);
+        return Object.assign({}, state.app.settings, m);
     }
 
     function applyCmds(encoders, effects, cmds, m2) {
@@ -1599,7 +1599,6 @@ export default (appUrl, appEffects, deps, initialState) => {
     function init(app) {
         const { init } = app;
         var { model, cmds } = init;
-        model = Object.assign(initialState, model);
         const t0 = new Date();
         const { err, value } = encodeModelWithDefault(model, {}, withSettings({}))
         if (err) {

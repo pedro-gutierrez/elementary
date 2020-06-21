@@ -7,22 +7,6 @@ spec:
         any: object
   update:
     index:
-      model:
-        let:
-          mode:
-            maybe: "@data.query.mode"
-            otherwise: dark
-          theme:
-            maybe: "@data.query.theme"
-            otherwise: pink 
-        in:
-          displayMode: "@mode"
-          theme: "@theme"
-          bodyStyle:
-            switch: "@mode"
-            case:
-              dark: "text-gray-500 bg-gray-900"
-            default: "text-gray-700"
       cmds:
         return: index
   encoders:
@@ -50,13 +34,10 @@ spec:
                   import {default as events} from "/js/elementary-events.js";
                   import {default as http} from "/js/elementary-http.js";
                   import {default as router} from "/js/elementary-router.js";
+                  import {default as storage} from "/js/elementary-storage.js";
                   import {default as app} from "/js/elementary.js";
-                  app("/js/app.js", {ui, events, http, router}, {Mustache, moment}, {
-                    displayMode: "{{displayMode}}", 
-                    theme: "{{theme}}"
-                  })
+                  app("/js/app.js", {ui, events, http, router, storage}, {Mustache, moment});
                 </script>
               </head>
-              <body class="{{bodyStyle}}">
-              </body>
+              <body/>
             </html>

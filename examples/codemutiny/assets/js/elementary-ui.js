@@ -425,7 +425,8 @@ export default (name, settings, app) => {
         return compileText(views, { text: spec }, ctx);
     }
 
-    function render(view) {
+    function render(view, bodyClass) {
+        document.body.className = bodyClass;
         IncrementalDOM.patch(document.body, jsonml2idom, view);
     }
 
@@ -438,7 +439,18 @@ export default (name, settings, app) => {
     }
 
     return (views, v, model) => {
-        if (v) state.view = v;
+        var bodyClass =  settings.bodyClass;
+        if (v && v.bodyClass) {
+            var {err, value} = encode(v.bodyClass, model);
+            if (err) {
+                console.error("Can't compile body class", {err, bodyClass: v.bodyClass});
+                return;
+            }
+            bodyClass = value;
+            delete v.bodyClass;
+        }
+
+        if (v && Object.keys(v).length) state.view = v;
 
         var c = tc(() => {
             return compile(views, state.view, model);
@@ -448,7 +460,7 @@ export default (name, settings, app) => {
             return;
         }
 
-        var r = tc(() => { render(c.res.view) });
+        var r = tc(() => { render(c.res.view, bodyClass) });
         if (settings.telemetry) {
             console.log("[" + name + "]"
                 + "[compile " + c.millis + "ms]"

@@ -1,0 +1,116 @@
+kind: module
+name: ui_theme
+spec:
+  init:
+    model:
+      theme: purple
+      display-mode: dark
+    cmds:
+      storage: {}
+  decoders:
+    ui:
+      display-mode:
+        display-mode:
+          any: text
+      theme:
+        theme:
+          any: text
+  update:
+    display-mode:
+      model:
+        let:
+          display-mode: "@data.display-mode"
+        in:
+          display-mode: "@display-mode"
+          body-class:
+            switch: "@display-mode"
+            case:
+              dark: text-gray-500 bg-gray-900
+            default: text-gray-700
+      cmds:
+        ui: body-class
+        storage: display-mode
+    theme:
+      model:
+        theme: "@data.theme"
+      cmds:
+        ui: {}
+        storage: theme
+  encoders:
+    body-class:
+      bodyClass: "@body-class"
+    display-mode:
+      write:
+        display-mode: "@display-mode"
+    theme:
+      write:
+        theme: "@theme"
+    theme-colors:
+      switch: "@display-mode"
+      case:
+        dark:
+          fg-color: text-gray-500
+          fg-color-active: text-white
+          fg-hover: text-white
+          bg-color: bg-gray-900
+          bg-color-active: bg-gray-800
+          bg-color-active-hover: bg-gray-700
+          input-bg-color: bg-gray-800
+          input-border-color: border-gray-700
+          input-fg-color: text-white
+          section-border-color: border-gray-800
+        light:
+          fg-color: text-gray-700
+          fg-color-active: text-gray-900
+          fg-hover: text-gray-900
+          bg-color-active: bg-gray-200
+          bg-color-active-hover: bg-gray-300
+          input-bg-color: bg-gray-100
+          input-border-color: border-gray-400
+          input-fg-color: ""
+          section-border-color: border-gray-200
+    display-mode-switcher-view:
+      tag: a
+      attrs:
+        class: mx-1
+        href: "#"
+        onclick:
+          display-mode:
+            switch: "@display-mode"
+            case:
+              dark: light
+            default: dark
+      children:
+        - view: icon-view
+          params:
+            icon:
+              switch: "@display-mode"
+              case:
+                dark: fas fa-sun
+              default: fas fa-moon
+    theme-switcher-view:
+      tag: div
+      attrs:
+        class: switcher
+      children:
+        loop:
+          - theme: indigo
+          - theme: orange
+          - theme: red
+          - theme: teal
+          - theme: pink
+          - theme: purple
+        with: theme-switcher-button-view
+    theme-switcher-button-view:
+      tag: a
+      attrs:
+        href: "#"
+        onclick:
+          theme: "@theme"
+        class: mx-1
+      children:
+        - view: icon-view
+          params:
+            color:
+              format: "text-{{ theme }}-500"
+            icon: fas fa-circle
