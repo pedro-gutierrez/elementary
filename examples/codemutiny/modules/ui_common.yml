@@ -47,12 +47,27 @@ spec:
             class: container mx-auto flex flex-col px-5 py-24 justify-center items-center
           children:
              - view: "@view"
+    home-link:
+      route: home
+      title:
+        encoder: i18n
+        params:
+          en: Home
+          es: Inicio
+          fr: Accueil
+    login-link:
+      route: login 
+      title:
+        encoder: i18n
+        params:
+          en: Login
+          es: Abrir sesión
+          fr: Se connecter
     public-layout-view:
       view: layout-view
       params:
         nav:
-          - route: home
-          - route: login
+          - encoder: home-link
           - content-view: theme-switcher-view
           - content-view: display-mode-switcher-view
         footer: mailing-list-form-view
@@ -159,7 +174,9 @@ spec:
           navigate:
             encoder: encode-route
       children:
-        - capitalize: "@route"
+        - capitalize: 
+            maybe: "@title"
+            otherwise: "@route"
     hero-view:
       tag: section
       attrs:

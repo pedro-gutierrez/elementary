@@ -31,7 +31,12 @@ spec:
                         merge:
                           - theme: "@theme"
                           - encoder: theme-colors
-                    placeholder: Enter your email
+                    placeholder:
+                      encoder: i18n
+                      params:
+                        en: Enter your email
+                        fr: Entrez votre email
+                        es: Escribe tu email
                     type: text
                   children: []
                 - tag: button
@@ -39,12 +44,20 @@ spec:
                     class:
                       format: "inline-flex text-white bg-{{ theme }}-500 border-0 py-2 px-6 focus:outline-none hover:bg-{{ theme }}-600 rounded"
                   children:
-                    - Susbcribe
+                    - encoder: i18n
+                      params:
+                        en: Subscribe
+                        fr: Je me souscris
+                        es: Suscribirme
                 - tag: p
                   attrs:
                     class: text-gray-600 text-sm md:ml-6 md:mt-0 mt-2 text-center sm:text-left
                   children:
-                    - Get notified about updates, new features and promotions
+                    - encoder: i18n
+                      params:
+                        en: Get notified about updates, new features and promotions
+                        fr: Soyez au courant des mises à jour, nouvelles fonctionnalités et promotions
+                        es: Estáte al tanto de actualizaciones, nuevas funcionalidades y promociones
             - tag: span
               attrs:
                 class: inline-flex lg:ml-auto lg:mt-0 mt-6 w-full justify-center md:justify-start md:w-auto
@@ -79,26 +92,58 @@ spec:
         - view: hero-view
           params:
             icon: fas fa-skull-crossbones
-            title: |
-              Software that survives storms. Technology too
+            title:
+              encoder: i18n
+              params:
+                en: Software that survives storms. Technology too.
+                es: Software que sobrevive tormentas. Y a la tecnología.
+                fr: Logiciel qui surmonte les orages. Et la technologie.
         - view: citation-view
           params:
-            quote: |
-              Tho others, who give an Account of their Voyages, do generally attempt
-              to imitate the style and method which is us’d by Authors that write ashore,
-              I rather choose to keep to the Language of the Sea, which is more genuine, and natural.
+            quote:
+              encoder: i18n
+              params:
+                en: |
+                  Tho others, who give an Account of their Voyages, do generally attempt
+                  to imitate the style and method which is us’d by Authors that write ashore,
+                  I rather choose to keep to the Language of the Sea, which is more genuine, and natural.
+                fr: |
+                  Bien que d'autres, qui rendent compte de leurs voyages, tentent généralement d'imiter le style et la méthode qui sont utilisés par les auteurs qui écrivent à terre, je préfère plutôt m'en tenir à la langue de la mer, qui est plus authentique et naturelle.
+                es: |
+                  Aunque otros, que dan cuenta de sus viajes, generalmente intentan imitar el estilo y el método que usan los autores que escriben en tierra, prefiero elegir el Idioma del mar, que es más genuino y natural.
             author: "Woodes Rogers"
+        - view: login-view
         - view: products-view
           params:
             products:
-              - title: "Full Pass"
-                description: "Your last minute pass to your next favourite social event"
+              - title: Full Pass
                 icon: fas fa-ticket-alt
-              - title: "Cloud"
-                description: "Relax, and let us run your APIs, rock solid, on the BEAM"
+                description:
+                  encoder: i18n
+                  params:
+                    en: Your last minute pass to your next favourite social event
+                    fr: Votre pass de denière minute pour votre prochain évènement social favori
+                    es: Tu pase de última hora, para tu próximo evento social favorito
+              - title: Cloud
                 icon: fas fa-cloud
-              - title: "Consulting"
-                description: "Have a new software project in mind, not sure where to start? Surely we can help"
+                description:
+                  encoder: i18n
+                  params:
+                    en: Relax, and let us run your APIs, rock solid, on the BEAM
+                    fr: Détentez vois, pendant que nous prenon soins de vos APIs, solidement, sur la BEAM
+                    es: Relájate, mientras que nosotros corremos sus APIs, sólidas como una roca, sobre la BEAM
+              - title:
+                  encoder: i18n
+                  params:
+                    en: Consulting
+                    fr: Conseil
+                    es: Consulting
+                description:
+                  encoder: i18n
+                  params:
+                    en: Have a new software project in mind, not sure where to start? Surely we can help!
+                    fr: Vous avez une idée a déveloper? Nous pouvons vous aider!
+                    es: Tienes una idea de proyecto en mente? Te podemos ayudar!
                 icon: fas fa-hands-helping
     citation-view:
       tag: section
@@ -210,4 +255,88 @@ spec:
                 class:
                   format: "mt-3 text-{{ theme }}-500 inline-flex items-center"
               children:
-                - Learn More
+                - encoder: i18n
+                  params:
+                    en: Learn more
+                    fr: En savoir plus
+                    es: Quiero saber más 
+    login-view:
+      tag: section
+      attrs:
+        class: 
+          format: "mt-20 mb-20 py-10 border-2 border-dashed {{ section-border-color }}"
+          params:
+            encoder: theme-colors
+      children:
+        - tag: div
+          attrs:
+            class: 
+              format: "container px-8 mx-auto relative z-10 w-full text-center flex flex-col text-center"
+              params:
+                encoder: theme-colors
+          children:
+            - tag: div
+              attrs:
+                class: 
+                  format: "px-8 py-10 relative z-10 w-full text-center flex flex-col text-center"
+                  params:
+                    encoder: theme-colors
+              children:
+                - tag: h1
+                  attrs:
+                    class: sm:text-3xl text-2xl font-medium title-font mb-4
+                  children:
+
+                    - encoder: i18n
+                      params:
+                        en: Start with your favourite social network
+                        fr: Connectez avec votre réseau social préféré
+                        es: Conecta con tu red social favorita
+                - tag: p
+                  attrs:
+                    class: mx-auto leading-relaxed text-base
+                  children:
+                    - encoder: i18n
+                      params:
+                        en: We only collect the information you choose to give us, and we process it with your consent. We only require the minimum amount of personal information that is necessary to fulfill the purpose of your interaction with us. We don't sell it to third parties.
+                        fr: Nous collectons uniquement les informations que vous choisissez de nous fournir et nous les traitons avec votre consentement. Nous n'avons besoin que du minimum d'informations personnelles nécessaires pour atteindre l'objectif de votre interaction avec nous. Nous ne le vendons pas à des tiers.
+                        es: Solo recopilamos la información que usted elige proporcionarnos y la procesamos con su consentimiento. Solo requerimos la cantidad mínima de información personal necesaria para cumplir con el propósito de su interacción con nosotros. No lo vendemos a terceros.
+            - view: social-login-buttons-view
+              params:
+                display-mode: "@display-mode"
+                buttons:
+                  - url: /api/facebook/session
+                    title: Start with Facebook
+                    icon: fab fa-facebook-square
+                  - url: /api/google/session
+                    title: Start with Google
+                    icon: fab fa-google
+                  - url: /api/github/session
+                    title: Start with Github
+                    icon: fab fa-github
+                  - url: /api/linkedin/session
+                    title: Start with LinkedIn
+                    icon: fab fa-linkedin-in
+    social-login-buttons-view:
+      tag: div
+      attrs:
+        class: w-full text-center mb-10
+      children:
+        loop: "@buttons"
+        with: social-login-button-view
+        params:
+          display-mode: "@display-mode"
+    social-login-button-view:
+      tag: a
+      attrs:
+        href: "@url"
+        class:
+          format: "px-8 relative z-10 text-center hover:{{ fg-hover}}"
+          params:
+            encoder: theme-colors
+      children:
+        - view: icon-view
+          params:
+            icon: "@icon"
+            size: fa-2x
+            #color: text-gray-600

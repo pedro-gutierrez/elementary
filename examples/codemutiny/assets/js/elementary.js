@@ -1,4 +1,4 @@
-export default (appUrl, appEffects, deps) => {
+export default (appUrl, appEffects, deps, facts) => {
 
     var {Mustache, moment} = deps;
 
@@ -261,7 +261,7 @@ export default (appUrl, appEffects, deps) => {
         if (spec.params) {
             var { err: paramsErr, value: paramsValue } = encode(spec.params, ctx);
             if (paramsErr) return error(spec.params, ctx, paramsErr);
-            encoderCtx = paramsValue;
+            encoderCtx = Object.assign({}, ctx, paramsValue);
         }
         return encode(enc, encoderCtx);
     }
@@ -1599,6 +1599,7 @@ export default (appUrl, appEffects, deps) => {
     function init(app) {
         const { init } = app;
         var { model, cmds } = init;
+        model = Object.assign({}, facts, model);
         const t0 = new Date();
         const { err, value } = encodeModelWithDefault(model, {}, withSettings({}))
         if (err) {
