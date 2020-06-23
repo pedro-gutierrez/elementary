@@ -38,7 +38,7 @@ spec:
     profile:
       model:
         profile: "@data.body"
-        view: welcome-view
+        view: dashboard-view
       cmds: "@onProfile"
     menu-status:
       model:
@@ -51,7 +51,3 @@ spec:
       path: /api/profile
       headers:
         authorization: "@session"
-    welcome-view:
-      tag: h1
-      children:
-        - Hello !

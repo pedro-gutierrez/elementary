@@ -27,7 +27,7 @@ spec:
           session:
             any: text
       error-page:
-        route: "/error"
+        route: /error
   update:
     navigate:
       model:

@@ -11,5 +11,6 @@ spec:
     - ui_common
     - ui_home
     - ui_welcome
+    - ui_dashboard
     - ui_billing
     - ui_notifications
