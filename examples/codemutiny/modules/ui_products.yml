@@ -1,0 +1,109 @@
+kind: module
+name: ui_products
+spec:
+  init:
+    model:
+      products:
+        - title:
+            en: Full Pass
+            fr: Full Pass
+            es: Full Pass
+          icon: fas fa-ticket-alt
+          description:
+            en: Your last minute pass to your next favourite social event
+            fr: Votre pass de denière minute pour votre prochain évènement social favori
+            es: Tu pase de última hora, para tu próximo evento social favorito
+          subscription: true
+        - title:
+            en: Cloud
+            fr: Cloud
+            es: Nube
+          icon: fas fa-cloud
+          description:
+            en: Relax, and let us run your APIs, rock solid, on the BEAM
+            fr: Détentez vois, pendant que nous prenon soins de vos APIs, solidement, sur la BEAM
+            es: Relájate, mientras que nosotros corremos sus APIs, sólidas como una roca, sobre la BEAM
+          subscription: false
+        - title: 
+            en: Consulting
+            fr: Conseil
+            es: Consulting
+          icon: fas fa-hands-helping
+          description:
+            en: Need help setting up a new software project? Let's talk about it!
+            fr: Vous avez une idée a déveloper? Nous pouvons vous aider!
+            es: Tienes una idea de proyecto en mente? Te podemos ayudar!
+          subscription: false
+  encoders:
+    products-view:
+      tag: div
+      attrs:
+        class: container py-24 px-5 mx-auto
+      children:
+        - tag: div
+          attrs:
+            class: flex flex-col md:flex-row sm:-m-4 -mx-4 -mb-10 -mt-4
+          children:
+            loop: "@products"
+            with: product-view
+    product-view:
+      tag: div
+      attrs:
+        class: 
+          format: "p-4 md:w-1/3 md:mb-0 mb-6 flex flex-col text-center items-center {{ style }}"
+          params:
+            style:
+              maybe:
+                encoder: "@style"
+      children:
+        - tag: div
+          attrs:
+            class:
+              format: "w-20 h-20 inline-flex items-center justify-center rounded-full bg-{{ background}} text-{{ theme }}-500 mb-5 flex-shrink-0"
+              params:
+                merge:
+                  - theme: "@theme"
+                  - encoder: theme-colors
+                  - background:
+                      switch: "@display-mode"
+                      case:
+                        dark: gray-800
+                      default:
+                        format: "{{ theme }}-100"
+          children:
+            - view: icon-view
+              params:
+                size: text-3xl
+                icon: "@icon"
+        - tag: div
+          attrs:
+            class: flex-grow
+          children:
+            - tag: h2
+              attrs:
+                class:
+                  format: "{{ fg-color-active }} text-lg title-font font-medium mb-3"
+                  params:
+                    encoder: theme-colors
+              children:
+                - encoder: i18n
+                  params: "@title"
+            - tag: p
+              attrs:
+                class: leading-relaxed text-base
+              children:
+                - encoder: i18n
+                  params: "@description"
+            - view: "@action" 
+    product-learn-more:
+      tag: a
+      attrs:
+        class:
+          format: "mt-3 text-{{ theme }}-500 inline-flex items-center"
+      children:
+        - encoder: i18n
+          params:
+            en: Learn more
+            fr: En savoir plus
+            es: Quiero saber más 
+               

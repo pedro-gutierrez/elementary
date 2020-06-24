@@ -7,6 +7,38 @@ spec:
     cmds:
       router: {}
   encoders:
+    home-view:
+      tag: div
+      attrs:
+        class: mx-auto flex flex-wrap
+      children:
+        - view: hero-view
+          params:
+            icon: fas fa-skull-crossbones
+            title:
+              encoder: i18n
+              params:
+                en: Software that survives storms. Technology too.
+                es: Software que sobrevive tormentas. Y a la tecnología.
+                fr: Logiciel qui surmonte les orages. Et la technologie.
+        - view: citation-view
+          params:
+            quote:
+              encoder: i18n
+              params:
+                en: |
+                  Tho others, who give an Account of their Voyages, do generally attempt
+                  to imitate the style and method which is us’d by Authors that write ashore,
+                  I rather choose to keep to the Language of the Sea, which is more genuine, and natural.
+                fr: |
+                  Bien que d'autres, qui rendent compte de leurs voyages, tentent généralement d'imiter le style et la méthode qui sont utilisés par les auteurs qui écrivent à terre, je préfère plutôt m'en tenir à la langue de la mer, qui est plus authentique et naturelle.
+                es: |
+                  Aunque otros, que dan cuenta de sus viajes, generalmente intentan imitar el estilo y el método que usan los autores que escriben en tierra, prefiero elegir el Idioma del mar, que es más genuino y natural.
+            author: "Woodes Rogers"
+        - view: login-view
+        - view: products-view
+          params:
+            action: product-learn-more
     mailing-list-form-view:
       tag: div
       attrs:
@@ -86,65 +118,7 @@ spec:
                     - view: icon-view
                       params:
                         icon: fab fa-linkedin-in
-    home-view:
-      tag: div
-      children:
-        - view: hero-view
-          params:
-            icon: fas fa-skull-crossbones
-            title:
-              encoder: i18n
-              params:
-                en: Software that survives storms. Technology too.
-                es: Software que sobrevive tormentas. Y a la tecnología.
-                fr: Logiciel qui surmonte les orages. Et la technologie.
-        - view: citation-view
-          params:
-            quote:
-              encoder: i18n
-              params:
-                en: |
-                  Tho others, who give an Account of their Voyages, do generally attempt
-                  to imitate the style and method which is us’d by Authors that write ashore,
-                  I rather choose to keep to the Language of the Sea, which is more genuine, and natural.
-                fr: |
-                  Bien que d'autres, qui rendent compte de leurs voyages, tentent généralement d'imiter le style et la méthode qui sont utilisés par les auteurs qui écrivent à terre, je préfère plutôt m'en tenir à la langue de la mer, qui est plus authentique et naturelle.
-                es: |
-                  Aunque otros, que dan cuenta de sus viajes, generalmente intentan imitar el estilo y el método que usan los autores que escriben en tierra, prefiero elegir el Idioma del mar, que es más genuino y natural.
-            author: "Woodes Rogers"
-        - view: login-view
-        - view: products-view
-          params:
-            products:
-              - title: Full Pass
-                icon: fas fa-ticket-alt
-                description:
-                  encoder: i18n
-                  params:
-                    en: Your last minute pass to your next favourite social event
-                    fr: Votre pass de denière minute pour votre prochain évènement social favori
-                    es: Tu pase de última hora, para tu próximo evento social favorito
-              - title: Cloud
-                icon: fas fa-cloud
-                description:
-                  encoder: i18n
-                  params:
-                    en: Relax, and let us run your APIs, rock solid, on the BEAM
-                    fr: Détentez vois, pendant que nous prenon soins de vos APIs, solidement, sur la BEAM
-                    es: Relájate, mientras que nosotros corremos sus APIs, sólidas como una roca, sobre la BEAM
-              - title:
-                  encoder: i18n
-                  params:
-                    en: Consulting
-                    fr: Conseil
-                    es: Consulting
-                description:
-                  encoder: i18n
-                  params:
-                    en: Have a new software project in mind, not sure where to start? Surely we can help!
-                    fr: Vous avez une idée a déveloper? Nous pouvons vous aider!
-                    es: Tienes una idea de proyecto en mente? Te podemos ayudar!
-                icon: fas fa-hands-helping
+    
     citation-view:
       tag: section
       attrs:
@@ -198,68 +172,6 @@ spec:
           format: "tag is-light {{ style }}"
       children:
         - "@title"
-    products-view:
-      tag: div
-      attrs:
-        class: container py-24 px-5 mx-auto
-      children:
-        - tag: div
-          attrs:
-            class: flex flex-col md:flex-row sm:-m-4 -mx-4 -mb-10 -mt-4
-          children:
-            loop: "@products"
-            with: product-view
-    product-view:
-      tag: div
-      attrs:
-        class: p-4 md:w-1/3 md:mb-0 mb-6 flex flex-col text-center items-center
-      children:
-        - tag: div
-          attrs:
-            class:
-              format: "w-20 h-20 inline-flex items-center justify-center rounded-full bg-{{ background}} text-{{ theme }}-500 mb-5 flex-shrink-0"
-              params:
-                merge:
-                  - theme: "@theme"
-                  - encoder: theme-colors
-                  - background:
-                      switch: "@display-mode"
-                      case:
-                        dark: gray-800
-                      default:
-                        format: "{{ theme }}-100"
-          children:
-            - view: icon-view
-              params:
-                size: text-3xl
-                icon: "@icon"
-        - tag: div
-          attrs:
-            class: flex-grow
-          children:
-            - tag: h2
-              attrs:
-                class:
-                  format: "{{ fg-color-active }} text-lg title-font font-medium mb-3"
-                  params:
-                    encoder: theme-colors
-              children:
-                - "@title"
-            - tag: p
-              attrs:
-                class: leading-relaxed text-base
-              children:
-                - "@description"
-            - tag: a
-              attrs:
-                class:
-                  format: "mt-3 text-{{ theme }}-500 inline-flex items-center"
-              children:
-                - encoder: i18n
-                  params:
-                    en: Learn more
-                    fr: En savoir plus
-                    es: Quiero saber más 
     login-view:
       tag: section
       attrs:
@@ -286,7 +198,6 @@ spec:
                   attrs:
                     class: sm:text-3xl text-2xl font-medium title-font mb-4
                   children:
-
                     - encoder: i18n
                       params:
                         en: Start with your favourite social network

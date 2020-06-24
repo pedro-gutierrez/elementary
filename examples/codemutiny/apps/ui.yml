@@ -14,3 +14,4 @@ spec:
     - ui_dashboard
     - ui_billing
     - ui_notifications
+    - ui_products

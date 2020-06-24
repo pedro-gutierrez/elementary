@@ -5,7 +5,7 @@ spec:
     dashboard-view:
       tag: div
       attrs:
-        class: container px-5 py-24 mx-auto flex flex-wrap
+        class: px-5 py-24 mx-auto flex flex-wrap
       children:
         - tag: div
           attrs:
@@ -13,64 +13,60 @@ spec:
           children:
             - tag: h2
               attrs:
-                class: text-xs text-indigo-500 tracking-widest font-medium title-font mb-1
+                class: 
+                  format: "text-xs text-{{ theme }}-500 tracking-widest font-medium title-font mb-1"
               children:
                 - encoder: i18n
                   params:
                     en: Dashboard
                     fr: Panneau de contrôle
-                    es: Conola
+                    es: Consola
             - tag: h1
               attrs:
-                class: sm:text-3xl text-2xl font-medium title-font text-white
+                class:
+                  format: "{{ fg-color-active }} sm:text-3xl text-2xl font-medium title-font"
+                  params:
+                    encoder: theme-colors
               children:
                 - encoder: i18n
                   params:
                     en: Welcome
                     fr: Bienvenue 
                     es: Bienvenido
-
-        - tag: div
+        - view: products-view
+          params:
+            action: dashboard-product-action
+            style: dashboard-product-style
+    dashboard-product-style: 
+      either:
+        - when: "@subscription"
+          then: 
+            format: "border-2 border-dashed {{ section-border-color }}"
+            params:
+              encoder: theme-colors
+        - ""
+    dashboard-product-action:
+      either:
+        - when: "@subscription"
+          then: 
+            tag: button
+            attrs:
+              class:
+                format: "inline-flex text-white bg-{{ theme }}-500 border-0 mt-2 py-1 px-6 focus:outline-none hover:bg-{{ theme }}-600 rounded"
+            children:
+              - encoder: i18n
+                params:
+                  en: Enter
+                  fr: Entrée 
+                  es: Entrar 
+        - tag: a 
           attrs:
-            class: flex flex-wrap -m-4
+            href: "#"
+            class:
+              format: "mt-3 text-{{ theme }}-500 inline-flex items-center"
           children:
-            loop:
-              - Fullpass
-              - Cloud
-              - Consulting
-            with: dashboard-product-view
-
-    dashboard-product-view:
-      tag: div
-      attrs:
-        class: p-4 md:w-1/3
-      children:
-        - tag: div
-          attrs: 
-            class: flex rounded-lg h-full bg-gray-800 p-8 flex-col
-          children:
-            - tag: div
-              attrs:
-                class: flex items-center mb-3
-              children:
-                - tag: h2
-                  attrs:
-                    class: text-white text-lg title-font font-medium
-                  children:
-                    - "@title"
-            - tag: div
-              attrs:
-                class: flex-grow
-              children:
-                - tag: p
-                  attrs:
-                    class: leading-relaxed text-base
-                  children:
-                    - Blue bottle crucifix vinyl post-ironic four dollar toast vegan taxidermy. Gastropub indxgo juice poutine.
-                - tag: a
-                  attrs:
-                    class: mt-3 text-indigo-500 inline-flex items-center
-                  children:
-                    - Go
-
-
+            - encoder: i18n
+              params:
+                en: Subscribe
+                fr: Je me souscris
+                es: Suscribirse

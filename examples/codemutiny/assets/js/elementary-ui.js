@@ -422,7 +422,11 @@ export default (name, settings, app) => {
         if (spec.code) return compileCode(views, spec, ctx);
         if (spec.markdown) return compileMarkdown(views, spec, ctx);
         if (spec.chart) return compileChart(views, spec, ctx);
-        return compileText(views, { text: spec }, ctx);
+        var {err, value} = encode(spec, ctx);
+        if (err) return err;
+        return compileUnsafe(views, value, ctx);
+        
+        //return compileText(views, { text: spec }, ctx);
     }
 
     function render(view, bodyClass) {
