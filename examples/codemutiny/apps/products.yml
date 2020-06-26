@@ -1,0 +1,11 @@
+kind: app
+name: products
+spec:
+  routes:
+    codemutiny:
+      get: "/api/products"
+  settings:
+    - codemutiny
+  modules:
+    - products_read
+    - http

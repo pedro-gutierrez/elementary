@@ -3,38 +3,24 @@ name: ui_products
 spec:
   init:
     model:
+      products: []
+  decoders:
+    http:
       products:
-        - title:
-            en: Full Pass
-            fr: Full Pass
-            es: Full Pass
-          icon: fas fa-ticket-alt
-          description:
-            en: Your last minute pass to your next favourite social event
-            fr: Votre pass de denière minute pour votre prochain évènement social favori
-            es: Tu pase de última hora, para tu próximo evento social favorito
-          subscription: true
-        - title:
-            en: Cloud
-            fr: Cloud
-            es: Nube
-          icon: fas fa-cloud
-          description:
-            en: Relax, and let us run your APIs, rock solid, on the BEAM
-            fr: Détentez vois, pendant que nous prenon soins de vos APIs, solidement, sur la BEAM
-            es: Relájate, mientras que nosotros corremos sus APIs, sólidas como una roca, sobre la BEAM
-          subscription: false
-        - title: 
-            en: Consulting
-            fr: Conseil
-            es: Consulting
-          icon: fas fa-hands-helping
-          description:
-            en: Need help setting up a new software project? Let's talk about it!
-            fr: Vous avez une idée a déveloper? Nous pouvons vous aider!
-            es: Tienes una idea de proyecto en mente? Te podemos ayudar!
-          subscription: false
+        products:
+          body:
+            any: list
+  update:
+    products:
+      model:
+        products: "@data.products.body"
+      cmds:
+        ui: {}
   encoders:
+    get-products:
+      method: get
+      path: /api/products
+      as: products 
     products-view:
       tag: div
       attrs:

@@ -38,6 +38,7 @@ spec:
       model:
         view: home-view
       cmds:
+        http: get-products
         ui: public-layout-view
     error-page:
       model:

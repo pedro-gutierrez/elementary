@@ -180,27 +180,25 @@ spec:
     hero-view:
       tag: section
       attrs:
-        class: text-gray-700 body-font
+        class: text-gray-700 body-font w-full text-center
       children:
         - tag: div
           attrs:
-            class: container mx-auto flex mb-10 px-5 items-center justify-center flex-col
+            class: container mx-auto
           children:
-            - view: icon-view
-              params:
-                margin: mx-4
-                size: fa-10x
-                icon: "@icon"
-        - tag: div
-          attrs:
-            class:
-              format: "text-center w-full {{ fg-color }}"
-              params:
-                encoder: theme-colors
-          children:
+            - tag: div
+              children:
+                - view: icon-view
+                  params:
+                    margin: mx-4
+                    size: fa-10x
+                    icon: "@icon"
             - tag: h1
               attrs:
-                class: title-font text-5xl mb-4 font-medium
+                class: 
+                  format: "{{ fg-color}} title-font text-5xl mb-4 font-medium"
+                  params:
+                    encoder: theme-colors
               children:
                 - "@title"
     icon-view:
