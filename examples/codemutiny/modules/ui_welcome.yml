@@ -25,6 +25,7 @@ spec:
         view: loading-view
         session: "@data.query.session"
         onProfile:
+          http: get-subscribed-products
           ui: member-layout-view
       cmds:
         http: get-profile

@@ -6,6 +6,7 @@ spec:
       plans: []
       subscriptions: []
       subscription: {}
+      subscribed-products: []
   decoders:
     router:
       show-subscriptions:
@@ -25,6 +26,10 @@ spec:
     http:
       plans:
         plans:
+          body:
+            any: list
+      subscribed-products:
+        subscribed-products:
           body:
             any: list
       already_subscribed:
@@ -73,6 +78,11 @@ spec:
         cancel-subscription:
           any: text
   update:
+    subscribed-products:
+      model:
+        subscribed-products: "@data.subscribed-products.body"
+      cmds:
+        ui: {}
     show-subscriptions:
       model:
         session: "@data.query.session"
@@ -146,6 +156,12 @@ spec:
       cmds:
         ui: member-layout-view
   encoders:
+    get-subscribed-products:
+      method: get
+      path: /api/billing/products
+      headers:
+        authorization: "@session" 
+      as: subscribed-products
     subscriptions-view:
       tag: div
       attrs:

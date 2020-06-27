@@ -161,6 +161,20 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"unique" => items} = spec, context, encoders) do
+    case encode(items, context, encoders) do
+      {:ok, items} when is_list(items) ->
+        {:ok, Enum.uniq(items)}
+
+      {:ok, items} ->
+        {:error, %{"error" => "wrong_type", "expected" => "list", "actual" => items}}
+
+      {:error, _} = error ->
+        error
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"reduce" => source, "initial" => initial, "with" => fun} = spec, context, encoders) do
     with {:ok, source} when is_list(source) <- encode(source, context, encoders),
          {:ok, initial} <- encode(initial, context, encoders) do
