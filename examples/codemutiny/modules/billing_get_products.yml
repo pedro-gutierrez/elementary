@@ -13,13 +13,10 @@ spec:
               any: text
             product:
               any: text
+    service:
       products:
         products:
-          list:
-            id:
-              any: text
-            name:
-              any: text
+          any: list
   update:
     get:
       model:
@@ -33,7 +30,7 @@ spec:
             map: "@data.subscriptions"
             with: "@product"
       cmds:
-        store: products
+        service: products
     products:
       model:
         data: "@data.products"
@@ -51,9 +48,7 @@ spec:
       from: subscriptions
       as: subscriptions
     products:
-      store: "@store"
-      find:
-        id:
-          $in: "@products"
-      from: products
+      app: "products_filter"
+      params:
+        ids: "@products"
       as: products

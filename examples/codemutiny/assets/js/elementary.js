@@ -572,7 +572,6 @@ export default (appUrl, appEffects, deps, facts) => {
             if (err) return error(spec, ctx, err);
             lists[i] = value;
         }
-        console.log("concat lists", lists);
         return { value: flatten(lists) }
     }
 

@@ -81,8 +81,7 @@ spec:
     subscribed-products:
       model:
         subscribed-products: "@data.subscribed-products.body"
-      cmds:
-        ui: {}
+      cmds: "@onSubscribedProducts"
     show-subscriptions:
       model:
         session: "@data.query.session"
@@ -489,3 +488,14 @@ spec:
             has: "confirmed"
           then: "pending"
         - "draft"
+    products-sidebar-content-view:
+      tag: div
+      children:
+        loop: "@subscribed-products"
+        with: product-sidebar-item-view
+    product-sidebar-item-view:
+      view: header-nav-item-view
+      params:
+        title:
+          capitalize: "@name"
+        route: "@name"

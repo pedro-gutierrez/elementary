@@ -1,0 +1,21 @@
+kind: module
+name: products_filter
+spec:
+  decoders:
+    caller:
+      filter:
+        ids:
+          any: list
+  update:
+    filter:
+      model:
+        selected:
+          filter: "@model.data"
+          as: item
+          with:
+            member: "@item.id"
+            of: "@data.ids"
+      cmds:
+        return: selected
+  encoders:
+    selected: "@selected"

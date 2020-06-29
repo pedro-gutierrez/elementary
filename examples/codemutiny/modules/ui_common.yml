@@ -27,7 +27,7 @@ spec:
             nav: "@nav"
         - tag: div
           attrs:
-            class: container mx-auto flex flex-col px-5 py-24 justify-center items-center
+            class: container mx-auto flex flex-col px-5 py-12 justify-center items-center
           children:
              - view: "@view"
         - view: footer-view
@@ -75,8 +75,10 @@ spec:
       view: layout-view
       params:
         nav:
-          - content-view: theme-switcher-view
-          - content-view: display-mode-switcher-view
+          concat:
+            - encoder: member-nav
+            - content-view: theme-switcher-view
+            - content-view: display-mode-switcher-view
     loading-view:
       view: hero-view
       params:
@@ -212,3 +214,38 @@ spec:
       tag: div
       children:
         - "The page you are trying to reach could not be found"
+    app-view:
+      tag: div
+      attrs:
+        class: container mx-auto flex flex-wrap
+      children:
+        - tag: div
+          attrs:
+            class: "md:w-2/6"
+          children:
+            loop: "@apps"
+            with: "app-sidebar-item-view"
+        - tag: div
+          attrs:
+            class: "md:w-4/6"
+          children:
+            - This is the content
+    app-sidebar-item-view:
+      tag: div
+      attrs:
+        class: p-2 sm:w-1/2 w-full
+      children:
+        - tag: div
+          attrs:
+            class: 
+              format: "{{ bg-color-active }} {{ fg-color-active }} rounded flex p-4 w-full items-center"
+              params:
+                encoder: theme-colors
+          children:
+            - tag: span
+              attrs: 
+                class: title-font font-medium
+              children:
+                - capitalize: "@name"
+
+

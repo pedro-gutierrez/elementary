@@ -24,6 +24,8 @@ spec:
       model:
         view: loading-view
         session: "@data.query.session"
+        onSubscribedProducts:
+          ui: {}
         onProfile:
           http: get-subscribed-products
           ui: member-layout-view
@@ -52,3 +54,4 @@ spec:
       path: /api/profile
       headers:
         authorization: "@session"
+    member-nav: []

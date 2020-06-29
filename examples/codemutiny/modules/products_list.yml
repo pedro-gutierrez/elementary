@@ -1,0 +1,11 @@
+kind: module
+name: products_list
+spec:
+  decoders:
+    http:
+      all:
+        any: object
+  update:
+    all:
+      cmds:
+        return: data

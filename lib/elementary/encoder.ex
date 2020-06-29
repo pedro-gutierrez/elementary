@@ -161,6 +161,32 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"filter" => expr, "with" => encoder} = spec, context, encoders) do
+    with {:ok, data} when is_list(data) <- encode(expr, context, encoders),
+         {:ok, as} <- encode(spec["as"] || "item", context, encoders) do
+          Enum.reduce_while(data, [], fn item, acc ->
+            item_ctx = Map.merge(context, %{as => item})
+            case encode(encoder, item_ctx, encoders) do
+              {:ok, true} ->
+                {:cont, [item|acc]}
+
+              {:ok, false} ->
+                {:cont, acc}
+
+              {:error, e} ->
+                {:halt, e}
+            end
+          end)
+          |> case do
+            {:error, _} = e ->
+              e
+            filtered ->
+              {:ok, Enum.reverse(filtered)}
+          end
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"unique" => items} = spec, context, encoders) do
     case encode(items, context, encoders) do
       {:ok, items} when is_list(items) ->
@@ -270,6 +296,14 @@ defmodule Elementary.Encoder do
     with {:ok, index} <- encode(index, context, encoders),
          {:ok, items} <- encode(items, context, encoders) do
       Enum.fetch(items, index)
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"member" => member, "of" => col} = spec, context, encoders) do
+    with {:ok, member} <- encode(member, context, encoders),
+         {:ok, col} <- encode(col, context, encoders) do
+      {:ok, Enum.member?(col, member)}
     end
     |> result(spec, context)
   end
@@ -506,12 +540,12 @@ defmodule Elementary.Encoder do
 
   def encode(%{"encoder" => encoder}, context, encoders) do
     case encoders[encoder] do
-      spec when is_map(spec) ->
-        encode(spec, context, encoders)
-
       nil ->
         {:error,
          %{"error" => "no_such_encoder", "encoder" => encoder, "encoders" => Map.keys(encoders)}}
+      spec ->
+        encode(spec, context, encoders)
+
     end
   end
 

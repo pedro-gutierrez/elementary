@@ -1,0 +1,8 @@
+kind: app
+name: products_filter
+spec:
+  settings:
+    - codemutiny
+  modules:
+    - products
+    - products_filter

@@ -3,70 +3,10 @@ name: ui_dashboard
 spec:
   encoders:
     dashboard-view:
-      tag: div
+      tag: section
       attrs:
-        class: px-5 py-24 mx-auto flex flex-wrap
+        class: w-full 
       children:
-        - tag: div
-          attrs:
-            class: flex flex-col text-center w-full mb-20
-          children:
-            - tag: h2
-              attrs:
-                class: 
-                  format: "text-xs text-{{ theme }}-500 tracking-widest font-medium title-font mb-1"
-              children:
-                - encoder: i18n
-                  params:
-                    en: Dashboard
-                    fr: Panneau de contrôle
-                    es: Consola
-            - tag: h1
-              attrs:
-                class:
-                  format: "{{ fg-color-active }} sm:text-3xl text-2xl font-medium title-font"
-                  params:
-                    encoder: theme-colors
-              children:
-                - encoder: i18n
-                  params:
-                    en: Welcome
-                    fr: Bienvenue 
-                    es: Bienvenido
-        - view: products-view
+        - view: app-view
           params:
-            action: dashboard-product-action
-            style: dashboard-product-style
-    dashboard-product-style: 
-      either:
-        - when: "@subscription"
-          then: 
-            format: "border-2 border-dashed {{ section-border-color }}"
-            params:
-              encoder: theme-colors
-        - ""
-    dashboard-product-action:
-      either:
-        - when: "@subscription"
-          then: 
-            tag: button
-            attrs:
-              class:
-                format: "inline-flex text-white bg-{{ theme }}-500 border-0 mt-2 py-1 px-6 focus:outline-none hover:bg-{{ theme }}-600 rounded"
-            children:
-              - encoder: i18n
-                params:
-                  en: Enter
-                  fr: Entrée 
-                  es: Entrar 
-        - tag: a 
-          attrs:
-            href: "#"
-            class:
-              format: "mt-3 text-{{ theme }}-500 inline-flex items-center"
-          children:
-            - encoder: i18n
-              params:
-                en: Subscribe
-                fr: Je me souscris
-                es: Suscribirse
+            apps: "@subscribed-products"

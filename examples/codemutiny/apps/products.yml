@@ -7,5 +7,6 @@ spec:
   settings:
     - codemutiny
   modules:
-    - products_read
+    - products
+    - products_list
     - http
