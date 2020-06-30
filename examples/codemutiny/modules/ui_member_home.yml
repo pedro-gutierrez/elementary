@@ -1,0 +1,35 @@
+kind: module
+name: ui_member_home
+spec:
+  decoders:
+    router:
+      show-member-home-page:
+        route:
+          one_of:
+            - /
+            - /home
+        query:
+          session:
+            any: text
+    events:
+      show-member-home-page:
+        show-member-home-page:
+          session:
+            any: text
+  update:
+    show-member-home-page:
+      model:
+        view: loading-view
+        session: 
+          one_of: 
+            - "@data.query.session"
+            - "@data.show-member-home-page.session"
+      cmds:
+        events: member-home-page 
+        ui: empty-layout-view
+  encoders:
+    member-home-page: 
+      member-home-page: {}
+    show-member-home-page:
+      show-member-home-page:
+        session: "@session"

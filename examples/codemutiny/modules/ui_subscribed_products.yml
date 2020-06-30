@@ -1,0 +1,34 @@
+kind: module
+name: ui_subscribed_products
+spec:
+  init:
+    model:
+      subscribed-products: []
+  decoders:
+    http:
+      subscribed-products:
+        subscribed-products:
+          body:
+            any: list
+    events:
+      profile-ready:
+        profile:
+          any: object
+  update:
+    subscribed-products:
+      model:
+        subscribed-products: "@data.subscribed-products.body"
+      cmds:
+        events: subscribed-products-ready
+    profile-ready:
+      cmds:
+        http: get-subscribed-products 
+  encoders:
+    get-subscribed-products:
+      method: get
+      path: /api/billing/products
+      headers:
+        authorization: "@session" 
+      as: subscribed-products
+    subscribed-products-ready:
+      subscribed-products: "@subscribed-products"

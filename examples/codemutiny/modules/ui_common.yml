@@ -5,7 +5,6 @@ spec:
     http:
       not_found:
         status: 404
-
   update:
     not_found:
       model:
@@ -76,14 +75,16 @@ spec:
       params:
         nav:
           concat:
-            - encoder: member-nav
+            - @member-view-nav
             - content-view: theme-switcher-view
             - content-view: display-mode-switcher-view
     loading-view:
       view: hero-view
       params:
         title: Loading
+        title-size: text-xl
         icon: fas fa-hourglass-start
+        icon-size: fa-4x
     footer-view:
       tag: footer
       attrs:
@@ -182,7 +183,7 @@ spec:
     hero-view:
       tag: section
       attrs:
-        class: text-gray-700 body-font w-full text-center
+        class: text-gray-700 body-font w-full text-center py-24
       children:
         - tag: div
           attrs:
@@ -192,15 +193,21 @@ spec:
               children:
                 - view: icon-view
                   params:
-                    margin: mx-4
-                    size: fa-10x
+                    margin: mx-4 mb-2
+                    size: 
+                      maybe: "@icon-size"
+                      otherwise: fa-10x
                     icon: "@icon"
             - tag: h1
               attrs:
                 class: 
-                  format: "{{ fg-color}} title-font text-5xl mb-4 font-medium"
+                  format: "{{ fg-color}} title-font {{ title-size }} mb-4 font-medium"
                   params:
-                    encoder: theme-colors
+                    merge:
+                      - title-size:
+                          maybe: "@title-size"
+                          otherwise: text-5xl 
+                      - encoder: theme-colors
               children:
                 - "@title"
     icon-view:
@@ -214,38 +221,38 @@ spec:
       tag: div
       children:
         - "The page you are trying to reach could not be found"
-    app-view:
-      tag: div
-      attrs:
-        class: container mx-auto flex flex-wrap
-      children:
-        - tag: div
-          attrs:
-            class: "md:w-2/6"
-          children:
-            loop: "@apps"
-            with: "app-sidebar-item-view"
-        - tag: div
-          attrs:
-            class: "md:w-4/6"
-          children:
-            - This is the content
-    app-sidebar-item-view:
-      tag: div
-      attrs:
-        class: p-2 sm:w-1/2 w-full
-      children:
-        - tag: div
-          attrs:
-            class: 
-              format: "{{ bg-color-active }} {{ fg-color-active }} rounded flex p-4 w-full items-center"
-              params:
-                encoder: theme-colors
-          children:
-            - tag: span
-              attrs: 
-                class: title-font font-medium
-              children:
-                - capitalize: "@name"
+    ##app-view:
+    ##  tag: div
+    ##  attrs:
+    ##    class: container mx-auto flex flex-wrap
+    ##  children:
+    ##    - tag: div
+    ##      attrs:
+    ##        class: "md:w-2/6"
+    ##      children:
+    ##        loop: "@apps"
+    ##        with: "app-sidebar-item-view"
+    ##    - tag: div
+    ##      attrs:
+    ##        class: "md:w-4/6"
+    ##      children:
+    ##        - This is the content
+    ##app-sidebar-item-view:
+    ##  tag: div
+    ##  attrs:
+    ##    class: p-2 sm:w-1/2 w-full
+    ##  children:
+    ##    - tag: div
+    ##      attrs:
+    ##        class: 
+    ##          format: "{{ bg-color-active }} {{ fg-color-active }} rounded flex p-4 w-full items-center"
+    ##          params:
+    ##            encoder: theme-colors
+    ##      children:
+    ##        - tag: span
+    ##          attrs: 
+    ##            class: title-font font-medium
+    ##          children:
+    ##            - capitalize: "@name"
 
 

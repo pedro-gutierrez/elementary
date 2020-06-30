@@ -18,14 +18,6 @@ spec:
         query:
           without:
             - session
-      welcome-page:
-        route:
-          one_of:
-            - /
-            - /home
-        query:
-          session:
-            any: text
       error-page:
         route: /error
   update:

@@ -1,5 +1,5 @@
 kind: module
-name: ui_welcome
+name: ui_profile
 spec:
   decoders:
     http:
@@ -15,23 +15,14 @@ spec:
             any: text
           picture:
             any: text
-    ui:
-      menu-status:
-        set-menu-status:
-          any: text
+    events:
+      member-home-page-loading:
+        member-home-page:
+          any: object
   update:
-    welcome-page:
-      model:
-        view: loading-view
-        session: "@data.query.session"
-        onSubscribedProducts:
-          ui: {}
-        onProfile:
-          http: get-subscribed-products
-          ui: member-layout-view
+    member-home-page-loading:
       cmds:
         http: get-profile
-        ui: empty-layout-view
     unauthorized:
       model:
         session: ""
@@ -41,17 +32,14 @@ spec:
     profile:
       model:
         profile: "@data.body"
-        view: dashboard-view
-      cmds: "@onProfile"
-    menu-status:
-      model:
-        menuStatus: "@data.set-menu-status"
       cmds:
-        ui: {}
+        events: profile-ready
   encoders:
+    member-nav: []
     get-profile:
       method: get
       path: /api/profile
       headers:
         authorization: "@session"
-    member-nav: []
+    profile-ready:
+      profile: "@profile"

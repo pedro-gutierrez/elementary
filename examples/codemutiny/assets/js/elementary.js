@@ -1382,7 +1382,10 @@ export default (appUrl, appEffects, deps, facts) => {
     function tryAllDecoders(effect, data, decoders) {
         var { err, decoded } = tryDecoders(data, decoders[effect]);
         if (!err) return { decoded };
-        if (err) return error(null, data, "all_decoders_failed");
+        if (err) return error(null, data, {
+            effect: effect,
+            reason: "all_decoders_failed"
+        });
     }
 
     // function encodeCmds(spec, data) {

@@ -10,8 +10,11 @@ spec:
     - ui_i18n
     - ui_common
     - ui_home
-    - ui_welcome
-    - ui_dashboard
+    - ui_member_home
+    - ui_profile
+    - ui_subscribed_products
     - ui_billing
     - ui_notifications
     - ui_products
+    - ui_app
+    - ui_fullpass

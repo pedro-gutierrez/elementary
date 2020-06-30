@@ -1,0 +1,24 @@
+kind: module
+name: ui_fullpass
+spec:
+  decoders:
+    router:
+      show-fullpass:
+        route: /fullpass
+        query:
+          session:
+            any: text 
+  update:
+    show-fullpass:
+      model:
+        session: "@data.query.session"
+        app: fullpass
+      cmds:
+        events: show-member-home-page 
+  encoders:
+    fullpass-view:
+      tag: section
+      attrs:
+        class: w-full 
+      children:
+        - Fullpass view
