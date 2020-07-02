@@ -36,7 +36,7 @@ spec:
       tag: div
       attrs:
         class: 
-          format: "p-4 md:w-1/3 md:mb-0 mb-6 flex flex-col text-center items-center {{ style }}"
+          format: "p-4 md:mb-0 mb-6 flex flex-col text-center items-center {{ style }}"
           params:
             style:
               maybe:

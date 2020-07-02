@@ -15,25 +15,40 @@ spec:
             en: Your last minute pass to your next favourite social event
             fr: Votre pass de denière minute pour votre prochain évènement social favori
             es: Tu pase de última hora, para tu próximo evento social favorito
-        - id: PROD-7YC371846A4660915
-          name: cloud
-          title:
-            en: Cloud
-            fr: Cloud
-            es: Nube
-          icon: fas fa-cloud
-          description:
-            en: Relax, and let us run your APIs, rock solid, on the BEAM
-            fr: Détentez vois, pendant que nous prenon soins de vos APIs, solidement, sur la BEAM
-            es: Relájate, mientras que nosotros corremos sus APIs, sólidas como una roca, sobre la BEAM
+          public: true
+        ##- id: PROD-4J423377F7256584M
+        ##  name: corpbee
+        ##  public: false
+        ##  title:
+        ##    en: Corp Bee
+        ##    fr: Corp Bee
+        ##    es: Corp Bee
+        ##  icon: 
+        ##  description:
+        ##    en: Keep an eye on your favourite corporation
+        ##    fr: Suivi de vos sociétés favories
+        ##    es: Sigue en detalle a tus empresas favoritas
+       # - id: PROD-7YC371846A4660915
+       #   name: cloud
+       #   public: false
+       #   title:
+       #     en: Cloud
+       #     fr: Cloud
+       #     es: Nube
+       #   icon: fas fa-cloud
+       #   description:
+       #     en: Relax, and let us run your APIs, rock solid, on the BEAM
+       #     fr: Détentez vois, pendant que nous prenon soins de vos APIs, solidement, sur la BEAM
+       #     es: Relájate, mientras que nosotros corremos sus APIs, sólidas como una roca, sobre la BEAM
         - id: PROD-7YC371846A4660916
           name: consulting
+          public: true
           title: 
-            en: Consulting
-            fr: Conseil
-            es: Consulting
+            en: Elixir Consultancy
+            fr: Conseil Elixir 
+            es: Consultoría Elixir
           icon: fas fa-hands-helping
           description:
-            en: Need help setting up a new software project? Let's talk about it!
-            fr: Vous avez une idée a déveloper? Nous pouvons vous aider!
-            es: Tienes una idea de proyecto en mente? Te podemos ayudar!
+            en: Getting started with Erlang or Elixir? Let's talk about it!
+            fr: Vous démarrez avec Erlang ou Elixir? Nous pouvons vous aider!
+            es: Empezando con Erlang o Elixir? Te podemos ayudar!
