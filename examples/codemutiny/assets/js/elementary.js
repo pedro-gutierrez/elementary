@@ -1343,6 +1343,7 @@ export default (appUrl, appEffects, deps, facts) => {
     function decode(spec, data, ctx) {
         switch (typeof (spec)) {
             case "object":
+                if (Array.isArray(spec)) return decodeList({ list: spec }, data, ctx);
                 if (hasProp(spec, "text")) return decode(spec.text, data, ctx);
                 if (spec.key) return decodeKey(spec, data, ctx);
                 if (spec.object) return decodeObject(spec, data, ctx);
@@ -1359,7 +1360,6 @@ export default (appUrl, appEffects, deps, facts) => {
                 if (spec.json) return decodeJson(spec, data, ctx);
                 if (spec.size) return decodeSize(spec, data, ctx);
                 if (spec.like) return decodeLike(spec, data, ctx);
-                if (Array.isArray(spec)) return decodeList({ list: spec }, data, ctx);
                 return decodeObject({ object: spec }, data, ctx);
             case "string":
                 return decodeText(spec, data, ctx);
@@ -1377,15 +1377,6 @@ export default (appUrl, appEffects, deps, facts) => {
             if (!err && decoded) return { decoded: { msg: d.msg, data: decoded } };
         }
         return error(null, data, "all_decoders_failed");
-    }
-
-    function tryAllDecoders(effect, data, decoders) {
-        var { err, decoded } = tryDecoders(data, decoders[effect]);
-        if (!err) return { decoded };
-        if (err) return error(null, data, {
-            effect: effect,
-            reason: "all_decoders_failed"
-        });
     }
 
     // function encodeCmds(spec, data) {
@@ -1510,9 +1501,11 @@ export default (appUrl, appEffects, deps, facts) => {
         var effect = ev.effect;
         delete ev.effect;
         const { encoders, decoders, update } = state.app;
-        var { err, decoded } = tryAllDecoders(effect, ev, decoders);
+        var effectDecoders = decoders[effect];
+        log("[core] decoding", {effect, data: ev, decoders: effectDecoders});
+        var { err, decoded } = tryDecoders(ev, effectDecoders);
         if (err) {
-            console.error("Decode error", err);
+            console.error("Decode error", {effect: effect, data: ev, decoders: effectDecoders, reason: err});
             return;
         }
         const { msg, data } = decoded;

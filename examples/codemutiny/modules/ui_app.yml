@@ -1,38 +1,53 @@
 kind: module
 name: ui_app
 spec:
-  init:
-    model:
-      member-view-nav: []
   decoders:
     events:
       subscribed-products-ready:
         subscribed-products:
           any: list
+    router:
+      show-app:
+        route:
+          - apps
+          - any: text
+        query:
+          session:
+            any: text
   update:
+    show-app:
+      model:
+        app:
+          last: "@data.route" 
+        session: "@data.query.session"
+      cmds:
+        events: show-member-home-page
     subscribed-products-ready:
       model:
         view: 
           encoder: member-first-view
-        member-view-nav:
-          map: "@model.subscribed-products"
-          with: 
-            encoder: product-nav-item
       cmds:
         ui: member-layout-view
   encoders:
-    product-nav-item:
-      route: "@item.name"
-      title:
-        capitalize: "@item.name"
+    app-view:
+      format: "{{ name }}-app-view"
+    apps-nav:
+      map: "@subscribed-products"
+      with:
+        active-view:
+          encoder: "app-view"
+          params: "@item"
+        route: 
+          - apps
+          - "@item.name"
+        title: "@item.name"
     member-first-view:
-      let:
-        app:
+      encoder: app-view
+      params:
+        name: 
           maybe: "@app"
           otherwise:
             let:
               product: 
                 head: "@model.subscribed-products"
             in: "@product.name"
-      in:
-        format: "{{ app }}-view"

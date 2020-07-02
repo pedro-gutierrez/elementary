@@ -47,7 +47,8 @@ spec:
           children:
              - view: "@view"
     home-link:
-      route: home
+      active-view: home-view
+      route: []
       title:
         encoder: i18n
         params:
@@ -75,7 +76,7 @@ spec:
       params:
         nav:
           concat:
-            - @member-view-nav
+            - encoder: apps-nav
             - content-view: theme-switcher-view
             - content-view: display-mode-switcher-view
     loading-view:
@@ -164,8 +165,7 @@ spec:
             merge:
               - encoder: theme-colors
               - choose: "@view"
-                when:
-                  format: "{{ route }}-view"
+                when: "@active-view"
                 then:
                   fg-hover: none
                   extra: "border-0 py-1 px-3 focus:outline-none rounded text-base"

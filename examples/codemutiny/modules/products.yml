@@ -15,7 +15,25 @@ spec:
             en: Your last minute pass to your next favourite social event
             fr: Votre pass de denière minute pour votre prochain évènement social favori
             es: Tu pase de última hora, para tu próximo evento social favorito
-          public: true
+          features:
+            - name: event_management
+              title:
+                en: Manage events
+                fr: Gestion d'évènements
+                es: Gestionar eventos
+            - name: event_search
+              title:
+                en: Search events 
+                fr: Recherche d'évènements 
+                es: Buscar eventos
+            - name: pass_marketplace
+              title:
+                en: Pass exchange
+                fr: Echange de pass
+                es: Intercambio de pases
+
+
+
         ##- id: PROD-4J423377F7256584M
         ##  name: corpbee
         ##  public: false

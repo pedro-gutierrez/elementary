@@ -5,9 +5,7 @@ spec:
     router:
       show-member-home-page:
         route:
-          one_of:
-            - /
-            - /home
+          empty: list
         query:
           session:
             any: text

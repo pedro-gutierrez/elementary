@@ -7,7 +7,7 @@ export default (name, _settings, app) => {
     }
 
     function encodeHash(target) {
-        var uri = "/" + target.route;
+        var uri = "/" + target.route.join("/");
         var queryParts = [];
         if (target.query) {
             for (var q in target.query) {
@@ -23,19 +23,20 @@ export default (name, _settings, app) => {
     function decodeHash(uri) {
         uri = decodeURI(uri);
 
-        var path = "/"
+        var path = []
         var query = {}
         if (uri.length) {
             var parts = uri.split("?")
-            path = parts[0]
+            path = parts[0].split("/").filter((p) => {
+                return p.length > 0
+            });
+
             if (parts.length > 1) {
                 parts[1].split('&').map(hk => {
                     let temp = hk.split('=');
                     query[temp[0]] = temp[1]
                 });
             }
-
-            if (!path.startsWith("/")) path="/"+path;
         }
 
         return {path, query};
@@ -58,7 +59,7 @@ export default (name, _settings, app) => {
                     window.location.hash = '#' + encodeHash(target);
                     update({
                         effect: name,
-                        route: "/" + target.route,
+                        route: target.route,
                         query: target.query 
 
                     });

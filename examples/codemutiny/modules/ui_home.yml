@@ -6,6 +6,21 @@ spec:
       view: home-view
     cmds:
       router: {}
+  decoders:
+    router:
+      show-home-page:
+        route:
+          empty: list
+        query:
+          without:
+            - session
+  update:
+    show-home-page:
+      model:
+        view: home-view
+      cmds:
+        http: get-products
+        ui: public-layout-view
   encoders:
     home-view:
       tag: div
