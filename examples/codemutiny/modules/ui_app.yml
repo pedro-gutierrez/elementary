@@ -3,8 +3,8 @@ name: ui_app
 spec:
   decoders:
     events:
-      subscribed-products-ready:
-        subscribed-products:
+      apps-ready:
+        apps:
           any: list
     router:
       show-app:
@@ -22,17 +22,29 @@ spec:
         session: "@data.query.session"
       cmds:
         events: show-member-home-page
-    subscribed-products-ready:
+    apps-ready:
       model:
-        view: 
-          encoder: member-first-view
+        let:
+          selected-app:
+            maybe:
+              first:
+                name: "@model.app"
+              in: "@model.apps"
+            otherwise:
+              head: "@model.apps" 
+        in:
+          selected-app: "@selected-app"
+          view:
+            encoder: app-view
+            params:
+              name: "@selected-app.name"  
       cmds:
         ui: member-layout-view
   encoders:
     app-view:
       format: "{{ name }}-app-view"
     apps-nav:
-      map: "@subscribed-products"
+      map: "@apps"
       with:
         active-view:
           encoder: "app-view"
@@ -41,13 +53,12 @@ spec:
           - apps
           - "@item.name"
         title: "@item.name"
-    member-first-view:
-      encoder: app-view
-      params:
-        name: 
-          maybe: "@app"
-          otherwise:
-            let:
-              product: 
-                head: "@model.subscribed-products"
-            in: "@product.name"
+    app-features-view:
+      tag: div
+      children:
+        loop: "@selected-app.features"
+        with: app-feature-view
+    app-feature-view:
+      tag: div
+      children:
+        - "@name"

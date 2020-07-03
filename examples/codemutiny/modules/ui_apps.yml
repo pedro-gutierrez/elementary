@@ -1,0 +1,34 @@
+kind: module
+name: ui_apps
+spec:
+  init:
+    model:
+      apps: []
+  decoders:
+    http:
+      apps:
+        apps:
+          body:
+            any: list
+    events:
+      profile-ready:
+        profile:
+          any: object
+  update:
+    apps:
+      model:
+        apps: "@data.apps.body"
+      cmds:
+        events: apps-ready
+    profile-ready:
+      cmds:
+        http: get-apps 
+  encoders:
+    get-apps:
+      method: get
+      path: /api/billing/products
+      headers:
+        authorization: "@session" 
+      as: apps
+    apps-ready:
+      apps: "@apps"

@@ -16,17 +16,17 @@ spec:
             fr: Votre pass de denière minute pour votre prochain évènement social favori
             es: Tu pase de última hora, para tu próximo evento social favorito
           features:
-            - name: event_management
+            - name: event-management
               title:
                 en: Manage events
                 fr: Gestion d'évènements
                 es: Gestionar eventos
-            - name: event_search
+            - name: event-search
               title:
                 en: Search events 
                 fr: Recherche d'évènements 
                 es: Buscar eventos
-            - name: pass_marketplace
+            - name: pass-marketplace
               title:
                 en: Pass exchange
                 fr: Echange de pass

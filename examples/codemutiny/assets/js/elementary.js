@@ -720,6 +720,23 @@ export default (appUrl, appEffects, deps, facts) => {
         return { value: joinValue.join(sep) };
     }
 
+    function encodeFirst(spec, ctx) {
+        var {err, value: first } = encode(spec.first, ctx);
+        if (err) return error(spec.first, ctx, err);
+        var {err, value: items } = encode(spec.in, ctx);
+        if (err) return error(spec.in, ctx, err);
+        if (!Array.isArray(items)) return error(spec, items, "not_a_list");
+        if (!items.length) return error(spec, ctx, "empty_list");
+        for (var i=0; i<items.length; i++) {
+            var item = items[i];
+            var {err, decoded} = decode(first, item);
+            if (!err && decoded) {
+                return {value: item};
+            } 
+        }
+        return error(spec, ctx, "no_item_matched"); 
+    }
+
     function encodeHead(spec, ctx) {
         var { err, value } = encode(spec.head, ctx);
         if (err) return error(spec, ctx, err);
@@ -1019,6 +1036,7 @@ export default (appUrl, appEffects, deps, facts) => {
                 if (spec.not) return encodeNot(spec, ctx);
                 if (spec.and) return encodeAnd(spec, ctx);
                 if (spec.or) return encodeOr(spec, ctx);
+                if (spec.first) return encodeFirst(spec, ctx);
                 if (spec.head) return encodeHead(spec, ctx);
                 if (spec.tail) return encodeTail(spec, ctx);
                 if (spec.last) return encodeLast(spec, ctx);

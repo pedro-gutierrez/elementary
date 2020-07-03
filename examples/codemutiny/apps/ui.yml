@@ -12,7 +12,7 @@ spec:
     - ui_home
     - ui_member_home
     - ui_profile
-    - ui_subscribed_products
+    - ui_apps
     - ui_billing
     - ui_notifications
     - ui_products

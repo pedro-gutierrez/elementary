@@ -7,4 +7,4 @@ spec:
       attrs:
         class: w-full 
       children:
-        - Fullpass view
+        - view: app-features-view
