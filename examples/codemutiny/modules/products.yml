@@ -16,24 +16,46 @@ spec:
             fr: Votre pass de denière minute pour votre prochain évènement social favori
             es: Tu pase de última hora, para tu próximo evento social favorito
           features:
-            - name: event-management
+            - name: event-create
               title:
-                en: Manage events
-                fr: Gestion d'évènements
-                es: Gestionar eventos
+                en: Create events 
+                fr: Créer des évènements 
+                es: Crear eventos
+            - name: event-verify
+              title:
+                en: Verify events 
+                fr: Vérifier des évènements 
+                es: Verificar eventos
             - name: event-search
               title:
                 en: Search events 
                 fr: Recherche d'évènements 
                 es: Buscar eventos
-            - name: pass-marketplace
+            - name: event-subscriptions
               title:
-                en: Pass exchange
-                fr: Echange de pass
-                es: Intercambio de pases
-
-
-
+                en: Event subscriptions
+                fr: Souscrire a des èvenements
+                es: Subscripciones a eventos
+            - name: pass-offer 
+              title:
+                en: Pass offer
+                fr: Offre de Pass
+                es: Oferta de pases
+            - name: pass-verify 
+              title:
+                en: Verify pass 
+                fr: Vérification de Pass
+                es: Verificación de pases
+            - name: pass-demand 
+              title:
+                en: Pass demand
+                fr: Offre de Pass
+                es: Oferta de pases
+            - name: notifications
+              title:
+                en: Notifications
+                fr: Notifications 
+                es: Notificaciones 
         ##- id: PROD-4J423377F7256584M
         ##  name: corpbee
         ##  public: false

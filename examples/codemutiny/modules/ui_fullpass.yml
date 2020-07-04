@@ -1,6 +1,16 @@
 kind: module
 name: ui_fullpass
 spec:
+  init:
+    model:
+      fullpass-ready: {}
+  decoders:
+    events:
+      fullpass-ready:
+        app: fullpass
+  update:
+    fullpass-ready:
+      cmds: "@fullpass-ready"
   encoders:
     fullpass-app-view:
       tag: section

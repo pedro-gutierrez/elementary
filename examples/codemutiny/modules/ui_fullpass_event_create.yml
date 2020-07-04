@@ -1,0 +1,12 @@
+kind: module
+name: ui_fullpass_event_create
+spec:
+  init:
+    model:
+      event: {}
+  encoders:
+    fullpass-event-create-view:
+      tag: div
+      children:
+        - "Event create"
+    

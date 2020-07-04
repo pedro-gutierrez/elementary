@@ -9,7 +9,11 @@ spec:
       apps:
         apps:
           body:
-            any: list
+            non_empty: list
+      no-apps:
+        apps:
+          body:
+            empty: list
     events:
       profile-ready:
         profile:
@@ -20,6 +24,11 @@ spec:
         apps: "@data.apps.body"
       cmds:
         events: apps-ready
+    no-apps:
+      model:
+        view: no-apps-view
+      cmds:
+        ui: member-layout-view
     profile-ready:
       cmds:
         http: get-apps 
@@ -32,3 +41,7 @@ spec:
       as: apps
     apps-ready:
       apps: "@apps"
+    no-apps-view:
+      tag: div
+      children:
+        - You are currently not subscribed to any apps

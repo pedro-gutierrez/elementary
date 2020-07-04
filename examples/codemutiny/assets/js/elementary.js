@@ -1092,11 +1092,13 @@ export default (appUrl, appEffects, deps, facts) => {
         if (!data || typeof (data) != 'object') return error(spec, data, "no_match");
         var out = {};
         for (var k in spec.object) {
-            if (hasProp(spec.object, k)) {
+            if (hasProp(data, k)) {
                 var keySpec = spec.object[k];
                 var { err, decoded } = decode(keySpec, data[k], ctx);
                 if (err) return error(keySpec, data[k], err);
                 out[k] = decoded;
+            } else {
+                return error(spec, data, "no_match");
             }
         }
         return { decoded: out };

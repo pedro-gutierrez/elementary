@@ -89,30 +89,37 @@ export default (name, settings, app) => {
     }
 
     function compileLoop(views, spec, ctx) {
-        var { err, view } = resolve(views, spec.with, ctx);
-        if (err) return error(spec, ctx, err);
-        var itemView = view;
         var { err, value } = encode(spec.loop, ctx);
         if (err) return error(spec, ctx, err);
         var items = value;
         if (!items || !items.length) return { view: [] };
         var { err, value } = encode(spec.params || "@", ctx);
         if (err) return error(spec, ctx, err);
-        var sharedCtx = value;
+        var sharedCtx = Object.assign({}, ctx, value);
         var out = [];
 
         var alias = spec.as;
         for (var i = 0; i < items.length; i++) {
             var item = items[i];
-            var itemCtx = Object.assign({}, settings, sharedCtx);
+            var itemCtx = Object.assign({}, sharedCtx);
             if (alias) {
                 itemCtx[alias] = item;
             } else {
                 itemCtx = Object.assign(itemCtx, item);
             }
-            var { err, view } = compile(views, itemView, itemCtx);
-            if (err) return error(spec, ctx, err);
-            out.push(view);
+            
+            var { err, value: viewName } = encode(spec.with, itemCtx);
+            if (err) return error(spec, itemCtx, err);
+            var {err, view : itemView} = resolve(views, viewName, itemCtx);
+            if (err) {
+                console.warn("Error rending view", err);
+                var {view} = emptyView();
+                out.push(view);
+            } else {
+                var { err, view: itemView } = compile(views, itemView, itemCtx);
+                if (err) return error(spec, itemCtx, err);
+                out.push(itemView);
+            }
         }
         return { view: out };
     }

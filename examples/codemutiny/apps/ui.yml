@@ -18,3 +18,4 @@ spec:
     - ui_products
     - ui_app
     - ui_fullpass
+    - ui_fullpass_event_create

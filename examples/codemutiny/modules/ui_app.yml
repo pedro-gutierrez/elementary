@@ -40,7 +40,10 @@ spec:
               name: "@selected-app.name"  
       cmds:
         ui: member-layout-view
+        events: app-ready
   encoders:
+    app-ready:
+      app: "@selected-app.name"
     app-view:
       format: "{{ name }}-app-view"
     apps-nav:
@@ -57,8 +60,7 @@ spec:
       tag: div
       children:
         loop: "@selected-app.features"
-        with: app-feature-view
-    app-feature-view:
-      tag: div
-      children:
-        - "@name"
+        with: 
+          format: "{{ app }}-{{ name }}-view"
+        params:
+          app: "@selected-app.name"
