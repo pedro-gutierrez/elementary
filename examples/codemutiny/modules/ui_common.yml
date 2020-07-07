@@ -26,7 +26,7 @@ spec:
             nav: "@nav"
         - tag: div
           attrs:
-            class: container mx-auto flex flex-col px-5 py-12 justify-center items-center
+            class: container mx-auto flex flex-col py-12 justify-center items-center
           children:
              - view: "@view"
         - view: footer-view
@@ -43,7 +43,7 @@ spec:
       children:
         - tag: div
           attrs:
-            class: container mx-auto flex flex-col px-5 py-24 justify-center items-center
+            class: container mx-auto flex flex-col py-24 justify-center items-center
           children:
              - view: "@view"
     home-link:
