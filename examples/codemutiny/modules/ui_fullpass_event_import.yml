@@ -1,0 +1,28 @@
+kind: module
+name: ui_fullpass_event_import
+spec:
+  init:
+    model:
+      event: {}
+  encoders:
+    fullpass-event-import-view:
+      view: form-view
+      params:
+        loading: true
+        title: "@title"
+        subtitle:
+          en: Send us the address of the event so that we can verify it 
+          fr: Envoyez nous l'addresse de l'évènement, afin que nous puissons le vérifer 
+          es: Envíanos la dirección del evento para que podamos verificarlo
+        message: Progress and Error messages go here
+        fields:
+          - view: text-field-view
+            params:
+              placeholder:  https://www.facebook.com/events/2461820943882154
+        action:
+          title:
+            en: Send 
+            fr: Envoyer 
+            es: Enviar 
+          event:
+            import-event: {} 

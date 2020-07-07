@@ -221,6 +221,92 @@ spec:
       tag: div
       children:
         - "The page you are trying to reach could not be found"
+    text-field-view:
+      tag: input
+      attrs:
+        class:
+          format: "{{ input-bg-color }} rounded border {{ input-border-color }} {{ input-fg-color }} focus:outline-none focus:border-{{ theme }}-500 text-base py-2 px-4 mb-4"
+          params:
+            merge:
+              - theme: "@theme"
+              - encoder: theme-colors
+        placeholder: "@params.placeholder" 
+        type: text
+      children: []
+    form-view:
+      tag: div
+      attrs:
+        class: 
+          format: "{{ &width }} {{ bg-color-active-2 }} rounded-lg p-6 flex flex-col md:ml-auto w-full mt-10 md:mt-0"
+          params:
+            merge:
+              - encoder: theme-colors 
+              - width:
+                  maybe: "@width"
+                  otherwise: w-full 
+      children:
+        - tag: h2
+          attrs:
+            class: 
+              format: "{{ fg-color-active-2 }} text-xl mb-4 font-medium"
+              params:
+                encoder: theme-colors
+          children:
+            - view: icon-view
+              params:
+                margin: mr-2
+                icon: "@icon"
+            - encoder: i18n
+              params: "@title"
+        - tag: p
+          attrs:
+            class: "leading-relaxed mb-5 {{ fg-color }}"
+            params:
+              encoder: theme-colors
+          children:
+            - encoder: i18n
+              params: "@subtitle"
+        - tag: div
+          attrs:
+            class: w-full flex flex-col
+          children:
+            loop: "@fields"
+            with: "@view"
+        - tag: button
+          attrs:
+            class:
+              format: "text-white bg-{{ theme }}-500 border-0 py-2 px-6 focus:outline-none hover:bg-{{ theme }}-600 rounded {{ disabled }}"
+              params:
+                theme: "@theme"
+                disabled:
+                  switch: "@loading"
+                  case:
+                    true: "cursor-not-allowed"
+                  default: ""
+            onclick:
+              switch: "@loading"
+              case:
+                true:
+                  noop: {}
+              default: "@action.event"
+          children:
+            - encoder: i18n
+              params: "@action.title"
+            - view: icon-view
+              when: 
+                maybe: "@loading"
+                otherwise: false
+              params:
+                margin: mx-1
+                icon: fa fa-spinner fa-spin
+        - tag: p
+          when:
+            is_set: "@message"
+          attrs:
+            class:
+              format: "text-xs mt-3 {{ fg-color }}"
+          children:
+            - "@message"
     ##app-view:
     ##  tag: div
     ##  attrs:

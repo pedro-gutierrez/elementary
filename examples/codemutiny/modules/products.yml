@@ -16,16 +16,22 @@ spec:
             fr: Votre pass de denière minute pour votre prochain évènement social favori
             es: Tu pase de última hora, para tu próximo evento social favorito
           features:
-            - name: event-create
+            - name: event-import
+              icon: fas fa-cloud-upload-alt
               title:
-                en: Create events 
-                fr: Créer des évènements 
-                es: Crear eventos
+                en: Import events 
+                fr: Importer des évènements 
+                es: Importar eventos
             - name: event-verify
               title:
                 en: Verify events 
                 fr: Vérifier des évènements 
                 es: Verificar eventos
+            - name: event-link
+              title:
+                en: Link events 
+                fr: Relier des évènements 
+                es: Relacionar eventos
             - name: event-search
               title:
                 en: Search events 
@@ -51,6 +57,11 @@ spec:
                 en: Pass demand
                 fr: Offre de Pass
                 es: Oferta de pases
+            - name: priority-match
+              title:
+                en: Priority Match
+                fr: Matching en priorité 
+                es: Matching con prioridad
             - name: notifications
               title:
                 en: Notifications
