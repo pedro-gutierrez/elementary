@@ -4,25 +4,47 @@ spec:
   init:
     model:
       event: {}
+      fullpass_event_url: ""
+      import_event_message: ""
+      fullpass_loading: false
+  decoders:
+    ui:
+      fullpass-event-import-url:
+        fullpass-event-import-url:
+          any: text
+      fullpass-event-import-submit:
+        fullpass-event-import-submit:
+          any: text
+  update:
+    fullpass-event-import-url:
+      model:
+        fullpass_event_url: "@data.fullpass-event-import-url"
+      cmds:
+        ui: {}
+    fullpass-event-import-submit:
+      model: 
+        fullpass_loading: true
+      cmds:
+        ui: {}
   encoders:
     fullpass-event-import-view:
       view: form-view
       params:
-        loading: true
+        loading: "@fullpass_loading"
         title: "@title"
         subtitle:
           en: Send us the address of the event so that we can verify it 
           fr: Envoyez nous l'addresse de l'évènement, afin que nous puissons le vérifer 
           es: Envíanos la dirección del evento para que podamos verificarlo
-        message: Progress and Error messages go here
+        message: "@import_event_message"
         fields:
           - view: text-field-view
             params:
+              name: "url"
+              value: "@fullpass_event_url"
               placeholder:  https://www.facebook.com/events/2461820943882154
         action:
           title:
             en: Send 
             fr: Envoyer 
             es: Enviar 
-          event:
-            import-event: {} 

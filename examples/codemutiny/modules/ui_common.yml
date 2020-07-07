@@ -230,7 +230,13 @@ spec:
             merge:
               - theme: "@theme"
               - encoder: theme-colors
-        placeholder: "@params.placeholder" 
+        placeholder: "@params.placeholder"
+        oninput:
+          format: "{{ app }}-{{ feature }}-{{ field }}"
+          params:
+            app: "@app"
+            feature: "@feature"
+            field: "@params.name"
         type: text
       children: []
     form-view:
@@ -286,9 +292,15 @@ spec:
             onclick:
               switch: "@loading"
               case:
-                true:
-                  noop: {}
-              default: "@action.event"
+                true: noop
+              default: 
+                format: "{{ app }}-{{ feature }}-{{ event }}"
+                params:
+                  app: "@app"
+                  feature: "@feature"
+                  event: 
+                    maybe: "@action.event"
+                    otherwise: "submit"
           children:
             - encoder: i18n
               params: "@action.title"
@@ -307,38 +319,3 @@ spec:
               format: "text-xs mt-3 {{ fg-color }}"
           children:
             - "@message"
-    ##app-view:
-    ##  tag: div
-    ##  attrs:
-    ##    class: container mx-auto flex flex-wrap
-    ##  children:
-    ##    - tag: div
-    ##      attrs:
-    ##        class: "md:w-2/6"
-    ##      children:
-    ##        loop: "@apps"
-    ##        with: "app-sidebar-item-view"
-    ##    - tag: div
-    ##      attrs:
-    ##        class: "md:w-4/6"
-    ##      children:
-    ##        - This is the content
-    ##app-sidebar-item-view:
-    ##  tag: div
-    ##  attrs:
-    ##    class: p-2 sm:w-1/2 w-full
-    ##  children:
-    ##    - tag: div
-    ##      attrs:
-    ##        class: 
-    ##          format: "{{ bg-color-active }} {{ fg-color-active }} rounded flex p-4 w-full items-center"
-    ##          params:
-    ##            encoder: theme-colors
-    ##      children:
-    ##        - tag: span
-    ##          attrs: 
-    ##            class: title-font font-medium
-    ##          children:
-    ##            - capitalize: "@name"
-
-

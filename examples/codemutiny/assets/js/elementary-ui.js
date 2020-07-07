@@ -93,15 +93,17 @@ export default (name, settings, app) => {
         if (err) return error(spec, ctx, err);
         var items = value;
         if (!items || !items.length) return { view: [] };
-        var { err, value } = encode(spec.params || "@", ctx);
-        if (err) return error(spec, ctx, err);
-        var sharedCtx = Object.assign({}, ctx, value);
         var out = [];
 
         var alias = spec.as;
         for (var i = 0; i < items.length; i++) {
             var item = items[i];
-            var itemCtx = Object.assign({}, sharedCtx);
+            
+            var itemCtx = Object.assign({}, ctx, item);
+            var { err, value } = encode(spec.params || "@", itemCtx);
+            if (err) return error(spec, itemCtx, err);
+            itemCtx = Object.assign({}, ctx, value);
+
             if (alias) {
                 itemCtx[alias] = item;
             } else {
