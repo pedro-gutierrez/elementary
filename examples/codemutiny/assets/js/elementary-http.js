@@ -97,46 +97,68 @@ export default (name, settings, app) => {
         }
     }
 
+    function replyWithError(as, reason) {
+        var data = {
+            effect: name
+        };
+
+        data[as] = reason;
+        update(data);
+    }
+
     return (encoders, enc, model) => {
         var {err, value} = encode(enc, model);
+        if (!value.as || !value.as.length) {
+            error("missing 'as' context in http request", {enc, model});
+            return;
+        }
+                    
+        var as = value.as;
         if (err) {
             error("error encoding request", err);
-        } else {
-            encodeBody(value, (body, ct) => {
-                var method = (value.method||'get').toUpperCase()
-                var url = encodeUrl(value);
-                url = encodeQuery(url, value);
-                var xhr = new XMLHttpRequest();
-                xhr.open(method, url);
-                withReqHeaders(xhr, settings);
-                withReqHeaders(xhr, value);
-                xhr.onload = function () {
-                    var headers = getHeadersAsObject(xhr);
-
-                    var data = {
-                        headers: headers,
-                        status: xhr.status,
-                        body: decodeBody(headers, xhr)
-                    }
-
-                    var as = value.as;
-                    if (as && as.length) {
-                        var payload = data
-                        data = {}
-                        data[as] = payload
-                    }
-                    data.effect = name
-
-                    if (value.debug) {
-                        console.log(name, {request: {
-                            url, method, body
-                        }, response: data});
-                    }
-
-                    update(data);
-                }
-                xhr.send(body);
-            });
+            return;
         }
+        encodeBody(value, (body, ct) => {
+            var method = (value.method || 'get').toUpperCase()
+            var url = encodeUrl(value);
+            url = encodeQuery(url, value);
+            var xhr = new XMLHttpRequest();
+            xhr.timeout = 2000;
+            xhr.open(method, url);
+            withReqHeaders(xhr, settings);
+            withReqHeaders(xhr, value);
+            xhr.onerror = function (e) {
+                replyWithError(as, "error");
+            }
+
+            xhr.ontimeout = function () {
+                replyWithError(as, "timeout");
+            }
+
+            xhr.onload = function () {
+                var headers = getHeadersAsObject(xhr);
+
+                var payload = {
+                    headers: headers,
+                    status: xhr.status,
+                    body: decodeBody(headers, xhr)
+                }
+
+                var data = {}
+                data[as] = payload
+                data.effect = name
+
+                if (value.debug) {
+                    console.log(name, {
+                        request: {
+                            url, method, body
+                        }, response: data
+                    });
+                }
+
+            update(data);
+            }
+            xhr.send(body);
+        });
     };
 }

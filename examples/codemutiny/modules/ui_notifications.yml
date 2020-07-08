@@ -2,10 +2,29 @@ kind: module
 name: ui_notifications
 spec:
   encoders:
+    timeout-error-message:
+      encoder: i18n
+      params:
+        lang: "@model.lang"
+        en: "The operation is taking too long. Please try again later."
+        fr: "L'opération prends trop de temps. Veuillez essayer plus tard."
+        es: "La operación tarda demasiado. Por favor, inténtalo más tarde."
+    connection-error-message:
+      encoder: i18n
+      params:
+        lang: "@model.lang"
+        en: "There was a network error, please retry."
+        fr: "Erreur de connexion. Veuillez re-essayer."
+        es: "Error de conexión, por favor, inténtalo de nuevo."
+    application-error-message:
+      encoder: i18n
+      params:
+        lang: "@model.lang"
+        en: "We detected an error on our side. We are working on it to solve it."
+        fr: "Nous avons détecté une erreur. Nous sommes déjà entrain de le corriger."
+        es: "Hemos detectado un error por nuestra parte. Estamos trabajando ya en ello."
     notification-view:
       tag: div
-      attrs:
-        class: notification is-light
       children:
         - "@message"
     dialog-view:

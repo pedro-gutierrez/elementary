@@ -4,17 +4,19 @@ spec:
   decoders:
     http:
       unauthorized:
-        status: 401
+        profile:
+          status: 401
       profile:
-        body:
-          email:
-            any: text
-          id:
-            any: text
-          name:
-            any: text
-          picture:
-            any: text
+        profile:
+          body:
+            email:
+              any: text
+            id:
+              any: text
+            name:
+              any: text
+            picture:
+              any: text
     events:
       member-home-page-loading:
         member-home-page:
@@ -31,7 +33,7 @@ spec:
         ui: {}
     profile:
       model:
-        profile: "@data.body"
+        profile: "@data.profile.body"
       cmds:
         events: profile-ready
   encoders:
@@ -40,5 +42,6 @@ spec:
       path: /api/profile
       headers:
         authorization: "@session"
+      as: profile
     profile-ready:
       profile: "@profile"

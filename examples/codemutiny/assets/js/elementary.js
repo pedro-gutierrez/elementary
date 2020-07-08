@@ -1470,7 +1470,7 @@ export default (appUrl, appEffects, deps, facts) => {
             if (encoder) {
                 enc = encoders[encoder];
                 if (!enc) {
-                    console.error("No such encoder", cmd);
+                    console.error("No such encoder", {cmd, encoders});
                     return;
                 }
             }

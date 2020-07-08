@@ -3,10 +3,11 @@ name: ui_fullpass_event_import
 spec:
   init:
     model:
-      event: {}
-      fullpass_event_url: ""
-      import_event_message: ""
-      fullpass_loading: false
+      fullpass-event:
+        id: ""
+        url: ""
+      import-event-message: ""
+      fullpass-loading: false
   decoders:
     ui:
       fullpass-event-import-url:
@@ -15,33 +16,99 @@ spec:
       fullpass-event-import-submit:
         fullpass-event-import-submit:
           any: text
+    http:
+      fullpass-event-import-connect-error:
+        fullpass-event-import: "error"
+      fullpass-event-import-timeout:
+        fullpass-event-import: "timeout"
+      fullpass-event-import-error:
+        fullpass-event-import:
+          status:
+            other_than: 202
+      fullpass-event-import-success:
+        fullpass-event-import:
+          status: 202
   update:
     fullpass-event-import-url:
       model:
-        fullpass_event_url: "@data.fullpass-event-import-url"
+        fullpass-event:
+          merge:
+            - "@model.fullpass-event"
+            - url: "@data.fullpass-event-import-url"
       cmds:
         ui: {}
     fullpass-event-import-submit:
       model: 
-        fullpass_loading: true
+        fullpass-event:
+          merge:
+            - "@model.fullpass-event"
+            - id:
+                uuid: {} 
+        import-event-message: ""
+        fullpass-loading: true
+      cmds:
+        http: fullpass-event-import
+        ui: {}
+    fullpass-event-import-error:
+      model:
+        import-event-message:
+          encoder: application-error-message
+        fullpass-loading: false 
+      cmds:
+        ui: {}
+    fullpass-event-import-connect-error:
+      model:
+        import-event-message: 
+          encoder: connection-error-message
+        fullpass-loading: false 
+      cmds:
+        ui: {}
+    fullpass-event-import-timeout:
+      model:
+        import-event-message: 
+          encoder: timeout-error-message
+        fullpass-loading: false 
+      cmds:
+        ui: {}
+    fullpass-event-import-success:
+      model:
+        view: fullpass-event-imported-view
+        fullpass-loading: false 
       cmds:
         ui: {}
   encoders:
+    fullpass-event-import: 
+      method: post 
+      path: /api/fullpass/events
+      headers:
+        content-type: application/json
+        authorization: "@session"
+      body: "@fullpass-event"
+      as: fullpass-event-import
+    fullpass-event-imported-view:
+      view: notification-view
+      params:
+        message:
+          encoder: i18n
+          params:
+            en: "Your event has been received. We are now verifying it."
+            fr: "Votre évènement es en cours de vérification"
+            es: "Hemos recibido tu evento, y lo estamos verificando"
     fullpass-event-import-view:
       view: form-view
       params:
-        loading: "@fullpass_loading"
+        loading: "@fullpass-loading"
         title: "@title"
         subtitle:
           en: Send us the address of the event so that we can verify it 
           fr: Envoyez nous l'addresse de l'évènement, afin que nous puissons le vérifer 
           es: Envíanos la dirección del evento para que podamos verificarlo
-        message: "@import_event_message"
+        message: "@import-event-message"
         fields:
           - view: text-field-view
             params:
               name: "url"
-              value: "@fullpass_event_url"
+              value: "@fullpass-event.url"
               placeholder:  https://www.facebook.com/events/2461820943882154
         action:
           title:
