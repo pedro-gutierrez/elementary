@@ -1,0 +1,36 @@
+kind: module
+name: fullpass_create_event 
+spec:
+  decoders:
+    http:
+      create:
+        method: POST
+        body:
+          id:
+            any: text
+          source:
+            one_of:
+              - facebook
+    store:
+      created:
+        created: "created"
+  update:
+    create:
+      model:
+        event: "@data.body"
+      cmds:
+        store: create
+    created:
+      cmds:
+        return: accepted
+  encoders:
+    create:
+      store: "@store"
+      insert:
+        merge:
+          - "@event"
+          - owner: "@session.identity"
+            created:
+              now: {}
+      into: fullpass
+      as: created

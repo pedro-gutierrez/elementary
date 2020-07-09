@@ -292,6 +292,14 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"split" => expr, "using" => sep} = spec, context, encoders) do
+    with {:ok, expr } <- encode(expr, context, encoders),
+         {:ok, sep } <- encode(sep, context, encoders) do
+          {:ok, String.split(expr, sep)}
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"item" => index, "in" => items} = spec, context, encoders) do
     with {:ok, index} <- encode(index, context, encoders),
          {:ok, items} <- encode(items, context, encoders) do

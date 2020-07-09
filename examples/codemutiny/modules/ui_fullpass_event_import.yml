@@ -3,9 +3,7 @@ name: ui_fullpass_event_import
 spec:
   init:
     model:
-      fullpass-event:
-        id: ""
-        url: ""
+      fullpass-event-url: ""
       import-event-message: ""
       fullpass-loading: false
   decoders:
@@ -31,20 +29,17 @@ spec:
   update:
     fullpass-event-import-url:
       model:
-        fullpass-event:
-          merge:
-            - "@model.fullpass-event"
-            - url: "@data.fullpass-event-import-url"
+        fullpass-event-url: "@data.fullpass-event-import-url"
       cmds:
         ui: {}
     fullpass-event-import-submit:
       model: 
         fullpass-event:
-          merge:
-            - "@model.fullpass-event"
-            - id:
-                uuid: {} 
-        import-event-message: ""
+          source: facebook
+          id: 
+            last:
+              split: "@model.fullpass-event-url"
+              using: "/"
         fullpass-loading: true
       cmds:
         http: fullpass-event-import
@@ -108,7 +103,7 @@ spec:
           - view: text-field-view
             params:
               name: "url"
-              value: "@fullpass-event.url"
+              value: "@fullpass-event-url"
               placeholder:  https://www.facebook.com/events/2461820943882154
         action:
           title:

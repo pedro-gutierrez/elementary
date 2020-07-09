@@ -17,6 +17,11 @@ spec:
       headers:
         content-type: application/json
       body: {}
+    accepted:
+      status: 202
+      headers:
+        content-type: application/json
+      body: {}
     invalid:
       status: 400
       headers:

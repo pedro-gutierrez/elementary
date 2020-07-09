@@ -1,0 +1,13 @@
+kind: app
+name: fullpass_create_event
+spec:
+  routes:
+    codemutiny:
+      post: "/api/fullpass/events"
+  settings:
+    - codemutiny
+  filters:
+    - auth
+  modules:
+    - fullpass_create_event
+    - http
