@@ -52,8 +52,8 @@ defmodule Elementary.App do
         debug(mod, %{decode: effect, event: event})
 
         case update(mod, event, decoded, model) do
-          {:ok, _ } = result ->
-            #{:ok, Map.merge(model, model2)}
+          {:ok, _} = result ->
+            # {:ok, Map.merge(model, model2)}
             result
 
           {:stop, _} = stop ->

@@ -67,6 +67,21 @@ defmodule Elementary.Encoder do
     {:ok, v}
   end
 
+  def encode(%{"resolve" => items} = spec, context, encoders) do
+    with {:ok, [first | rest] = items} when is_list(items) <- encode(items, context, encoders) do
+      Enum.reduce_while(rest, first, fn item, current ->
+        case encode("@#{item}", current, encoders) do
+          {:ok, current} ->
+            {:cont, current}
+
+          {:error, _} = e ->
+            {:halt, e}
+        end
+      end)
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"object" => object} = spec, context, encoders) do
     Enum.reduce_while(object, %{}, fn {key, spec}, acc ->
       case encode(spec, context, encoders) do
@@ -85,7 +100,10 @@ defmodule Elementary.Encoder do
       {:ok, _} = res ->
         res
 
-      {:error, _} ->
+      {:error, e} ->
+        if spec["debug"] do
+          IO.inspect(%{ "spec" => spec, "error" => e })
+        end
         encode(spec["otherwise"] || "", context, encoders)
     end
     |> result(spec, context)
@@ -164,25 +182,27 @@ defmodule Elementary.Encoder do
   def encode(%{"filter" => expr, "with" => encoder} = spec, context, encoders) do
     with {:ok, data} when is_list(data) <- encode(expr, context, encoders),
          {:ok, as} <- encode(spec["as"] || "item", context, encoders) do
-          Enum.reduce_while(data, [], fn item, acc ->
-            item_ctx = Map.merge(context, %{as => item})
-            case encode(encoder, item_ctx, encoders) do
-              {:ok, true} ->
-                {:cont, [item|acc]}
+      Enum.reduce_while(data, [], fn item, acc ->
+        item_ctx = Map.merge(context, %{as => item})
 
-              {:ok, false} ->
-                {:cont, acc}
+        case encode(encoder, item_ctx, encoders) do
+          {:ok, true} ->
+            {:cont, [item | acc]}
 
-              {:error, e} ->
-                {:halt, e}
-            end
-          end)
-          |> case do
-            {:error, _} = e ->
-              e
-            filtered ->
-              {:ok, Enum.reverse(filtered)}
-          end
+          {:ok, false} ->
+            {:cont, acc}
+
+          {:error, e} ->
+            {:halt, e}
+        end
+      end)
+      |> case do
+        {:error, _} = e ->
+          e
+
+        filtered ->
+          {:ok, Enum.reverse(filtered)}
+      end
     end
     |> result(spec, context)
   end
@@ -293,9 +313,9 @@ defmodule Elementary.Encoder do
   end
 
   def encode(%{"split" => expr, "using" => sep} = spec, context, encoders) do
-    with {:ok, expr } <- encode(expr, context, encoders),
-         {:ok, sep } <- encode(sep, context, encoders) do
-          {:ok, String.split(expr, sep)}
+    with {:ok, expr} <- encode(expr, context, encoders),
+         {:ok, sep} <- encode(sep, context, encoders) do
+      {:ok, String.split(expr, sep)}
     end
     |> result(spec, context)
   end
@@ -551,9 +571,9 @@ defmodule Elementary.Encoder do
       nil ->
         {:error,
          %{"error" => "no_such_encoder", "encoder" => encoder, "encoders" => Map.keys(encoders)}}
+
       spec ->
         encode(spec, context, encoders)
-
     end
   end
 
@@ -695,6 +715,39 @@ defmodule Elementary.Encoder do
   def encode(%{"basic_auth" => creds} = spec, context, encoders) do
     with {:ok, %{"user" => user, "password" => pass}} <- encode(creds, context, encoders) do
       {:ok, "Basic " <> Base.encode64("#{user}:#{pass}")}
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"html" => selector, "in" => data} = spec, context, encoders) do
+    with {:ok, selector} <- encode(selector, context, encoders),
+         {:ok, data} <- encode(data, context, encoders),
+         {:ok, doc} <- Floki.parse_document(data),
+         items <- Floki.find(doc, selector) do
+      {:ok,
+       Enum.map(items, fn {el, attrs, children} ->
+         %{
+           "element" => el,
+           "attrs" => Enum.into(attrs, %{}),
+           "children" =>
+             Enum.map(children, fn c ->
+               with true <- is_binary(c),
+                    {:ok, c} <- Floki.parse_document(c) do
+                 Floki.text(c)
+                 |> String.replace("//", "")
+               else
+                 _ -> c
+               end
+             end)
+         }
+       end)}
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"json" => data} = spec, context, encoders) do
+    with {:ok, data} <- encode(data, context, encoders) do
+      Jason.decode(data)
     end
     |> result(spec, context)
   end

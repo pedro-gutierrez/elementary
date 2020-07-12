@@ -40,6 +40,7 @@ defmodule Elementary.MixProject do
       {:content_type, "~> 0.1.0"},
       {:cowboy, "~> 2.6.3"},
       {:file_system, "~> 0.2.7"},
+      {:floki, "~> 0.27.0"},
       {:httpoison, "~> 1.6"},
       {:jason, "~> 1.1.2"},
       {:mongodb_driver, "~> 0.6"},

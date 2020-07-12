@@ -11,26 +11,71 @@ spec:
           source:
             one_of:
               - facebook
+      raw:
+        facebook:
+          status: 200
+          body:
+            any: text
+      not_found:
+        facebook:
+          status: 404
     store:
-      created:
-        created: "created"
+      updated:
+        updated: 1
   update:
     create:
       model:
         event: "@data.body"
       cmds:
-        store: create
-    created:
+        http: event_page 
+    raw:
+      model:
+        data:
+          maybe:
+            let:
+              meta: 
+                json:
+                  resolve:
+                    - first:
+                        html: script[type="application/ld+json"]
+                        in: "@data.facebook.body"
+                    - "children"
+            in:
+              name: "@meta.name"
+              url: "@meta.url"
+              starts: "@meta.startDate"
+              cover: "@meta.image"
+              location: "@meta.location.name"
+              status: success
+          otherwise:
+            status: no_metadata
+          debug: true
+      cmds:
+        store: update 
+    not_found:
+      cmds:
+        return: not_found
+    updated:
       cmds:
         return: accepted
   encoders:
-    create:
+    event_page:
+      method: get
+      url:
+        format: "https://m.facebook.com/events/{{ id }}"
+        params:
+          id: "@event.id"
+      as: facebook
+    update:
       store: "@store"
-      insert:
+      ensure:
         merge:
-          - "@event"
-          - owner: "@session.identity"
-            created:
+          - updated_by: "@session.identity"
+            source: "@event.source"
+            updated:
               now: {}
+          - "@data"
+      where:
+        id: "@event.id"
       into: fullpass
-      as: created
+      as: updated
