@@ -20,6 +20,7 @@ defmodule Elementary.MixProject do
         :content_type,
         :cowboy,
         :file_system,
+        :floki,
         :httpoison,
         :jason,
         :mongodb_driver,
