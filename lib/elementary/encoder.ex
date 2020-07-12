@@ -486,9 +486,9 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
-  def encode(%{"date" => fields} = spec, context, encoders) do
-    with {:ok, fields} <- encode(fields, context, encoders) do
-      Elementary.Calendar.date(fields)
+  def encode(%{"date" => date_spec} = spec, context, encoders) do
+    with {:ok, date_spec} <- encode(date_spec, context, encoders) do
+      Elementary.Calendar.date(date_spec)
     end
     |> result(spec, context)
   end

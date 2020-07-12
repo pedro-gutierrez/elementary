@@ -34,6 +34,16 @@ defmodule Elementary.Calendar do
     |> date()
   end
 
+  def date(str) when is_binary(str) do
+    case DateTime.from_iso8601(str) do
+      {:ok, date, _} ->
+        {:ok, date}
+
+      _ = res ->
+        {:error, %{"error" => "date", "date" => res}}
+    end
+  end
+
   def format_date(datetime, pattern) do
     {:ok, NimbleStrftime.format(datetime, pattern)}
   end

@@ -43,7 +43,8 @@ spec:
             in:
               name: "@meta.name"
               url: "@meta.url"
-              starts: "@meta.startDate"
+              starts: 
+                date: "@meta.startDate"
               cover: "@meta.image"
               location: "@meta.location.name"
               status: success
