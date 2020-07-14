@@ -3,84 +3,66 @@ name: ui_fullpass_event_import
 spec:
   init:
     model:
-      fullpass-event-url: ""
-      import-event-message: ""
-      fullpass-loading: false
+      fp-event-url: ""
+      message: ""
+      loading: false
   decoders:
     ui:
-      fullpass-event-import-url:
-        fullpass-event-import-url:
+      fp-event-import-url:
+        fp-event-import-url:
           any: text
-      fullpass-event-import-submit:
-        fullpass-event-import-submit:
+      fp-event-import-submit:
+        fp-event-import-submit:
           any: text
     http:
-      fullpass-event-import-connect-error:
-        fullpass-event-import: "error"
-      fullpass-event-import-timeout:
-        fullpass-event-import: "timeout"
-      fullpass-event-import-error:
-        fullpass-event-import:
+      fp-event-import-error:
+        fp-event-import:
           status:
             other_than: 202
-      fullpass-event-import-success:
-        fullpass-event-import:
+      fp-event-import-success:
+        fp-event-import:
           status: 202
   update:
-    fullpass-event-import-url:
+    fp-event-import-url:
       model:
-        fullpass-event-url: "@data.fullpass-event-import-url"
+        fp-event-url: "@data.fp-event-import-url"
       cmds:
         ui: {}
-    fullpass-event-import-submit:
+    fp-event-import-submit:
       model: 
         fullpass-event:
           source: facebook
           id: 
             last:
-              split: "@model.fullpass-event-url"
+              split: "@model.fp-event-url"
               using: "/"
-        fullpass-loading: true
+        loading: true
       cmds:
-        http: fullpass-event-import
+        http: fp-event-import
         ui: {}
-    fullpass-event-import-error:
+    fp-event-import-error:
       model:
-        import-event-message:
-          encoder: application-error-message
-        fullpass-loading: false 
-      cmds:
-        ui: {}
-    fullpass-event-import-connect-error:
-      model:
-        import-event-message: 
-          encoder: connection-error-message
-        fullpass-loading: false 
+        message:
+          encoder: app-error
+        loading: false 
       cmds:
         ui: {}
-    fullpass-event-import-timeout:
+    fp-event-import-success:
       model:
-        import-event-message: 
-          encoder: timeout-error-message
-        fullpass-loading: false 
-      cmds:
-        ui: {}
-    fullpass-event-import-success:
-      model:
-        view: fullpass-event-imported-view
-        fullpass-loading: false 
+        view: fp-event-imported-view
+        loading: false 
       cmds:
         ui: {}
   encoders:
-    fullpass-event-import: 
+    fp-event-import: 
       method: post 
       path: /api/fullpass/events
       headers:
         content-type: application/json
         authorization: "@session"
       body: "@fullpass-event"
-      as: fullpass-event-import
-    fullpass-event-imported-view:
+      as: fp-event-import
+    fp-event-imported-view:
       view: notification-view
       params:
         message:
@@ -89,21 +71,21 @@ spec:
             en: "Your event has been received. We are now verifying it."
             fr: "Votre évènement es en cours de vérification"
             es: "Hemos recibido tu evento, y lo estamos verificando"
-    fullpass-event-import-view:
+    fp-event-import-view:
       view: form-view
       params:
-        loading: "@fullpass-loading"
+        loading: "@loading"
         title: "@title"
         subtitle:
           en: Send us the address of the event so that we can verify it 
           fr: Envoyez nous l'addresse de l'évènement, afin que nous puissons le vérifer 
           es: Envíanos la dirección del evento para que podamos verificarlo
-        message: "@import-event-message"
+        message: "@message"
         fields:
           - view: text-field-view
             params:
               name: "url"
-              value: "@fullpass-event-url"
+              value: "@fp-event-url"
               placeholder:  https://www.facebook.com/events/2461820943882154
         action:
           title:

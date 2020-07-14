@@ -1103,6 +1103,25 @@ export default (appUrl, appEffects, deps, facts) => {
         }
         return { decoded: out };
     }
+    
+    function decodeEntryWith(spec, data, ctx) {
+        var {err, value} = encode(spec.entry_with, ctx);
+        if (err) return error(spec.entry_with, ctx, err);
+        switch(typeOf(data)) {
+            case "object":
+                for (var k in data) {
+                    if (hasProp(data, k)) {
+                        var v = data[k];
+                        if (v == value) {
+                            return {decoded: data};
+                        }
+                    }
+                }
+
+            default: {}
+        }
+        return error(spec, data, "no_match");
+    }
 
     function decodeOtherThan(spec, data, ctx) {
         var { err, value } = encode(spec.other_than, ctx);
@@ -1369,6 +1388,7 @@ export default (appUrl, appEffects, deps, facts) => {
                 if (spec.object) return decodeObject(spec, data, ctx);
                 if (spec.any) return decodeAny(spec, data, ctx);
                 if (spec.list) return decodeList(spec, data, ctx);
+                if (spec.entry_with) return decodeEntryWith(spec, data, ctx);
                 if (spec.with) return decodeWith(spec, data, ctx);
                 if (spec.without) return decodeWithout(spec, data, ctx);
                 if (spec.all) return decodeAll(spec, data, ctx);

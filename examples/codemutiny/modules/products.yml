@@ -6,6 +6,7 @@ spec:
       data:
         - id: PROD-7YC371846A4660914
           name: fullpass
+          short: fp
           title:
             en: Full Pass
             fr: Full Pass
@@ -32,6 +33,11 @@ spec:
                 en: Link events 
                 fr: Relier des évènements 
                 es: Relacionar eventos
+            - name: next-events 
+              title:
+                en: Next events 
+                fr: Prochains évènements 
+                es: Eventos próximos
             - name: event-search
               title:
                 en: Search events 

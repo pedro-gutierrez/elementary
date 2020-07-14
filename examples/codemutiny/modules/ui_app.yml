@@ -64,4 +64,4 @@ spec:
           format: "{{ app }}-{{ name }}-view"
         params:
           feature: "@name"
-          app: "@selected-app.name"
+          app: "@selected-app.short"

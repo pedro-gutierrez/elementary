@@ -105,7 +105,7 @@ spec:
           children:
             - tag: div
               attrs:
-                class: container mx-auto py-4 px-5 flex flex-wrap flex-col sm:flex-row
+                class: container mx-auto py-4 lex flex-wrap flex-col sm:flex-row
               children:
                 - tag: p
                   attrs:
@@ -127,7 +127,7 @@ spec:
       children:
         - tag: div
           attrs:
-            class: container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center
+            class: container mx-auto flex flex-wrap py-5 flex-col md:flex-row items-center
           children:
             - tag: a
               attrs:
@@ -243,7 +243,7 @@ spec:
       tag: div
       attrs:
         class: 
-          format: "{{ &width }} {{ bg-color-active-2 }} rounded-lg p-6 flex flex-col md:ml-auto w-full mt-10 md:mt-0"
+          format: "{{ &width }} {{ bg-color-active-2 }} rounded-lg py-6 flex flex-col md:ml-auto w-full mt-10 md:mt-0"
           params:
             merge:
               - encoder: theme-colors 
@@ -258,10 +258,6 @@ spec:
               params:
                 encoder: theme-colors
           children:
-            - view: icon-view
-              params:
-                margin: mr-2
-                icon: "@icon"
             - encoder: i18n
               params: "@title"
         - tag: p

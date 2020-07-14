@@ -1,0 +1,11 @@
+kind: module
+name: ui_fullpass_next_events
+spec:
+  init: {}
+  decoders: {}
+  update: {}
+  encoders:
+    fullpass-next-events-view:
+      tag: div
+      children:
+        - Next events

@@ -15,7 +15,9 @@ spec:
     - ui_apps
     - ui_billing
     - ui_notifications
+    - ui_errors
     - ui_products
     - ui_app
     - ui_fullpass
     - ui_fullpass_event_import
+    - ui_fullpass_next_events
