@@ -1,0 +1,13 @@
+kind: app
+name: fullpass_next_events
+spec:
+  routes:
+    codemutiny:
+      get: "/api/fullpass/next/events"
+  settings:
+    - codemutiny
+  filters:
+    - auth
+  modules:
+    - fullpass_next_events
+    - http

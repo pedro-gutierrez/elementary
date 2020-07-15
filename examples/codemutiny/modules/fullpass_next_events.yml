@@ -1,0 +1,30 @@
+kind: module
+name: fullpass_next_events
+spec:
+  decoders:
+    http:
+      get:
+        method: GET 
+    store:
+      events:
+        any: list
+  update:
+    get:
+      cmds:
+        store: next_events 
+    events:
+      model:
+        data: "@data"
+      cmds:
+        return: data
+  encoders:
+    next_events:
+      store: "@store"
+      find:
+        status: success
+        starts:
+          $gt:
+            now: {}
+      sort: 
+        starts: asc
+      from: fullpass
