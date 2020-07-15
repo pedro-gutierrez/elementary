@@ -1450,6 +1450,62 @@ export default (appUrl, appEffects, deps, facts) => {
     // }
 
     function encodeCmds(spec, data) {
+        console.log("cmds", spec);
+        var cmds = [];
+        switch (typeOf(spec)) {
+            case "object":
+                cmds = cmdsFromMap(spec, data);
+                break;
+                
+            case "list":
+                cmds = cmdsFromList(spec, data);
+                break;
+
+            default:
+                console.error("cmds spec not supported", spec);
+        }
+
+        return {value: cmds};
+    }
+
+    function cmdsFromList(spec, data) {
+        var cmds = [];
+        for (var i=0; i<spec.length; i++) {
+            var cmdSpec = spec[i];
+            switch (typeOf(cmdSpec)) {
+                case "object":
+                    // we support objects with a single entry
+                    // ie { effect => encoder }
+                    var entries = Object.getOwnPropertyNames(cmdSpec);
+                    var effect = entries[0];
+                    var encSpec = cmdSpec[effect];
+                    
+                    var {err, value} = encode(encSpec, data, {});
+                    if (err) {
+                        console.error("error encoding cmd", {effect: effect, encoder: encSpec, err});
+                        continue;
+                    }
+                    cmds.push({
+                        effect: entries[0],
+                        encoder: value
+                    });
+
+                    break;
+
+                case "string": 
+                    cmds.push({effect: cmdSpec});
+                    break;
+                    
+                default: 
+                    console.error("cmd spec not supported within a list", cmdSpec);
+            }
+            
+        }
+
+        return cmds;
+    }
+
+    function cmdsFromMap(spec, data) {
         var cmds = [];
         var effects = Object.getOwnPropertyNames(spec);
         for (var i = 0; i < effects.length; i++) {
@@ -1459,7 +1515,9 @@ export default (appUrl, appEffects, deps, facts) => {
                 cmds.push({ effect: eff });
             } else {
                 var { err, value } = encode(enc, data, {});
-                if (err) return error(enc, data, "unsupported_encoder");
+                if (err) {
+                    console.error("error encoding cmd", {effect: eff, encoder: enc, err});
+                }
                 cmds.push({
                     effect: eff,
                     encoder: value
@@ -1467,7 +1525,7 @@ export default (appUrl, appEffects, deps, facts) => {
             }
         }
 
-        return { value: cmds };
+        return cmds;
     }
 
     function isEmpty(obj) {

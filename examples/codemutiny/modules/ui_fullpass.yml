@@ -3,7 +3,7 @@ name: ui_fullpass
 spec:
   init:
     model:
-      fpReady: {}
+      fpReady: []
   decoders:
     events:
       fpReady:
@@ -17,4 +17,4 @@ spec:
       attrs:
         class: w-full 
       children:
-        - view: app-features-view
+        - view: appFeaturesView

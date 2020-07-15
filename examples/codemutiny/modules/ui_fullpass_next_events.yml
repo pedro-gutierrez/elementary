@@ -4,18 +4,18 @@ spec:
   init:
     model:
       fpReady:
-        http: fp-next-events
+        - http: fpNextEvents
   decoders: {}
   update: {}
   encoders:
-    fp-next-events:
+    fpNextEvents:
       method: get
       path: /api/fullpass/next/events
       headers:
         content-type: application/json
         authorization: "@session"
-      as: fp-next-events
-    fp-next-events-view:
+      as: fpNextEvents
+    fpNextEventsView:
       tag: div
       children:
         - Next events

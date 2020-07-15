@@ -57,7 +57,7 @@ spec:
           - apps
           - "@item.name"
         title: "@item.name"
-    app-features-view:
+    appFeaturesView:
       tag: div
       children:
         loop: "@selected-app.features"
