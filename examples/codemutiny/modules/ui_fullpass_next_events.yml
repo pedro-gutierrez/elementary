@@ -1,11 +1,21 @@
 kind: module
 name: ui_fullpass_next_events
 spec:
-  init: {}
+  init:
+    model:
+      fpReady:
+        http: fp-next-events
   decoders: {}
   update: {}
   encoders:
-    fullpass-next-events-view:
+    fp-next-events:
+      method: get
+      path: /api/fullpass/next/events
+      headers:
+        content-type: application/json
+        authorization: "@session"
+      as: fp-next-events
+    fp-next-events-view:
       tag: div
       children:
         - Next events

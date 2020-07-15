@@ -266,7 +266,7 @@ defmodule Elementary.Decoder do
     |> result(spec)
   end
 
-  def decode(%{"one_of" => decs} = spec, data, context) do
+  def decode(%{"oneOf" => decs} = spec, data, context) do
     with {:ok, decs} <- encode(decs, context),
          nil <-
            Enum.reduce_while(decs, {:error, %{"error" => "none_matched", "data" => data}}, fn dec,
@@ -284,7 +284,7 @@ defmodule Elementary.Decoder do
     |> result(spec)
   end
 
-  def decode(%{"other_than" => value} = spec, data, context) do
+  def decode(%{"otherThan" => value} = spec, data, context) do
     with {:ok, unexpected} <- encode(value, context) do
       case data == unexpected do
         true ->
@@ -332,7 +332,7 @@ defmodule Elementary.Decoder do
     end
   end
 
-  def decode(%{"with_pair" => [key_spec, value_spec], "in" => target} = spec, data, context) do
+  def decode(%{"withPair" => [key_spec, value_spec], "in" => target} = spec, data, context) do
     with {:ok, target} <- Elementary.Encoder.encode(target, context),
          {:ok, key} <- Elementary.Encoder.encode(key_spec, context),
          {:ok, value} <- Elementary.Encoder.encode(value_spec, context),
@@ -362,7 +362,7 @@ defmodule Elementary.Decoder do
     |> result(spec)
   end
 
-  def decode(%{"less_than" => value} = spec, data, context) when is_number(data) do
+  def decode(%{"lessThan" => value} = spec, data, context) when is_number(data) do
     with {:ok, encoded} when is_number(encoded) <-
            Elementary.Encoder.encode(value, context) do
       case data < encoded do
@@ -376,7 +376,7 @@ defmodule Elementary.Decoder do
     |> result(spec)
   end
 
-  def decode(%{"greater_than" => value} = spec, data, context) when is_number(data) do
+  def decode(%{"greaterThan" => value} = spec, data, context) when is_number(data) do
     with {:ok, encoded} when is_number(encoded) <-
            Elementary.Encoder.encode(value, context) do
       case data > encoded do

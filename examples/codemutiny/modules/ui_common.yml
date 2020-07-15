@@ -221,7 +221,7 @@ spec:
       tag: div
       children:
         - "The page you are trying to reach could not be found"
-    text-field-view:
+    textFieldView:
       tag: input
       attrs:
         class:
@@ -231,15 +231,10 @@ spec:
               - theme: "@theme"
               - encoder: theme-colors
         placeholder: "@params.placeholder"
-        oninput:
-          format: "{{ app }}-{{ feature }}-{{ field }}"
-          params:
-            app: "@app"
-            feature: "@feature"
-            field: "@params.name"
+        oninput: "@params.name"
         type: text
       children: []
-    form-view:
+    formView:
       tag: div
       attrs:
         class: 
@@ -289,14 +284,7 @@ spec:
               switch: "@loading"
               case:
                 true: noop
-              default: 
-                format: "{{ app }}-{{ feature }}-{{ event }}"
-                params:
-                  app: "@app"
-                  feature: "@feature"
-                  event: 
-                    maybe: "@action.event"
-                    otherwise: "submit"
+              default: "@action.name" 
           children:
             - encoder: i18n
               params: "@action.title"

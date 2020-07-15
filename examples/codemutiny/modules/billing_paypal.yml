@@ -28,7 +28,7 @@ spec:
       cancellation_not_confirmed:
         paypal_cancellation:
           status:
-            other_than: 204
+            otherThan: 204
   encoders:
     get_access_token:
       method: POST
@@ -41,7 +41,7 @@ spec:
         accept-language: en_US
         content-type: application/x-www-form-urlencoded
         authorization:
-          basic_auth:
+          basicAuth:
             user: "@paypal.client"
             password: "@paypal.secret"
     create_paypal_subscription:

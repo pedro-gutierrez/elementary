@@ -19,7 +19,7 @@ spec:
       model:
         view: loading-view
         session: 
-          one_of: 
+          oneOf: 
             - "@data.query.session"
             - "@data.show-member-home-page.session"
       cmds:

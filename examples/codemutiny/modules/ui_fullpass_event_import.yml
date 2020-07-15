@@ -3,67 +3,67 @@ name: ui_fullpass_event_import
 spec:
   init:
     model:
-      fp-event-url: ""
+      fpEventUrl: ""
       message: ""
       loading: false
   decoders:
     ui:
-      fp-event-import-url:
-        fp-event-import-url:
+      fpEventUrl:
+        fpEventUrl:
           any: text
-      fp-event-import-submit:
-        fp-event-import-submit:
+      fpEventImport:
+        fpEventImport: 
           any: text
     http:
-      fp-event-import-error:
-        fp-event-import:
+      fpEventImportError:
+        fpEventImport:
           status:
-            other_than: 202
-      fp-event-import-success:
-        fp-event-import:
+            otherThan: 202
+      fpEventImported:
+        fpEventImport:
           status: 202
   update:
-    fp-event-import-url:
+    fpEventUrl:
       model:
-        fp-event-url: "@data.fp-event-import-url"
+        fpEventUrl: "@data.fpEventUrl"
       cmds:
         ui: {}
-    fp-event-import-submit:
+    fpEventImport:
       model: 
-        fullpass-event:
+        fpEvent:
           source: facebook
           id: 
             last:
-              split: "@model.fp-event-url"
+              split: "@model.fpEventUrl"
               using: "/"
         loading: true
       cmds:
-        http: fp-event-import
+        http: fpEventImport 
         ui: {}
-    fp-event-import-error:
+    fpEventImportError:
       model:
         message:
           encoder: app-error
         loading: false 
       cmds:
         ui: {}
-    fp-event-import-success:
+    fpEventImported:
       model:
-        view: fp-event-imported-view
+        view: fpEventImportedView
         loading: false 
       cmds:
         ui: {}
   encoders:
-    fp-event-import: 
+    fpEventImport: 
       method: post 
       path: /api/fullpass/events
       headers:
         content-type: application/json
         authorization: "@session"
-      body: "@fullpass-event"
-      as: fp-event-import
-    fp-event-imported-view:
-      view: notification-view
+      body: "@fpEvent"
+      as: fpEventImport 
+    fpEventImportedView:
+      view: notificationView
       params:
         message:
           encoder: i18n
@@ -71,8 +71,8 @@ spec:
             en: "Your event has been received. We are now verifying it."
             fr: "Votre évènement es en cours de vérification"
             es: "Hemos recibido tu evento, y lo estamos verificando"
-    fp-event-import-view:
-      view: form-view
+    fpEventImportView:
+      view: formView
       params:
         loading: "@loading"
         title: "@title"
@@ -82,12 +82,13 @@ spec:
           es: Envíanos la dirección del evento para que podamos verificarlo
         message: "@message"
         fields:
-          - view: text-field-view
+          - view: textFieldView
             params:
-              name: "url"
-              value: "@fp-event-url"
+              name: "fpEventUrl"
+              value: "@fpEventUrl"
               placeholder:  https://www.facebook.com/events/2461820943882154
         action:
+          name: "fpEventImport"
           title:
             en: Send 
             fr: Envoyer 

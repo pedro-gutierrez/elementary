@@ -5,7 +5,7 @@ spec:
     caller:
       create:
         create:
-          one_of:
+          oneOf:
             - session
             - nonce 
         meta:

@@ -140,7 +140,7 @@ export default (appUrl, appEffects, deps, facts) => {
     }
 
     function encodeFormatDate(spec, ctx) {
-        var { pattern, date } = spec.format_date;
+        var { pattern, date } = spec.formatDate;
         var { err, value } = encode(pattern, ctx);
         if (err) return error(spec, ctx, err);
         pattern = value;
@@ -282,7 +282,7 @@ export default (appUrl, appEffects, deps, facts) => {
 
     function encodeTimestamp(spec, ctx) {
         return encode({
-            format_date: {
+            formatDate: {
                 pattern: spec.timestamp.format,
                 date: spec.timestamp.value
             }
@@ -674,8 +674,8 @@ export default (appUrl, appEffects, deps, facts) => {
     }
 
     function encodeOneOf(spec, ctx) {
-        for (var i = 0; i < spec.one_of.length; i++) {
-            var { err, value } = encode(spec.one_of[i], ctx);
+        for (var i = 0; i < spec.oneOf.length; i++) {
+            var { err, value } = encode(spec.oneOf[i], ctx);
             if (!err && value) {
                 return { value: value }
             }
@@ -775,10 +775,10 @@ export default (appUrl, appEffects, deps, facts) => {
     }
 
     function encodeGreaterThan(spec, ctx) {
-        if (spec.greater_than.length < 2) return error(spec, ctx, "not_enough_arguments");
-        var { err, value: v1 } = encode(spec.greater_than[0], ctx);
+        if (spec.greaterThan.length < 2) return error(spec, ctx, "not_enough_arguments");
+        var { err, value: v1 } = encode(spec.greaterThan[0], ctx);
         if (err) return error(spec, ctx, err);
-        var { err: err2, value: v2 } = encode(spec.greater_than[1], ctx);
+        var { err: err2, value: v2 } = encode(spec.greaterThan[1], ctx);
         if (err2) return error(spec, ctx, err2);
         return { value: v1 > v2};
     }
@@ -1012,6 +1012,12 @@ export default (appUrl, appEffects, deps, facts) => {
         return {value: uuidv4()};
     }
 
+    function encodeCamel(spec, ctx) {
+        var {err, value} = encode(spec.camel, ctx);
+        if (err) return error(spec, err, ctx);
+        return { value: value.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase()) }
+    }
+
     function encode(spec, ctx) {
         if (spec == undefined || spec == null) return error(spec, ctx, "Missing encoding spec");
         switch (typeof (spec)) {
@@ -1023,13 +1029,13 @@ export default (appUrl, appEffects, deps, facts) => {
                 if (hasProp(spec, "switch")) return encodeSwitch(spec, ctx);
                 if (spec.choose) return encodeChoose(spec, ctx);
                 if (spec.format) return encodeFormat(spec, ctx);
-                if (spec.format_date) return encodeFormatDate(spec, ctx);
+                if (spec.formatDate) return encodeFormatDate(spec, ctx);
                 if (spec.timestamp) return encodeTimestamp(spec, ctx);
                 if (spec.maybe) return encodeMaybe(spec, ctx);
                 if (spec.maybe_with) return encodeMaybeWith(spec, ctx);
                 if (spec.equal) return encodeEqual(spec, ctx);
                 if (spec.either) return encodeEither(spec, ctx);
-                if (spec.one_of) return encodeOneOf(spec, ctx);
+                if (spec.oneOf) return encodeOneOf(spec, ctx);
                 if (spec.effect) return encodeCmd(spec, ctx);
                 if (spec.encoder) return encodeUsingEncoder(spec, ctx);
                 if (spec.is_set) return encodeIsSet(spec, ctx);
@@ -1052,7 +1058,7 @@ export default (appUrl, appEffects, deps, facts) => {
                 if (spec.lowercase) return encodeLowerCase(spec, ctx);
                 if (spec.uppercase) return encodeUpperCase(spec, ctx);
                 if (spec.capitalize) return encodeCapitalize(spec, ctx);
-                if (spec.greater_than) return encodeGreaterThan(spec, ctx);
+                if (spec.greaterThan) return encodeGreaterThan(spec, ctx);
                 if (spec.lower_than) return encodeLowerThan(spec, ctx);
                 if (spec.regex) return encodeRegex(spec, ctx);
                 if (spec.pipeline) return encodePipeline(spec, ctx);
@@ -1075,6 +1081,7 @@ export default (appUrl, appEffects, deps, facts) => {
                 if (spec.let) return encodeLet(spec, ctx);
                 if (spec.take) return encodeTake(spec, ctx);
                 if (spec.uuid) return encodeUuid(spec, ctx);
+                if (spec.camel) return encodeCamel(spec, ctx);
                 if (!Object.keys(spec).length) return { value: {} };
                 return encodeObject({ object: spec }, ctx)
             case "string":
@@ -1124,7 +1131,7 @@ export default (appUrl, appEffects, deps, facts) => {
     }
 
     function decodeOtherThan(spec, data, ctx) {
-        var { err, value } = encode(spec.other_than, ctx);
+        var { err, value } = encode(spec.otherThan, ctx);
         if (err) return error(spec, data, err);
         if (data != value) return { decoded: data };
         return error(spec, data, "no_match");
@@ -1317,8 +1324,8 @@ export default (appUrl, appEffects, deps, facts) => {
 
     function decodeOne(spec, data, ctx) {
         function _(i) {
-            if (i == spec.one_of.length) return error(spec, data, "no_match")
-            var s = spec.one_of[i];
+            if (i == spec.oneOf.length) return error(spec, data, "no_match")
+            var s = spec.oneOf[i];
             var { err, decoded } = decode(s, data, ctx);
             if (err) return _(i + 1);
             return { decoded };
@@ -1395,8 +1402,8 @@ export default (appUrl, appEffects, deps, facts) => {
                 if (spec.some) return decodeSome(spec, data, ctx);
                 if (spec.empty) return decodeEmpty(spec, data, ctx);
                 if (spec.non_empty) return decodeNonEmpty(spec, data, ctx);
-                if (spec.other_than) return decodeOtherThan(spec, data, ctx);
-                if (spec.one_of) return decodeOne(spec, data, ctx);
+                if (spec.otherThan) return decodeOtherThan(spec, data, ctx);
+                if (spec.oneOf) return decodeOne(spec, data, ctx);
                 if (spec.json) return decodeJson(spec, data, ctx);
                 if (spec.size) return decodeSize(spec, data, ctx);
                 if (spec.like) return decodeLike(spec, data, ctx);

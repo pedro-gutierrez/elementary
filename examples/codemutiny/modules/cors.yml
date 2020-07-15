@@ -7,7 +7,7 @@ spec:
         method: OPTIONS
       other:
         method:
-          other_than: OPTIONS
+          otherThan: OPTIONS
   update:
     preflight:
       cmds:

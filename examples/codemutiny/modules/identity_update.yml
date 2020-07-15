@@ -18,7 +18,7 @@ spec:
     store:
       updated:
         updated:
-          one_of:
+          oneOf:
             - 0
             - 1
   update:

@@ -9,7 +9,7 @@ spec:
           id:
             any: text
           source:
-            one_of:
+            oneOf:
               - facebook
       raw:
         facebook:

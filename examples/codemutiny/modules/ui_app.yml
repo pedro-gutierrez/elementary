@@ -45,7 +45,8 @@ spec:
     app-ready:
       app: "@selected-app.name"
     app-view:
-      format: "{{ name }}-app-view"
+      camel:
+        format: "{{ name }}-view"
     apps-nav:
       map: "@apps"
       with:
@@ -60,8 +61,9 @@ spec:
       tag: div
       children:
         loop: "@selected-app.features"
-        with: 
-          format: "{{ app }}-{{ name }}-view"
+        with:
+          camel:
+            format: "{{ app }}-{{ name }}-view"
         params:
           feature: "@name"
           app: "@selected-app.short"

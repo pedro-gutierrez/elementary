@@ -109,7 +109,7 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
-  def encode(%{"one_of" => exprs} = spec, context, encoders) when is_list(exprs) do
+  def encode(%{"oneOf" => exprs} = spec, context, encoders) when is_list(exprs) do
     Enum.reduce_while(exprs, false, fn expr, _ ->
       case encode(expr, context, encoders) do
         {:ok, false} ->
@@ -343,7 +343,7 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
-  def encode(%{"at_least" => exprs} = spec, context, encoders) do
+  def encode(%{"atLeast" => exprs} = spec, context, encoders) do
     with {:ok, [num1, num2]} when is_number(num1) and is_number(num2) <-
            encode_specs(exprs, context, encoders) do
       {:ok, num1 >= num2}
@@ -351,7 +351,7 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
-  def encode(%{"less_than" => exprs} = spec, context, encoders) do
+  def encode(%{"lessThan" => exprs} = spec, context, encoders) do
     with {:ok, [num1, num2]} when is_number(num1) and is_number(num2) <-
            encode_specs(exprs, context, encoders) do
       {:ok, num1 < num2}
@@ -450,14 +450,14 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
-  def encode(%{"first_day" => date} = spec, context, encoders) do
+  def encode(%{"firstDay" => date} = spec, context, encoders) do
     with {:ok, date} <- encode(date, context, encoders) do
       Elementary.Calendar.first_dom(date)
     end
     |> result(spec, context)
   end
 
-  def encode(%{"last_day" => date} = spec, context, encoders) do
+  def encode(%{"lastDay" => date} = spec, context, encoders) do
     with {:ok, date} <- encode(date, context, encoders) do
       Elementary.Calendar.last_dom(date)
     end
@@ -493,7 +493,7 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
-  def encode(%{"format_date" => date, "pattern" => pattern} = spec, context, encoders) do
+  def encode(%{"formatDate" => date, "pattern" => pattern} = spec, context, encoders) do
     with {:ok, date} <- encode(date, context, encoders),
          {:ok, pattern} <- encode(pattern, context, encoders) do
       Elementary.Calendar.format_date(date, pattern)
@@ -501,28 +501,28 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
-  def encode(%{"format_date" => fields} = spec, context, encoders) do
+  def encode(%{"formatDate" => fields} = spec, context, encoders) do
     with {:ok, fields} <- encode(fields, context, encoders) do
       Elementary.Calendar.format_date(fields)
     end
     |> result(spec, context)
   end
 
-  def encode(%{"month_from" => date} = spec, context, encoders) do
+  def encode(%{"monthFrom" => date} = spec, context, encoders) do
     with {:ok, date} <- encode(date, context, encoders) do
       Elementary.Calendar.month(date)
     end
     |> result(spec, context)
   end
 
-  def encode(%{"year_from" => date} = spec, context, encoders) do
+  def encode(%{"yearFrom" => date} = spec, context, encoders) do
     with {:ok, date} <- encode(date, context, encoders) do
       Elementary.Calendar.year(date)
     end
     |> result(spec, context)
   end
 
-  def encode(%{"day_from" => date} = spec, context, encoders) do
+  def encode(%{"dayFrom" => date} = spec, context, encoders) do
     with {:ok, date} <- encode(date, context, encoders) do
       Elementary.Calendar.day(date)
     end
@@ -712,7 +712,7 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
-  def encode(%{"basic_auth" => creds} = spec, context, encoders) do
+  def encode(%{"basicAuth" => creds} = spec, context, encoders) do
     with {:ok, %{"user" => user, "password" => pass}} <- encode(creds, context, encoders) do
       {:ok, "Basic " <> Base.encode64("#{user}:#{pass}")}
     end

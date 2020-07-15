@@ -59,7 +59,7 @@ spec:
       cancellation-error:
         cancellation:
           status:
-            other_than: 201
+            otherThan: 201
     ui:
       choose-plan:
         choose:
@@ -360,7 +360,7 @@ spec:
         - tag: strong
           children:
             - maybe:
-                format_date:
+                formatDate:
                   date: "@approved"
                   pattern: relative
         - " and is currently "
@@ -402,7 +402,7 @@ spec:
         - tag: td 
           children:
             - maybe:
-                format_date: 
+                formatDate: 
                   date: "@approved"
                   pattern: relative
         - tag: td

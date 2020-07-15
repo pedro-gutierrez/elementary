@@ -2,7 +2,7 @@ kind: module
 name: ui_notifications
 spec:
   encoders:
-    notification-view:
+    notificationView:
       tag: div
       children:
         - "@message"
