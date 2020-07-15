@@ -108,16 +108,15 @@ export default (name, settings, app) => {
 
     return (encoders, enc, model) => {
         var {err, value} = encode(enc, model);
-        if (!value.as || !value.as.length) {
-            error("missing 'as' context in http request", {enc, model});
-            return;
-        }
                     
-        var as = value.as;
         if (err) {
             error("error encoding request", err);
             return;
         }
+
+        var as = value.as;
+        var tag = value.tag;
+
         encodeBody(value, (body, ct) => {
             var method = (value.method || 'get').toUpperCase()
             var url = encodeUrl(value);
@@ -143,9 +142,14 @@ export default (name, settings, app) => {
                     status: xhr.status,
                     body: decodeBody(headers, xhr)
                 }
+                
+                payload.tag = tag;
 
                 var data = {}
-                data[as] = payload
+                if (as) {
+                    data[as] = payload;
+                } else data = payload;
+                
                 data.effect = name
 
                 if (value.debug) {
@@ -156,7 +160,7 @@ export default (name, settings, app) => {
                     });
                 }
 
-            update(data);
+                update(data);
             }
             xhr.send(body);
         });

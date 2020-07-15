@@ -1,16 +1,6 @@
 kind: module
 name: ui_common
 spec:
-  decoders:
-    http:
-      not_found:
-        status: 404
-  update:
-    not_found:
-      model:
-        view: not-found-view
-      cmds:
-        ui: public-layout-view
   encoders:
     layout-view:
       tag: div

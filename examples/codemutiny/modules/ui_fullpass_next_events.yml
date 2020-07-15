@@ -3,10 +3,22 @@ name: ui_fullpass_next_events
 spec:
   init:
     model:
+      fpNextEvents: []
       fpReady:
         - http: fpNextEvents
-  decoders: {}
-  update: {}
+  decoders:
+    http:
+      fpNextEvents:
+        tag: fpNextEvents
+        status: 200
+        body:
+          any: list
+  update:
+    fpNextEvents:
+      model:
+        fpNextEvents: "@data.body"
+      cmds:
+        ui: {}
   encoders:
     fpNextEvents:
       method: get
@@ -14,7 +26,7 @@ spec:
       headers:
         content-type: application/json
         authorization: "@session"
-      as: fpNextEvents
+      tag: fpNextEvents
     fpNextEventsView:
       tag: div
       children:
