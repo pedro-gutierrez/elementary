@@ -30,4 +30,20 @@ spec:
     fpNextEventsView:
       tag: div
       children:
-        - Next events
+        - view: itemsView
+          params:
+            title: "@title"
+            items: "@fpNextEvents"
+            itemView: fpEventItemView 
+    fpEventItemView:
+      view: blogItemView
+      params:
+        image: "@cover"
+        title: "@name"
+        subtitle: "@location"
+        date: "@starts"
+
+
+
+
+

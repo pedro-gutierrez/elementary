@@ -293,3 +293,91 @@ spec:
               format: "text-xs mt-3 {{ fg-color }}"
           children:
             - "@message"
+    itemsView:
+      tag: div
+      children:
+        - tag: h2
+          attrs:
+            class: 
+              format: "{{ fg-color-active-2 }} text-xl mb-4 font-medium"
+              params:
+                encoder: theme-colors
+          children:
+            - encoder: i18n
+              params: "@title"
+        - tag: div
+          attrs:
+            class: flex flex-wrap -m-4
+          children:
+            loop: "@items"
+            with: "@itemView"
+    blogItemView:
+      tag: div
+      attrs:
+        class: p-4 md:w-1/4
+      children:
+        - tag: div
+          attrs:
+            class: 
+              format: "h-full border-2 {{ section-border-color}} rounded-lg overflow-hidden"
+              params:
+                encoder: theme-colors
+          children:
+            - tag: img
+              attrs:
+                class: lg:h-48 md:h-36 w-full object-cover object-center
+                src: "@image"
+                #style:
+                #  object:
+                #    filter: "grayscale(100%)"
+                #    opacity: "0.8"
+            - tag: div
+              attrs:
+                class: p-6
+              children:
+                - tag: h2
+                  attrs:
+                    class: 
+                      format: "tracking-widest text-xs title-font font-medium {{ fg-color }} mb-1"
+                      params:
+                        encoder: theme-colors
+                  children:
+                    - formatDate: 
+                        date: "@date"
+                        pattern: relative
+                - tag: h1
+                  attrs:
+                    class: 
+                      format: "title-font text-lg font-medium {{ fg-color-active }} mb-3"
+                      params:
+                        encoder: theme-colors
+                  children:
+                    - "@title"
+                - tag: div
+                  attrs:
+                    class: flex items-center flex-wrap
+                  children:
+                    - tag: a
+                      attrs:
+                        class: 
+                          format: "text-{{ theme }}-500 inline-flex items-center md:mb-2 lg:mb-0"
+                      children:
+                        - Open
+                    - tag: span
+                      attrs:
+                        class: 
+                          format: "{{ fg-color}} mr-3 inline-flex items-center lg:ml-auto md:ml-0 ml-auto leading-none text-sm pr-3 py-1 border-r-2 {{ section-border-color }}"
+                          params:
+                            encoder: theme-colors
+                      children:
+                        - "1.2K"
+                    - tag: span
+                      attrs:
+                        class: 
+                          format: "{{ fg-color }} inline-flex items-center leading-none text-sm"
+                          params:
+                            encoder: theme-colors
+                      children:
+                        - "6"
+
+
