@@ -6,6 +6,7 @@ spec:
       post: "/api/fullpass/events"
   settings:
     - codemutiny
+    - named: google
   filters:
     - auth
   modules:

@@ -6,3 +6,6 @@ spec:
   secret:
     env: GOOGLE_CLIENT_SECRET
   redirectPath: "/api/google/token"
+  apiKey:
+    env: GOOGLE_API_KEY
+

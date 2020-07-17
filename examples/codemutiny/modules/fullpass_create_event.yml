@@ -16,6 +16,20 @@ spec:
           status: 200
           body:
             any: text
+      locations:
+        locations:
+          status: 200
+          body:
+            results:
+              list:
+                formatted_address:
+                  any: text
+                geometry:
+                  location:
+                    lat:
+                      any: number
+                    lng: 
+                      any: number
       not_found:
         facebook:
           status: 404
@@ -50,9 +64,23 @@ spec:
               status: success
           otherwise:
             status: no_metadata
-          debug: true
       cmds:
-        store: update 
+        http: location
+    locations:
+      model:
+        let:
+          location:
+            first: "@data.locations.body.results"
+        in:
+          data:
+            merge:
+              - "@model.data"
+              - address: "@location.formatted_address"
+                place:
+                  lat: "@location.geometry.location.lat"
+                  lon: "@location.geometry.location.lng"
+      cmds:
+        store: update
     not_found:
       cmds:
         return: not_found
@@ -67,6 +95,13 @@ spec:
         params:
           id: "@event.id"
       as: facebook
+    location:
+      method: get
+      url: https://maps.googleapis.com/maps/api/geocode/json
+      query:
+        key: "@google.apiKey"
+        address: "@data.location"
+      as: locations
     update:
       store: "@store"
       ensure:
