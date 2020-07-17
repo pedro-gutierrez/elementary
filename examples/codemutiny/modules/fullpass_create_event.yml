@@ -20,6 +20,7 @@ spec:
         locations:
           status: 200
           body:
+            status: "OK"
             results:
               list:
                 formatted_address:
@@ -30,6 +31,10 @@ spec:
                       any: number
                     lng: 
                       any: number
+      no_location:
+        locations:
+          body:
+            status: "ZERO_RESULTS" 
       not_found:
         facebook:
           status: 404
@@ -61,11 +66,18 @@ spec:
                 date: "@meta.startDate"
               cover: "@meta.image"
               location: "@meta.location.name"
-              status: success
           otherwise:
             status: no_metadata
       cmds:
         http: location
+    no_location:
+      model:
+        data:
+          merge:
+            - "@model.data"
+            - status: no_location
+      cmds:
+        store: update
     locations:
       model:
         let:
@@ -79,6 +91,7 @@ spec:
                 place:
                   lat: "@location.geometry.location.lat"
                   lon: "@location.geometry.location.lng"
+                status: success
       cmds:
         store: update
     not_found:
