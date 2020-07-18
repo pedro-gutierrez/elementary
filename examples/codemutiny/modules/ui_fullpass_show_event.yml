@@ -1,0 +1,51 @@
+kind: module
+name: ui_fullpass_show_event
+spec:
+  init:
+    model:
+      onFpEventImported: 
+        - http: fpGetEvent
+  decoders:
+    http:
+      fpEvent:
+        tag: fpEvent
+        status: 200
+        body:
+          any: object
+  update:
+    fpEvent:
+      model:
+        fpEvent: "@data.body"
+      cmds:
+        ui: {}
+  encoders:
+    fpGetEvent:
+      method: get
+      path:
+        join:
+          - "/api/fullpass/events/"
+          - "@fpEvent.id"
+      headers:
+        content-type: application/json
+        authorization: "@session"
+      tag: fpEvent
+    fpShowEventView:
+      view: simpleView
+      params:
+        title: 
+          en: "Event details"
+          fr: "Détail de l'èvenement"
+          es: "Detalle del evento"
+        contentView:
+          if: "@fpEvent.name" 
+          then: fpSelectedEventView
+          else: fpNoEventView 
+    fpNoEventView:
+      tag: div
+      children:
+        - "No event to show"
+    fpSelectedEventView:
+      tag: div
+      children:
+        - "This is the event"
+

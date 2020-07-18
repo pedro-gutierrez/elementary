@@ -228,7 +228,7 @@ spec:
       tag: div
       attrs:
         class: 
-          format: "{{ &width }} {{ bg-color-active-2 }} rounded-lg py-6 flex flex-col md:ml-auto w-full mt-10 md:mt-0"
+          format: "{{ &width }} {{ bg-color-active-2 }} rounded-lg mb-6 flex flex-col md:ml-auto w-full mt-10 md:mt-0"
           params:
             merge:
               - encoder: theme-colors 
@@ -293,8 +293,23 @@ spec:
               format: "text-xs mt-3 {{ fg-color }}"
           children:
             - "@message"
+    simpleView:
+      tag: div
+      children:
+        - tag: h2
+          attrs:
+            class: 
+              format: "{{ fg-color-active-2 }} text-xl mb-4 font-medium"
+              params:
+                encoder: theme-colors
+          children:
+            - encoder: i18n
+              params: "@title"
+        - view: "@contentView"
     itemsView:
       tag: div
+      attrs:
+        class: mb-6
       children:
         - tag: h2
           attrs:

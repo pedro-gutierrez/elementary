@@ -1,0 +1,29 @@
+kind: module
+name: fullpass_get_event
+spec:
+  decoders:
+    http:
+      get:
+        params:
+          id:
+            any: text
+    store:
+      event:
+        any: object
+  update:
+    get:
+      model:
+        id: "@data.params.id"
+      cmds:
+        store: fetch
+    event:
+      model:
+        data: "@data"
+      cmds:
+        return: data
+  encoders:
+    fetch:
+      store: "@store"
+      fetch:
+        id: "@id" 
+      from: fullpass

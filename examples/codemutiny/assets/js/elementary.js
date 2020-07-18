@@ -711,7 +711,7 @@ export default (appUrl, appEffects, deps, facts) => {
     }
 
     function encodeJoin(spec, ctx) {
-        var { err, value } = encode(spec.using, ctx);
+        var { err, value } = encode(spec.using || "", ctx);
         if (err) return error(spec, ctx, err);
         var sep = value;
         var { err: joinErr, value: joinValue } = encode(spec.join, ctx);
@@ -825,6 +825,12 @@ export default (appUrl, appEffects, deps, facts) => {
         } else {
             return encode(spec.otherwise, ctx);
         }
+    }
+
+    function encodeIf(spec, ctx) {
+        var {err, value} = encode(spec.if, ctx);
+        if (err) return encode(spec.else, ctx);
+        return encode(spec.then,ctx);
     }
 
     function encodePipeline(spec, ctx) {
@@ -1028,6 +1034,7 @@ export default (appUrl, appEffects, deps, facts) => {
                 if (spec.object) return encodeObject(spec, ctx);
                 if (hasProp(spec, "switch")) return encodeSwitch(spec, ctx);
                 if (spec.choose) return encodeChoose(spec, ctx);
+                if (spec.if) return encodeIf(spec, ctx);
                 if (spec.format) return encodeFormat(spec, ctx);
                 if (spec.formatDate) return encodeFormatDate(spec, ctx);
                 if (spec.timestamp) return encodeTimestamp(spec, ctx);
@@ -1492,12 +1499,12 @@ export default (appUrl, appEffects, deps, facts) => {
 
                     break;
 
-                case "string": 
+                case "text": 
                     cmds.push({effect: cmdSpec});
                     break;
                     
                 default: 
-                    console.error("cmd spec not supported within a list", cmdSpec);
+                    console.error("cmd spec not supported within a list", {spec: cmdSpec, type: typeOf(cmdSpec)});
             }
             
         }

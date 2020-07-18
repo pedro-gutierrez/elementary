@@ -38,6 +38,11 @@ spec:
                 en: Next events 
                 fr: Prochains évènements 
                 es: Eventos próximos
+            - name: show-event
+              title:
+                en: Event detail 
+                fr: Détail de l'évènements 
+                es: Detalle del evento 
             - name: event-search
               title:
                 en: Search events 

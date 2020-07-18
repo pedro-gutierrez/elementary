@@ -3,9 +3,13 @@ name: ui_fullpass_event_import
 spec:
   init:
     model:
+      fpEvent:
+        id: ""
       fpEventUrl: ""
       message: ""
       loading: false
+      onFpEventImported:
+        - ui
   decoders:
     ui:
       fpEventUrl:
@@ -49,10 +53,9 @@ spec:
         ui: {}
     fpEventImported:
       model:
-        view: fpEventImportedView
+        message: ""
         loading: false 
-      cmds:
-        ui: {}
+      cmds: "@onFpEventImported"
   encoders:
     fpEventImport: 
       method: post 

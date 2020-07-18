@@ -1,0 +1,13 @@
+kind: app
+name: fullpass_get_event
+spec:
+  routes:
+    codemutiny:
+      get: "/api/fullpass/events/:id"
+  settings:
+    - codemutiny
+  filters:
+    - auth
+  modules:
+    - fullpass_get_event
+    - http
