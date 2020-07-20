@@ -6,6 +6,8 @@ spec:
       fpNextEvents: []
       fpReady:
         - http: fpNextEvents
+      onFpEventImported: 
+        - http: fpNextEvents
   decoders:
     http:
       fpNextEvents:
@@ -38,8 +40,9 @@ spec:
     fpEventItemView:
       view: blogItemView
       params:
-        image: "@cover"
-        title: "@name"
+        image: 
+          url: "@cover"
+        title: "@title"
         subtitle: "@location"
         date: "@starts"
 

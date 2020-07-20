@@ -1,0 +1,8 @@
+kind: app
+name: geoLocation 
+spec:
+  settings:
+    - google
+  modules:
+    - geoLocation 
+    - http

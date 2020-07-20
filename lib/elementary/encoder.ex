@@ -102,8 +102,9 @@ defmodule Elementary.Encoder do
 
       {:error, e} ->
         if spec["debug"] do
-          IO.inspect(%{ "spec" => spec, "error" => e })
+          IO.inspect(%{"spec" => spec, "error" => e})
         end
+
         encode(spec["otherwise"] || "", context, encoders)
     end
     |> result(spec, context)
@@ -308,6 +309,14 @@ defmodule Elementary.Encoder do
           {:error,
            %{"error" => "unexpected", "actual" => encoded, "expected" => "non-empty-list"}}
       end
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"join" => items, "using" => sep} = spec, context, encoders) do
+    with {:ok, items} <- encode(items, context, encoders),
+         {:ok, sep} <- encode(sep, context, encoders) do
+      {:ok, Enum.join(items, sep)}
     end
     |> result(spec, context)
   end
@@ -748,6 +757,13 @@ defmodule Elementary.Encoder do
   def encode(%{"json" => data} = spec, context, encoders) do
     with {:ok, data} <- encode(data, context, encoders) do
       Jason.decode(data)
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"fbEvent" => html} = spec, context, encoders) do
+    with {:ok, html} <- encode(html, context, encoders) do
+      Elementary.Facebook.parse_event(html)
     end
     |> result(spec, context)
   end

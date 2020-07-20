@@ -206,7 +206,31 @@ export default (name, settings, app) => {
     //    });
     //}
 
-    //function compileMapbox(views, spec, ctx) {
+    function compileGoogleMap(views, spec, ctx) {
+        var id = "googleMap";
+        var {err, value: mapSpec} = encode(spec.googleMap, ctx);
+        if (err) return error(spec.googleMap, ctx, err);
+        setTimeout( () => {
+            new google.maps.Map(document.getElementById(id), {
+                center: new google.maps.LatLng(mapSpec.center.lat, mapSpec.center.lon),
+                zoom: mapSpec.zoom || 13
+                //mapTypeId: google.maps.MapTypeId.ROADMAP
+            });
+        });
+        return compileTag(views, {
+            tag: "div",
+            attrs: {
+                id: id,
+                style: {
+                    height: mapSpec.height,
+                    width: mapSpec.width
+                }
+            },
+            children: []        
+        }, ctx);
+    }
+
+    //function compileGoogleMap(views, spec, ctx) {
     //    var {err, value} = encode(spec.map.id, ctx);
     //    if (err) return error(spec, ctx, err);
     //    var id = value;
@@ -426,7 +450,7 @@ export default (name, settings, app) => {
         if (spec.tag) return compileTag(views, spec, ctx);
         if (spec.text) return compileText(views, spec, ctx);
         if (spec.loop) return compileLoop(views, spec, ctx);
-        //if (spec.map) return compileMapbox(views, spec, ctx);
+        if (spec.googleMap) return compileGoogleMap(views, spec, ctx);
         if (spec.timestamp) return compileTimestamp(views, spec, ctx);
         if (spec.code) return compileCode(views, spec, ctx);
         if (spec.markdown) return compileMarkdown(views, spec, ctx);

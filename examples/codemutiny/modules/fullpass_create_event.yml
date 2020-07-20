@@ -8,36 +8,20 @@ spec:
         body:
           id:
             any: text
-          source:
-            oneOf:
-              - facebook
-      raw:
-        facebook:
-          status: 200
-          body:
-            any: text
-      locations:
-        locations:
-          status: 200
-          body:
-            status: "OK"
-            results:
-              list:
-                formatted_address:
-                  any: text
-                geometry:
-                  location:
-                    lat:
-                      any: number
-                    lng: 
-                      any: number
-      no_location:
-        locations:
-          body:
-            status: "ZERO_RESULTS" 
-      not_found:
-        facebook:
-          status: 404
+    service:
+      noEvent: noEvent
+      event:
+        event:
+          any: object
+      location:
+        address:
+          any: text
+        location:
+          lat:
+            any: number
+          lon:
+            any: number
+      noLocation: noLocation
     store:
       updated:
         updated: 1
@@ -46,84 +30,60 @@ spec:
       model:
         event: "@data.body"
       cmds:
-        http: event_page 
-    raw:
+        service: fbEvent
+    event:
       model:
-        data:
-          maybe:
-            let:
-              meta: 
-                json:
-                  resolve:
-                    - first:
-                        html: script[type="application/ld+json"]
-                        in: "@data.facebook.body"
-                    - "children"
-            in:
-              name: "@meta.name"
-              url: "@meta.url"
-              starts: 
-                date: "@meta.startDate"
-              cover: "@meta.image"
-              location: "@meta.location.name"
-          otherwise:
-            status: no_metadata
+        event: "@data.event"
       cmds:
-        http: location
-    no_location:
-      model:
-        data:
-          merge:
-            - "@model.data"
-            - status: no_location
-      cmds:
-        store: update
-    locations:
-      model:
-        let:
-          location:
-            first: "@data.locations.body.results"
-        in:
-          data:
-            merge:
-              - "@model.data"
-              - address: "@location.formatted_address"
-                place:
-                  lat: "@location.geometry.location.lat"
-                  lon: "@location.geometry.location.lng"
-                status: success
-      cmds:
-        store: update
-    not_found:
+        service: location
+    noEvent:
       cmds:
         return: not_found
+    noLocation:
+      model:
+        event: 
+          merge:
+            - "@model.event"
+            - status: noLocation
+      cmds:
+        store: update
+    location:
+      model:
+        event:
+          merge:
+            - "@model.event"
+            - "@data"
+            - status: success
+      cmds:
+        store: update
     updated:
       cmds:
         return: accepted
   encoders:
-    event_page:
-      method: get
-      url:
-        format: "https://m.facebook.com/events/{{ id }}"
-        params:
-          id: "@event.id"
-      as: facebook
+    fbEvent:
+      app: fbGetEvent
+      params:
+        id: "@event.id"
     location:
-      method: get
-      url: https://maps.googleapis.com/maps/api/geocode/json
-      query:
-        key: "@google.apiKey"
-        address: "@data.location"
-      as: locations
+      app: geoLocation
+      params:
+        query: 
+          join:
+            - maybe: "@event.place"
+            - maybe: "@event.street"
+            - maybe: "@event.zip"
+            - maybe: "@event.area"
+            - maybe: "@event.country"
+          using: " " 
     update:
       store: "@store"
       ensure:
         merge:
-          - updated_by: "@session.identity"
-            source: "@event.source"
+          - "@event"
+          - updatedBy: "@session.identity"
+            source: fb  
             updated:
               now: {}
-          - "@data"
       where:
         id: "@event.id"
       into: fullpass

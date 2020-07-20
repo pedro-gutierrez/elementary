@@ -29,6 +29,7 @@ spec:
                 <script src="js/mustache.min.js"></script>
                 <script src="js/elementary-dom.js"></script>
                 <script src="js/moment.min.js"></script>
+                <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDkw_Fz14jSlz_vt5t0dKIfCad15pHXT0Y"></script>
                 <script type="module">
                   var lang = navigator.language.split("-")[0]
                   import {default as ui} from "/js/elementary-ui.js";

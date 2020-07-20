@@ -47,5 +47,7 @@ spec:
     fpSelectedEventView:
       tag: div
       children:
-        - "This is the event"
-
+        - googleMap:
+            width: 250px
+            height: 250px
+            center: "@fpEvent.location"

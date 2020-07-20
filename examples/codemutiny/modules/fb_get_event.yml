@@ -1,0 +1,42 @@
+kind: module
+name: fbGetEvent
+spec:
+  decoders:
+    caller:
+      get:
+        id:
+          any: text
+    http:
+      event:
+        status: 200
+        body:
+          any: text
+      notFound:
+        status: 404
+  update:
+    get:
+      model:
+        id: "@data.id"
+      cmds:
+        http: fetch
+    event:
+      model:
+        event:
+          merge:
+            - fbEvent: "@data.body"
+            - id: "@model.id"
+      cmds:
+        stop: event 
+    notFound:
+      cmds:
+        stop: noEvent
+  encoders:
+    fetch:
+      method: get
+      url:
+        format: "https://www.facebook.com/events/{{ id }}"
+        params:
+          id: "@id"
+    event: 
+      event: "@event"
+    noEvent: "noEvent"

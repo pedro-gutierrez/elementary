@@ -329,7 +329,7 @@ spec:
     blogItemView:
       tag: div
       attrs:
-        class: p-4 md:w-1/4
+        class: p-4 lg:w-1/3 md:w-1/2 sm:w-full
       children:
         - tag: div
           attrs:
@@ -341,11 +341,9 @@ spec:
             - tag: img
               attrs:
                 class: lg:h-48 md:h-36 w-full object-cover object-center
-                src: "@image"
-                #style:
-                #  object:
-                #    filter: "grayscale(100%)"
-                #    opacity: "0.8"
+                src: "@image.url"
+                style:
+                  maybe: "@image.style"
             - tag: div
               attrs:
                 class: p-6
@@ -394,5 +392,3 @@ spec:
                             encoder: theme-colors
                       children:
                         - "6"
-
-

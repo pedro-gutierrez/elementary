@@ -1,0 +1,60 @@
+kind: module
+name: geoLocation 
+spec:
+  decoders:
+    caller:
+      get:
+        query:
+          any: text
+    http:
+      locations:
+        locations:
+          status: 200
+          body:
+            status: "OK"
+            results:
+              list:
+                formatted_address:
+                  any: text
+                geometry:
+                  location:
+                    lat:
+                      any: number
+                    lng: 
+                      any: number
+      noLocation:
+        locations:
+          body:
+            status: "ZERO_RESULTS" 
+  update:
+    get:
+      model:
+        query: "@data.query"
+      cmds:
+        http: query 
+    noLocation:
+      cmds:
+        stop: noLocation 
+    locations:
+      model:
+        let:
+          location:
+            first: "@data.locations.body.results"
+        in:
+          data:
+            address: "@location.formatted_address"
+            location:
+              lat: "@location.geometry.location.lat"
+              lon: "@location.geometry.location.lng"
+      cmds:
+        stop: location 
+  encoders:
+    query:
+      method: get
+      url: https://maps.googleapis.com/maps/api/geocode/json
+      query:
+        key: "@apiKey"
+        address: "@query"
+      as: locations
+    noLocation: "noLocation"
+    location: "@data"
