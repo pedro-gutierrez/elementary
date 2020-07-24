@@ -23,31 +23,31 @@ spec:
                 en: Import events 
                 fr: Importer des évènements 
                 es: Importar eventos
-            - name: event-verify
+            - name: search-events
               title:
-                en: Verify events 
-                fr: Vérifier des évènements 
-                es: Verificar eventos
+                en: Search events 
+                fr: Recherche d'évènements 
+                es: Buscar eventos
+            - name: next-events 
+              title:
+                en: Next events 
+                fr: Prochains évènements 
+                es: Prómios eventos 
+            - name: list-events 
+              title:
+                en: Events list 
+                fr: Liste d'évènements 
+                es: Lista de eventos 
             - name: event-link
               title:
                 en: Link events 
                 fr: Relier des évènements 
                 es: Relacionar eventos
-            - name: next-events 
-              title:
-                en: Next events 
-                fr: Prochains évènements 
-                es: Eventos próximos
             - name: show-event
               title:
                 en: Event detail 
                 fr: Détail de l'évènements 
                 es: Detalle del evento 
-            - name: event-search
-              title:
-                en: Search events 
-                fr: Recherche d'évènements 
-                es: Buscar eventos
             - name: event-subscriptions
               title:
                 en: Event subscriptions

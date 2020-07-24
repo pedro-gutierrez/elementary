@@ -22,3 +22,5 @@ spec:
     - ui_fullpass_event_import
     - ui_fullpass_next_events
     - ui_fullpass_show_event
+    - uiFpListEvents
+    - uiFpSearchEvents

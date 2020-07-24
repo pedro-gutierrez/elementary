@@ -211,10 +211,15 @@ export default (name, settings, app) => {
         var {err, value: mapSpec} = encode(spec.googleMap, ctx);
         if (err) return error(spec.googleMap, ctx, err);
         setTimeout( () => {
-            new google.maps.Map(document.getElementById(id), {
-                center: new google.maps.LatLng(mapSpec.center.lat, mapSpec.center.lon),
+            var center = new google.maps.LatLng(mapSpec.center.lat, mapSpec.center.lon);
+            var map = new google.maps.Map(document.getElementById(id), {
+                center: center,
                 zoom: mapSpec.zoom || 13
                 //mapTypeId: google.maps.MapTypeId.ROADMAP
+            });
+            var marker = new google.maps.Marker({
+                position: center,
+                map: map
             });
         });
         return compileTag(views, {

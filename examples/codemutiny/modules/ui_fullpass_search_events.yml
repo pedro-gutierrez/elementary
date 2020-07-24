@@ -1,0 +1,60 @@
+kind: module
+name: uiFpSearchEvents
+spec:
+  init:
+    model:
+      fpSearch: ""
+  decoders:
+    ui:
+      fpSearch:
+        fpSearch:
+          any: text
+      fpEventSearch:
+        fpEventSearch: ""
+  update:
+    fpSearch:
+      model:
+        message: ""
+        loading: false
+        fpSearch: "@data.fpSearch"
+      cmds:
+        ui: {}
+    fpEventSearch:
+      model:
+        message: ""
+        loading: true
+      cmds:
+        ui: {}  
+        http: fpEventSearch
+  encoders:
+    fpEventSearch:
+      method: post
+      path: /api/fullpass/events/search
+      headers:
+        content-type: application/json
+        authorization: "@session"
+      body:
+        search: "@fpSearch"
+      tag: fpEventSearchResults
+    fpSearchEventsView:
+      view: formView
+      params:
+        loading: "@loading"
+        title: "@title"
+        subtitle:
+          en: Type in some keywords 
+          fr: Entrez quelques mots clé
+          es: Entra tu criterio de búsqueda 
+        message: "@message"
+        fields:
+          - view: textFieldView
+            params:
+              name: "fpSearch"
+              value: "@fpSearch"
+              placeholder: Urban 
+        action:
+          name: "fpEventSearch"
+          title:
+            en: Send 
+            fr: Envoyer 
+            es: Enviar 

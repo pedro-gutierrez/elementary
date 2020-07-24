@@ -6,6 +6,15 @@ spec:
       onFpEventImported: 
         - http: fpGetEvent
   decoders:
+    ui:
+      showFpEvent:
+        showFpEvent:
+          any: text
+    router:
+      fpLoadEvent:
+        route:
+          - events
+          - any: text
     http:
       fpEvent:
         tag: fpEvent
@@ -13,6 +22,19 @@ spec:
         body:
           any: object
   update:
+    showFpEvent:
+      model:
+        fpEvent:
+          id: "@data.showFpEvent"
+      cmds:
+        http: fpGetEvent
+    fpLoadEvent:
+      model:
+        fpEvent:
+          id:
+            last: "@data.route"
+      cmds:
+        http: fpGetEvent
     fpEvent:
       model:
         fpEvent: "@data.body"
@@ -37,7 +59,7 @@ spec:
           fr: "Détail de l'èvenement"
           es: "Detalle del evento"
         contentView:
-          if: "@fpEvent.name" 
+          if: "@fpEvent.title" 
           then: fpSelectedEventView
           else: fpNoEventView 
     fpNoEventView:

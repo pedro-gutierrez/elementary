@@ -1,0 +1,25 @@
+kind: module
+name: uiFpListEvents 
+spec:
+  init:
+    model:
+      fpEvents: []
+  encoders:
+    fpListEventsView:
+      tag: div
+      children:
+        - view: itemsView
+          params:
+            title: "@title"
+            items: "@fpEvents"
+            itemView: fpEventItemView 
+    fpEventItemView:
+      view: blogItemView
+      params:
+        image: 
+          url: "@cover"
+        title: "@title"
+        subtitle: "@location"
+        date: "@starts"
+        action: 
+          showFpEvent: "@id"

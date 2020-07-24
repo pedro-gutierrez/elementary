@@ -9,6 +9,9 @@ spec:
       onFpEventImported: 
         - http: fpNextEvents
   decoders:
+    ui:
+      fpLoadNextEvents:
+        fpNextEvents: ""
     http:
       fpNextEvents:
         tag: fpNextEvents
@@ -16,9 +19,12 @@ spec:
         body:
           any: list
   update:
+    fpLoadNextEvents:
+      cmds:
+        - http: fpNextEvents 
     fpNextEvents:
       model:
-        fpNextEvents: "@data.body"
+        fpEvents: "@data.body"
       cmds:
         ui: {}
   encoders:
@@ -30,23 +36,15 @@ spec:
         authorization: "@session"
       tag: fpNextEvents
     fpNextEventsView:
-      tag: div
-      children:
-        - view: itemsView
-          params:
-            title: "@title"
-            items: "@fpNextEvents"
-            itemView: fpEventItemView 
-    fpEventItemView:
-      view: blogItemView
+      view: formView
       params:
-        image: 
-          url: "@cover"
+        loading: "@loading"
         title: "@title"
-        subtitle: "@location"
-        date: "@starts"
-
-
-
-
-
+        message: "@message"
+        fields: []
+        action:
+          name: "fpNextEvents"
+          title:
+            en: Send 
+            fr: Envoyer 
+            es: Enviar 
