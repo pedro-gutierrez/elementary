@@ -11,6 +11,11 @@ spec:
           any: text
       fpEventSearch:
         fpEventSearch: ""
+    http:
+      fpEventResults:
+        tag: fpEventResults
+        body:
+          any: list
   update:
     fpSearch:
       model:
@@ -26,16 +31,22 @@ spec:
       cmds:
         ui: {}  
         http: fpEventSearch
+    fpEventResults:
+      model:
+        loading: false
+        fpEvents: "@data.body"
+      cmds:
+        ui: {}
   encoders:
     fpEventSearch:
       method: post
-      path: /api/fullpass/events/search
+      path: /api/fullpass/search/events
       headers:
         content-type: application/json
         authorization: "@session"
       body:
         search: "@fpSearch"
-      tag: fpEventSearchResults
+      tag: fpEventResults
     fpSearchEventsView:
       view: formView
       params:

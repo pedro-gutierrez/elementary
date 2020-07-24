@@ -1,0 +1,13 @@
+kind: app
+name: fullpass_search_events
+spec:
+  routes:
+    codemutiny:
+      post: "/api/fullpass/search/events"
+  settings:
+    - codemutiny
+  filters:
+    - auth
+  modules:
+    - fullpass_search_events
+    - http

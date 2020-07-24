@@ -1,0 +1,34 @@
+kind: module
+name: fullpass_search_events
+spec:
+  decoders:
+    http:
+      search:
+        body:
+          search:
+            any: text 
+    store:
+      events:
+        any: list
+  update:
+    search:
+      model:
+        search: "@data.body.search"
+      cmds:
+        store: search_events 
+    events:
+      model:
+        data: "@data"
+      cmds:
+        return: data
+  encoders:
+    search_events:
+      store: "@store"
+      find:
+        status: success
+        title:
+          $regex: "@search"
+          $options: i
+      sort: 
+        starts: asc
+      from: fullpass
