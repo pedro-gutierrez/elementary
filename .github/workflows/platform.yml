@@ -23,7 +23,7 @@ jobs:
           script: |
             wget -O /usr/bin/cmtool https://raw.githubusercontent.com/pedro-gutierrez/elementary/master/cmtool
             chmod +x /usr/bin/cmtool
-            AWS_ACCESS_KEY=$AWS_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY cmtool mustache debs packages setup_aws download_certs haproxy users app
+            AWS_ACCESS_KEY=$AWS_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY cmtool hosts mustache debs packages setup_aws download_certs haproxy users app
       - name: Setup a1
         uses: appleboy/ssh-action@master
         env:
@@ -38,7 +38,7 @@ jobs:
           script: |
             wget -O /usr/bin/cmtool https://raw.githubusercontent.com/pedro-gutierrez/elementary/master/cmtool
             chmod +x /usr/bin/cmtool
-            AWS_ACCESS_KEY=$AWS_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY cmtool mustache debs packages setup_aws download_certs haproxy users app
+            AWS_ACCESS_KEY=$AWS_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY cmtool hosts mustache debs packages setup_aws download_certs haproxy users app
       - name: Setup a2
         uses: appleboy/ssh-action@master
         env:
@@ -53,4 +53,4 @@ jobs:
           script: |
             wget -O /usr/bin/cmtool https://raw.githubusercontent.com/pedro-gutierrez/elementary/master/cmtool
             chmod +x /usr/bin/cmtool
-            AWS_ACCESS_KEY=$AWS_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY cmtool mustache debs packages setup_aws download_certs haproxy users app
+            AWS_ACCESS_KEY=$AWS_ACCESS_KEY AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY cmtool hosts mustache debs packages setup_aws download_certs haproxy users app

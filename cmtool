@@ -9,6 +9,8 @@ EMAIL=pedrogutierrez@mac.com
 ESL_DEB=erlang-solutions_2.0_all.deb
 CM_USER=cm
 CM_REPO=https://github.com/pedro-gutierrez/elementary
+
+
     
 check_env() {
     VARNAME=$1
@@ -165,11 +167,34 @@ firewall () {
     ufw allow out 80
     ufw allow in 80
     ufw allow out 27017
+    ufw allow from 80.211.159.183 to any port 4369 
+    ufw allow from 212.237.38.218 to any port 4369 
+    ufw allow from 80.211.150.191 to any port 4369 
+    ufw allow out from any to 80.211.159.183 port 4369   
+    ufw allow out from any to 80.211.159.183 port 4369   
+    ufw allow out from any to 212.237.38.218 port 4369   
     ufw --force enable
     ufw status
     echo "Firewall configured"
 }
 
+hosts() {
+    echo "Setting up hosts"
+    rm -rf /etc/hosts
+    cat << EOF > /etc/hosts
+127.0.0.1       localhost
+127.0.1.1       ubuntu
+
+# The following lines are desirable for IPv6 capable hosts
+::1     localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+
+80.211.159.183 a0
+212.237.38.218 a1
+80.211.150.191 a2
+EOF
+}
 
 app() {
 	echo "Installing app..."
@@ -207,6 +232,16 @@ app() {
 	ENV_FILE=/home/$CM_USER/.env
 	aws s3 cp s3://$BUCKET/elementary.env $ENV_FILE
 	chmox 600 $ENV_FILE
+
+    echo "Configuring cluster..."
+    rm -rf $PROD_DIR/.hosts.erlang
+    cat << EOF > ${PROD_DIR}/.hosts.erlang
+'a0'.
+'a1'.
+'a2'.
+
+EOF
+    chown $CM_USER:$CM_USER $PROD_DIR/.hosts.erlang 
 
     echo "Setting up elementary service..."
 	cat << EOF > /lib/systemd/system/elementary.service
