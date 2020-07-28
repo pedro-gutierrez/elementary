@@ -10,8 +10,6 @@ ESL_DEB=erlang-solutions_2.0_all.deb
 CM_USER=cm
 CM_REPO=https://github.com/pedro-gutierrez/elementary
 
-
-    
 check_env() {
     VARNAME=$1
     if [ -z "${!VARNAME}" ]; then
