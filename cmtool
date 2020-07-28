@@ -169,7 +169,7 @@ firewall () {
     ufw allow from 212.237.38.218 to any port 4369 
     ufw allow from 80.211.150.191 to any port 4369 
     ufw allow out from any to 80.211.159.183 port 4369   
-    ufw allow out from any to 80.211.159.183 port 4369   
+    ufw allow out from any to 80.211.150.191 port 4369   
     ufw allow out from any to 212.237.38.218 port 4369   
     ufw --force enable
     ufw status
