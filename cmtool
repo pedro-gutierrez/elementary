@@ -187,9 +187,9 @@ hosts() {
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 
-80.211.159.183 a0
-212.237.38.218 a1
-80.211.150.191 a2
+80.211.159.183 a0.local
+212.237.38.218 a1.local
+80.211.150.191 a2.local
 EOF
 }
 
@@ -235,9 +235,9 @@ app() {
     echo "Configuring cluster..."
     rm -rf $PROD_DIR/.hosts.erlang
     cat << EOF > ${PROD_DIR}/.hosts.erlang
-'a0'.
-'a1'.
-'a2'.
+'a0.local'.
+'a1.local'.
+'a2.local'.
 
 EOF
     chown $CM_USER:$CM_USER $PROD_DIR/.hosts.erlang 
