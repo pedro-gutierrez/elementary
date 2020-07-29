@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-#
 BUCKET=codemutiny
 ELEMENTARY_EXAMPLE=codemutiny
 ELEMENTARY_PORT=4000
