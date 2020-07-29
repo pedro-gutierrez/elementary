@@ -209,10 +209,10 @@ app() {
 		mkdir -p $BUILD_DIR
 		git clone $CM_REPO $BUILD_DIR
 	fi
-    
-    export RELEASE_NODE="elementary@$HOSTNAME" 
+
+    source $ENV_FILE   
 	echo "Compiling the release for $RELEASE_NODE..."
-	cd $BUILD_DIR; source $ENV_FILE; MIX_ENV=prod VERSION=1 mix do local.hex --force, \
+	cd $BUILD_DIR; MIX_ENV=prod VERSION=1 mix do local.hex --force, \
 		local.rebar --force, \
 		deps.get, \
 		compile, \
