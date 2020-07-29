@@ -210,7 +210,7 @@ app() {
 		git clone $CM_REPO $BUILD_DIR
 	fi
 	echo "Compiling the release..."
-	cd $BUILD_DIR; source $ENV_FILE; MIX_ENV=prod VERSION=1 mix do local.hex --force, \
+	cd $BUILD_DIR; source $ENV_FILE; RELEASE_NODE="elementary@${HOSTNAME}"; MIX_ENV=prod VERSION=1 mix do local.hex --force, \
 		local.rebar --force, \
 		deps.get, \
 		compile, \
