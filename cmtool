@@ -197,7 +197,7 @@ app() {
 	echo "Downloading environment..."
 	ENV_FILE=/home/$CM_USER/.env
 	aws s3 cp s3://$BUCKET/elementary.env $ENV_FILE
-	chmox 600 $ENV_FILE
+	chmod 600 $ENV_FILE
 	
     echo "Installing app..."
 	BUILD_DIR=/home/$CM_USER/build
@@ -210,9 +210,9 @@ app() {
 		git clone $CM_REPO $BUILD_DIR
 	fi
 
-    source $ENV_FILE   
+    export RELEASE_NODE=$HOSTNAME.local
 	echo "Compiling the release for $RELEASE_NODE..."
-	cd $BUILD_DIR; MIX_ENV=prod VERSION=1 mix do local.hex --force, \
+	cd $BUILD_DIR; RELEASE_DISTRIBUTION=name RELEASE_COOKIE=elementary MIX_ENV=prod VERSION=1 mix do local.hex --force, \
 		local.rebar --force, \
 		deps.get, \
 		compile, \
