@@ -14,6 +14,7 @@ defmodule Elementary.Facebook do
       |> event_with_title_fallback(doc)
       |> event_with_start_date_fallback(doc)
       |> event_with_place_fallback(doc)
+      |> event_with_related_events(doc)
 
     {:ok, event}
   end
@@ -106,5 +107,19 @@ defmodule Elementary.Facebook do
       _ ->
         event
     end
+  end
+
+  defp event_with_related_events(event, doc) do
+    related =
+      doc
+      |> Floki.find(".fbEventsSuggestionItem a")
+      |> Floki.attribute("href")
+      |> Enum.filter(&String.contains?(&1, "events"))
+      |> Enum.map(fn url ->
+        url |> String.split("/") |> Enum.at(2)
+      end)
+      |> Enum.uniq()
+
+    Map.put(event, "related", related)
   end
 end

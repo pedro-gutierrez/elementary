@@ -352,6 +352,14 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"integerFrom" => str}=spec, context, encoders) do
+    with {:ok, str} <- encode(str, context, encoders),
+         {int, ""} <- Integer.parse(str) do
+          {:ok, int}
+    end
+    |> result(spec, context)
+  end
+
   def encode(%{"atLeast" => exprs} = spec, context, encoders) do
     with {:ok, [num1, num2]} when is_number(num1) and is_number(num2) <-
            encode_specs(exprs, context, encoders) do

@@ -49,23 +49,50 @@ defmodule Elementary.Compiler do
   end
 
   defp index_specs(specs) do
+    specs = Spec.flatten(specs)
+
     mods =
-      specs
-      |> Spec.flatten()
-      |> Enum.map(fn %{"kind" => kind, "name" => name} ->
+      Enum.map(specs, fn %{"kind" => kind, "name" => name} ->
         {name, kind, module_name(name, kind)}
       end)
 
     {:ok, _} =
       defmod(
         Elementary.Index,
-        Enum.map(mods, fn {name, kind, mod} ->
+        (Enum.reduce(specs, %{}, fn  %{"kind" => kind, "name" => name }, acc ->
+          names = acc[kind]|| []
+          Map.put(acc, kind, [name|names])
+        end)
+        |> Enum.map(fn {kind, names} ->
+            quote do
+              def specs(unquote(kind)) do
+                unquote(names)
+              end
+            end
+        end))
+        ++
+
+        Enum.map(specs, fn %{"kind" => kind, "name" => name, "spec" => spec} ->
           quote do
-            def get(unquote(kind), unquote(name)) do
-              {:ok, unquote(mod)}
+            def spec(unquote(kind), unquote(name)) do
+              {:ok, unquote(Macro.escape(spec)) }
             end
           end
         end) ++
+          [
+            quote do
+              def spec(_, _) do
+                :not_found
+              end
+            end
+          ] ++
+          Enum.map(mods, fn {name, kind, mod} ->
+            quote do
+              def get(unquote(kind), unquote(name)) do
+                {:ok, unquote(mod)}
+              end
+            end
+          end) ++
           [
             quote do
               def get(kind, name) do
