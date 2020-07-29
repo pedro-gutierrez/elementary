@@ -211,8 +211,11 @@ app() {
 	fi
 
     export RELEASE_NODE=$HOSTNAME.local
+    export RELEASE_COOKIE=elementary
+    export RELEASE_DISTRIBUTION=name
+
 	echo "Compiling the release for $RELEASE_NODE..."
-	cd $BUILD_DIR; RELEASE_DISTRIBUTION=name RELEASE_COOKIE=elementary MIX_ENV=prod VERSION=1 mix do local.hex --force, \
+	cd $BUILD_DIR; MIX_ENV=prod VERSION=1 mix do local.hex --force, \
 		local.rebar --force, \
 		deps.get, \
 		compile, \
