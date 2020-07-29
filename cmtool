@@ -194,7 +194,12 @@ EOF
 }
 
 app() {
-	echo "Installing app..."
+	echo "Downloading environment..."
+	ENV_FILE=/home/$CM_USER/.env
+	aws s3 cp s3://$BUCKET/elementary.env $ENV_FILE
+	chmox 600 $ENV_FILE
+	
+    echo "Installing app..."
 	BUILD_DIR=/home/$CM_USER/build
     if [ -d $BUILD_DIR ]; then 
 		echo "Found existing sources. Updating..."
@@ -205,7 +210,7 @@ app() {
 		git clone $CM_REPO $BUILD_DIR
 	fi
 	echo "Compiling the release..."
-	cd $BUILD_DIR; MIX_ENV=prod VERSION=1 mix do local.hex --force, \
+	cd $BUILD_DIR; source $ENV_FILE; MIX_ENV=prod VERSION=1 mix do local.hex --force, \
 		local.rebar --force, \
 		deps.get, \
 		compile, \
@@ -224,11 +229,6 @@ app() {
     mkdir -p $ETC_DIR
     rm -rf $ETC_DIR/*
     cp -rf $BUILD_DIR/examples/$ELEMENTARY_EXAMPLE/. $ETC_DIR
-	
-	echo "Downloading environment..."
-	ENV_FILE=/home/$CM_USER/.env
-	aws s3 cp s3://$BUCKET/elementary.env $ENV_FILE
-	chmox 600 $ENV_FILE
 
     echo "Configuring cluster..."
     rm -rf $PROD_DIR/.hosts.erlang
