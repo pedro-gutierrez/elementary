@@ -201,7 +201,7 @@ app() {
 	chmod 600 $ENV_FILE
     
     echo "Setting up distribution for $HOSTNAME..."
-    echo "RELEASE_NODE=$HOSTNAME.local" >> $ENV_FILE
+    echo "RELEASE_NODE=elementary@$HOSTNAME.local" >> $ENV_FILE
     echo "RELEASE_COOKIE=elementary" >> $ENV_FILE
     echo "RELEASE_DISTRIBUTION=name" >> $ENV_FILE
 	
