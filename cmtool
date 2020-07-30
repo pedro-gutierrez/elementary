@@ -171,6 +171,12 @@ firewall () {
     ufw allow out from any to 80.211.159.183 port 4369   
     ufw allow out from any to 80.211.150.191 port 4369   
     ufw allow out from any to 212.237.38.218 port 4369   
+    ufw allow from 80.211.159.183 to any port 9000 
+    ufw allow from 212.237.38.218 to any port 9000 
+    ufw allow from 80.211.150.191 to any port 9000 
+    ufw allow out from any to 80.211.159.183 port 9000
+    ufw allow out from any to 80.211.150.191 port 9000 
+    ufw allow out from any to 212.237.38.218 port 9000 
     ufw --force enable
     ufw status
     echo "Firewall configured"
@@ -201,6 +207,7 @@ app() {
 	chmod 600 $ENV_FILE
     
     echo "Setting up distribution for $HOSTNAME..."
+    echo "BEAM_PORT=9000" >> $ENV_FILE 
     echo "RELEASE_NODE=elementary@$HOSTNAME.local" >> $ENV_FILE
     echo "RELEASE_COOKIE=elementary" >> $ENV_FILE
     echo "RELEASE_DISTRIBUTION=name" >> $ENV_FILE
