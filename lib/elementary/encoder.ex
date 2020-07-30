@@ -776,6 +776,14 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
+  def encode(%{"node" => _}, _, _) do
+    {:ok, "#{Node.self()}"}
+  end
+
+  def encode(%{"nodes" => _}, _, _) do
+    {:ok, Node.list() |> Enum.map(fn n -> "#{n}" end) |> Enum.sort() }
+  end
+
   def encode(spec, context, encoders) when is_map(spec) do
     encode(%{"object" => spec}, context, encoders)
   end

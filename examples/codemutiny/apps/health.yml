@@ -1,0 +1,9 @@
+kind: app
+name: health 
+spec:
+  routes:
+    codemutiny:
+      get: "/api/health"
+  modules:
+    - health 
+    - http

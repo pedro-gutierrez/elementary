@@ -1,0 +1,18 @@
+kind: module
+name: health
+spec:
+  decoders:
+    http:
+      get:
+        any: object
+  update:
+    get:
+      model:
+        data:
+          object:
+            node:
+              node: {}
+            nodes:
+              nodes: {}
+      cmds:
+        return: data
