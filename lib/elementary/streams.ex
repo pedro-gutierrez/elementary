@@ -98,7 +98,7 @@ defmodule Elementary.Streams do
     end
 
     @impl true
-    def handle_info({'DOWN', ref, :process, _, _}, %{leader: ref} = state) do
+    def handle_info({:DOWN, ref, :process, _, _}, %{leader: ref} = state) do
       {:noreply, state, {:continue, :register}}
     end
 
