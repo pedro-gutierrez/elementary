@@ -2,7 +2,7 @@ defmodule Elementary.Ports do
   @moduledoc false
 
   use Supervisor
-  alias Elementary.{Kit, Index, Encoder}
+  alias Elementary.{Index, Encoder}
 
   def start_link(opts) do
     Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
