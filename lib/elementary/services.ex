@@ -33,6 +33,7 @@ defmodule Elementary.Services do
     def handle_call({:data, data}, _, %{app: app, effect: effect}) do
       spec = Index.spec!("app", app)
       res = App.run(spec, effect, data)
+      # TODO telemetry and logging
       {:stop, :normal, res, nil}
     end
   end
