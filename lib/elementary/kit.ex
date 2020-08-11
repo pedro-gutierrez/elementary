@@ -154,6 +154,14 @@ defmodule Elementary.Kit do
     IO.binstream(pid, 256)
   end
 
+  def memory() do
+    :erlang.memory
+    |> Enum.map(fn {key, bytes} ->
+      {key, (bytes / 1_000_000) |> Float.round(2)}
+    end)
+    |> Enum.into(%{})
+  end
+
   @proc_keys [
     :memory,
     :registered_name,

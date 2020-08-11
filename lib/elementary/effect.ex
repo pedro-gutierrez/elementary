@@ -226,21 +226,6 @@ defmodule Elementary.Effect do
     app
     |> Service.run("caller", data)
     |> effect_result(spec)
-
-    # with {:ok, app_spec} <- Index.spec("app", app),
-    #     {:ok, settings} <- Elementary.App.settings(app_spec),
-    #     {:ok, model} <- Elementary.App.init(app_spec, settings),
-    #     {:ok, model2} <- Elementary.App.filter(app_spec, effect, data, model) do
-    #  merged = Map.merge(model, model2)
-    #  Elementary.App.decode_update(app_spec, effect, data, merged)
-    # else
-    #  {:error, e} when is_atom(e) ->
-    #    "#{e}"
-
-    #  {:error, e} ->
-    #    e
-    # end
-    # |> effect_result(spec)
   end
 
   def apply("test", %{"run" => test, "settings" => settings}) do

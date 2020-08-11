@@ -9,10 +9,13 @@ spec:
       streams:
         streams:
           list:
-            id:
-              any: text
-            tick:
-              any: date
+            object:
+              id:
+                any: text
+              tick:
+                any: date
+              node:
+                any: text
   update:
     get:
       cmds:
@@ -33,9 +36,11 @@ spec:
       from: streams
       as: streams
     streamInfo:
-      name: "@id"
-      latest:
-        secondsSince: "@tick"
+      object:
+        name: "@id"
+        idle:
+          durationSince: "@tick"
+        node: "@node"
     health:
       object:
         node:

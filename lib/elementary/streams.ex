@@ -2,7 +2,7 @@ defmodule Elementary.Streams do
   @moduledoc false
 
   use Supervisor
-  alias Elementary.Index
+  alias Elementary.{Index, Streams.Stream}
 
   def start_link(opts) do
     Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
@@ -15,25 +15,41 @@ defmodule Elementary.Streams do
   end
 
   defp service_spec(spec) do
-    {Elementary.Streams.Streams, spec}
+    {Elementary.Streams.Stream, spec}
   end
 
-  defmodule Streams do
+  def info() do
+    "stream"
+    |> Index.specs()
+    |> Enum.map(&Stream.info(&1))
+  end
+
+  defmodule Stream do
     use GenServer
     alias Elementary.{Index, App, Stores.Store, Services.Service}
     require Logger
 
-    def stream_name(%{"name" => name}), do: stream_name(name)
-    def stream_name(name), do: String.to_atom("#{name}_stream")
+    def name(%{"name" => name}), do: name(name)
+    def name(name), do: String.to_atom("#{name}_stream")
+
+    def info(%{"name" => name} = spec) do
+      registered_name = name(spec)
+      case :global.whereis_name(registered_name) do
+        :undefined  ->
+          %{name: name}
+        pid ->
+          GenServer.call(pid, :info)
+      end
+    end
 
     def start_link(spec) do
-      name = stream_name(spec)
+      name = name(spec)
       GenServer.start_link(__MODULE__, spec, name: name)
     end
 
     @impl true
     def init(%{"name" => name, "spec" => %{"apps" => apps, "collection" => col}} = spec) do
-      registered_name = stream_name(spec)
+      registered_name = name(spec)
       %{"store" => store} = App.settings!(spec)
 
       initial_state = %{
@@ -68,10 +84,8 @@ defmodule Elementary.Streams do
       end
     end
 
-    def handle_continue(:subscribe, %{store: store, stream: stream, col: col} = state) do
+    def handle_continue(:subscribe, %{store: store, stream: stream, registered_name: stream_name, col: col} = state) do
       offset = read_offset(state)
-
-      stream_name = stream_name(stream)
 
       data_fn = fn data ->
         GenServer.cast({:global, stream_name}, data)
@@ -113,6 +127,11 @@ defmodule Elementary.Streams do
       {:noreply, state}
     end
 
+    @impl true
+    def handle_call(:info, _, state) do
+      {:reply, stream_info(state), state}
+    end
+
     def stop(reason, %{stream: stream} = state) do
       Logger.warn("stopped stream #{stream} (#{inspect(self())}): #{reason}")
       {:ok, state}
@@ -133,7 +152,8 @@ defmodule Elementary.Streams do
 
       case Store.ensure(store, "streams", %{"id" => stream}, %{
              "offset" => offset,
-             "tick" => DateTime.utc_now()
+             "tick" => DateTime.utc_now(),
+             "node" => Node.self()
            }) do
         {:ok, 1} ->
           :ok
@@ -142,6 +162,10 @@ defmodule Elementary.Streams do
           Logger.error("Error updating offset: #{inspect(e)}")
           :ok
       end
+    end
+
+    defp stream_info(%{stream: stream}) do
+      %{name: stream, node: Node.self()}
     end
   end
 end
