@@ -1,17 +1,10 @@
 kind: store
-name: codemutiny
+name: codemutiny  
 spec:
+  pool: 5
   url:
     env: MONGO_URL
   collections:
-    log:
-      max: 100000
-      size: 10240000
-      indexes:
-        - lookup: kind
-        - lookup: name
-        - lookup: time
-        - lookup: level
     identities: {}
     subscriptions: {}
     tokens:

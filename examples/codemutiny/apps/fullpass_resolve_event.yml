@@ -1,0 +1,11 @@
+kind: app
+name: fullpass_resolve_event
+spec:
+  settings:
+    - codemutiny
+    - named: google
+  filters:
+    - auth
+  modules:
+    - fullpass_resolve_event
+    - http

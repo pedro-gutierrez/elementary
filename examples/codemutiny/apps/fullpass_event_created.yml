@@ -1,0 +1,8 @@
+kind: app
+name: fullpass_event_created
+spec:
+  debug: true
+  settings:
+    - codemutiny
+  modules:
+    - fullpass_event_created

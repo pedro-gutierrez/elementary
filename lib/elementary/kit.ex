@@ -1,5 +1,6 @@
 defmodule Elementary.Kit do
   @moduledoc false
+  require Logger
 
   @doc """
   Returns the home folder, where all yamls are
@@ -43,11 +44,11 @@ defmodule Elementary.Kit do
 
   def log(kind, name, data) do
     IO.inspect(%{
-      kind: kind,
-      name: name,
-      data: data,
-      time: DateTime.utc_now(),
-      node: Node.self()
+      "kind" => kind,
+      "name" => name,
+      "data" => data,
+      "time" => DateTime.utc_now(),
+      "node" => Node.self()
     })
   end
 
@@ -153,29 +154,28 @@ defmodule Elementary.Kit do
     IO.binstream(pid, 256)
   end
 
+  @proc_keys [
+    :memory,
+    :registered_name,
+    :message_queue_len
+    # :current_function,
+    # :initial_call,
+    # :dictionary
+  ]
+
   def procs(limit \\ 5) do
     :erlang.processes()
     |> Enum.reject(fn pid ->
       pid == self()
     end)
     |> Enum.map(fn pid ->
-      info =
-        :erlang.process_info(pid, [
-          :memory,
-          :registered_name,
-          :current_function,
-          :initial_call,
-          :dictionary
-        ])
+      case :erlang.process_info(pid, @proc_keys) do
+        info when is_list(info) ->
+          Enum.into(info, %{})
 
-      %{
-        memory: info[:memory],
-        name: info[:registered_name],
-        current_fun: info[:current_function],
-        initial_call: info[:initial_call],
-        dictionary: info[:dictionary],
-        pid: pid
-      }
+        _ ->
+          %{memory: 0}
+      end
     end)
     |> Enum.sort(&(&1[:memory] >= &2[:memory]))
     |> Enum.take(limit)
@@ -189,5 +189,19 @@ defmodule Elementary.Kit do
     |> Enum.each(fn pid ->
       :erlang.garbage_collect(pid)
     end)
+  end
+
+  def debug_fn(true) do
+    fn
+      %{"level" => "error"} = data ->
+        Logger.error("#{inspect(data, pretty: true)}")
+
+      _ ->
+        :ok
+    end
+  end
+
+  def debug_fn(_) do
+    fn _ -> :ok end
   end
 end

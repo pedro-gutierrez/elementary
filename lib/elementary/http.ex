@@ -47,13 +47,13 @@ defmodule Elementary.Http do
     def mime(_), do: :other
   end
 
-  alias Elementary.App
+  alias Elementary.{Services.Service}
   alias Elementary.Http.Headers
   require Logger
 
   @version "0.1"
 
-  # This is left here as a reference for 
+  # This is left here as a reference for
   # performance testing, in order to measure the impact
   # of our framework in response times
   ## defp init(req, state) do
@@ -84,9 +84,7 @@ defmodule Elementary.Http do
         "body" => %{}
       })
     else
-      {:ok, mod} ->
-        app = mod.name()
-        {:ok, settings} = mod.settings()
+      {:ok, app} ->
         headers = Headers.normalized(headers)
 
         {:ok, req, body} = body(req, headers)
@@ -101,15 +99,7 @@ defmodule Elementary.Http do
         }
 
         {req, _} =
-          with {:ok, model} <- App.init(mod, settings),
-               {:ok, model2} <- App.filter(mod, @effect, data, model),
-               {:ok, %{"status" => _} = resp} <-
-                 App.decode(
-                   mod,
-                   @effect,
-                   data,
-                   Map.merge(model, model2)
-                 ) do
+          with {:ok, %{"status" => _} = resp} <- Service.run(app, @effect, data) do
             reply(req, app, method, start, resp)
           else
             {:stop, resp} ->
@@ -122,19 +112,19 @@ defmodule Elementary.Http do
               })
 
             {:error, req, e} ->
-              resp = encoded_error(mod, e)
+              resp = encoded_error(app, e)
               reply(req, app, method, start, resp)
 
             {:error, e} ->
-              resp = encoded_error(mod, e)
+              resp = encoded_error(app, e)
               reply(req, app, method, start, resp)
 
             {:ok, other} ->
-              resp = encoded_error(mod, %{error: :invalid_http_response, data: other})
+              resp = encoded_error(app, %{error: :invalid_http_response, data: other})
               reply(req, app, method, start, resp)
 
             other ->
-              resp = encoded_error(mod, %{unexpected: other})
+              resp = encoded_error(app, %{unexpected: other})
               reply(req, app, method, start, resp)
           end
 
@@ -142,12 +132,12 @@ defmodule Elementary.Http do
     end
   end
 
-  defp encoded_error(mod, err) do
+  defp encoded_error(app, err) do
     info =
       Map.merge(err, %{
-        kind: mod.kind(),
-        name: mod.name(),
-        level: :error
+        "kind" => "app",
+        "name" => app,
+        "level" => "error"
       })
 
     Elementary.Logger.log(info)
@@ -266,11 +256,11 @@ defmodule Elementary.Http do
       )
 
     Elementary.Logger.log(%{
-      kind: "app",
-      name: app,
-      method: method,
-      status: status,
-      duration: floor(elapsed / 1000)
+      "kind" => "app",
+      "name" => app,
+      "method" => method,
+      "status" => status,
+      "duration" => floor(elapsed / 1000)
     })
 
     {req, resp}

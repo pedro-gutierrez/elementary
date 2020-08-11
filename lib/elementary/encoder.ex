@@ -352,10 +352,10 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
-  def encode(%{"integerFrom" => str}=spec, context, encoders) do
+  def encode(%{"integerFrom" => str} = spec, context, encoders) do
     with {:ok, str} <- encode(str, context, encoders),
          {int, ""} <- Integer.parse(str) do
-          {:ok, int}
+      {:ok, int}
     end
     |> result(spec, context)
   end
@@ -542,6 +542,13 @@ defmodule Elementary.Encoder do
   def encode(%{"dayFrom" => date} = spec, context, encoders) do
     with {:ok, date} <- encode(date, context, encoders) do
       Elementary.Calendar.day(date)
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"secondsSince" => date} = spec, context, encoders) do
+    with {:ok, date} <- encode(date, context, encoders) do
+      {:ok, DateTime.diff(DateTime.utc_now(), date)}
     end
     |> result(spec, context)
   end
@@ -781,7 +788,15 @@ defmodule Elementary.Encoder do
   end
 
   def encode(%{"nodes" => _}, _, _) do
-    {:ok, Node.list() |> Enum.map(fn n -> "#{n}" end) |> Enum.sort() }
+    {:ok, Node.list() |> Enum.map(fn n -> "#{n}" end) |> Enum.sort()}
+  end
+
+  def encode(%{"perf" => _}, _, _) do
+    {:ok,
+     Elementary.Kit.procs()
+     |> Enum.map(fn %{registered_name: name, memory: mem, message_queue_len: messages} ->
+       %{"name" => name, "memory" => (mem / 1_000_000) |> Float.round(2), "queue" => messages}
+     end)}
   end
 
   def encode(spec, context, encoders) when is_map(spec) do

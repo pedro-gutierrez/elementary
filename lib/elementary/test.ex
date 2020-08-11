@@ -13,8 +13,8 @@ defmodule Elementary.Test do
   end
 
   def run(test, settings \\ "local", tag \\ nil) do
-    with {:ok, mod} <- Elementary.Index.get("test", test),
-         {:ok, settings} <- Elementary.Index.get("settings", settings) do
+    with {:ok, mod} <- Elementary.Index.spec("test", test),
+         {:ok, settings} <- Elementary.Index.spec("settings", settings) do
       DynamicSupervisor.start_child(__MODULE__, {mod, settings: settings, tag: tag})
     end
   end

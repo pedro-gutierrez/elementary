@@ -4,6 +4,8 @@ spec:
   routes:
     codemutiny:
       get: "/api/health"
+  settings:
+    - codemutiny
   modules:
     - health 
     - http

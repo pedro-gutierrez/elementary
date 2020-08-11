@@ -29,6 +29,11 @@ defmodule Elementary.Resolver do
     Map.put(spec, "spec", spec0)
   end
 
+  defp resolve(specs, %{"kind" => "stream", "spec" => spec0} = spec) do
+    spec0 = resolve_and_merge(spec0, specs, "settings", "settings")
+    Map.put(spec, "spec", spec0)
+  end
+
   defp resolve(specs, %{"kind" => "port"} = spec) do
     apps = spec["spec"]["apps"] || %{}
 

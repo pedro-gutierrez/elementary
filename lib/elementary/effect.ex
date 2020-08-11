@@ -2,14 +2,15 @@ defmodule Elementary.Effect do
   @moduledoc false
 
   require Logger
-  alias Elementary.Kit
+  alias Elementary.{Kit, App, Index, Stores.Store, Services.Service}
 
   def apply("uuid", _) do
     {:ok, %{"uuid" => UUID.uuid4()}}
   end
 
   def apply("logs", %{"query" => query} = spec) do
-    Elementary.Logger.query(query)
+    Index.spec!("logger", "default")
+    |> Elementary.Logger.query(query)
     |> effect_result(spec)
   end
 
@@ -50,33 +51,66 @@ defmodule Elementary.Effect do
      }}
   end
 
-  def apply("store", %{"store" => store, "ping" => _} = spec) do
-    {:ok, store} = Elementary.Index.get("store", store)
+  def apply("stores", %{"stats" => _} = spec) do
+    "store"
+    |> Index.specs()
+    |> Enum.reduce(%{}, fn %{"name" => name} = spec, acc ->
+      stats =
+        case Store.stats(spec) do
+          {:ok, stats} ->
+            stats
 
-    case store.ping() do
-      :ok -> "ok"
-      {:error, e} -> "#{e}"
-    end
+          _ ->
+            "error"
+        end
+
+      Map.put(acc, name, stats)
+    end)
     |> effect_result(spec)
   end
 
-  def apply("store", %{"store" => store, "insert" => doc, "into" => col} = spec)
-      when is_map(doc) do
-    with {:ok, store} <- Elementary.Index.get("store", store) do
-      case store.insert(col, doc) do
-        :ok -> "created"
+  def apply("store", %{"store" => store, "ping" => _} = spec) do
+    with {:ok, store} <- Index.spec("store", store) do
+      case Store.ping(store) do
+        :ok -> "ok"
         {:error, e} -> "#{e}"
       end
     end
     |> effect_result(spec)
   end
 
+  def apply("store", %{"store" => store, "insert" => doc, "into" => col} = spec)
+      when is_map(doc) do
+    store = Index.spec!("store", store)
+
+    case Store.insert(store, col, doc) do
+      :ok -> "created"
+      {:error, e} -> "#{e}"
+    end
+    |> effect_result(spec)
+  end
+
+  def apply("store", %{"store" => store, "subscribe" => subscription, "from" => col} = spec) do
+    store = Index.spec!("store", store)
+    owner = self()
+
+    fun = fn item ->
+      send(owner, %{"effect" => "stream", "data" => item})
+    end
+
+    spawn_link(fn ->
+      Store.subscribe(store, col, subscription, fun)
+    end)
+
+    effect_result("subscribed", spec)
+  end
+
   def apply("store", %{"store" => store, "from" => col, "fetch" => query} = spec) do
-    {:ok, store} = Elementary.Index.get("store", store)
+    store = Index.spec!("store", store)
 
     query = Kit.with_mongo_id(query)
 
-    case store.find_one(col, query, remove: spec["delete"] || false) do
+    case Store.find_one(store, col, query, remove: spec["delete"] || false) do
       {:ok, item} -> item
       {:error, e} -> "#{e}"
     end
@@ -85,11 +119,10 @@ defmodule Elementary.Effect do
 
   def apply("store", %{"store" => store, "where" => query, "update" => doc, "into" => col} = spec)
       when is_map(doc) do
-    {:ok, store} = Elementary.Index.get("store", store)
-
+    store = Index.spec!("store", store)
     query = Kit.with_mongo_id(query)
 
-    case store.update(col, query, doc) do
+    case Store.update(store, col, query, doc) do
       {:ok, updated} -> updated
       {:error, e} -> "#{e}"
     end
@@ -98,11 +131,10 @@ defmodule Elementary.Effect do
 
   def apply("store", %{"store" => store, "where" => query, "ensure" => doc, "into" => col} = spec)
       when is_map(doc) do
-    {:ok, store} = Elementary.Index.get("store", store)
-
+    store = Index.spec!("store", store)
     query = Kit.with_mongo_id(query)
 
-    case store.update(col, query, doc, true) do
+    case Store.update(store, col, query, doc, true) do
       {:ok, updated} -> updated
       {:error, e} -> "#{e}"
     end
@@ -110,7 +142,7 @@ defmodule Elementary.Effect do
   end
 
   def apply("store", %{"store" => store, "delete" => query, "from" => col} = spec) do
-    {:ok, store} = Elementary.Index.get("store", store)
+    store = Index.spec!("store", store)
 
     query = Kit.with_mongo_id(query)
 
@@ -122,7 +154,7 @@ defmodule Elementary.Effect do
   end
 
   def apply("store", %{"store" => store, "aggregate" => pipeline, "from" => col} = spec) do
-    {:ok, store} = Elementary.Index.get("store", store)
+    store = Index.spec!("store", store)
 
     case store.aggregate(col, pipeline) do
       {:ok, items} -> items
@@ -132,7 +164,7 @@ defmodule Elementary.Effect do
   end
 
   def apply("store", %{"store" => store, "from" => col} = spec) do
-    {:ok, store} = Elementary.Index.get("store", store)
+    store = Index.spec!("store", store)
 
     opts = []
 
@@ -145,7 +177,7 @@ defmodule Elementary.Effect do
           Keyword.put(opts, :sort, sort)
       end
 
-    case store.find_all(col, spec["find"] || %{}, opts) do
+    case Store.find_all(store, col, spec["find"] || %{}, opts) do
       {:ok, items} -> items
       {:error, e} -> "#{e}"
     end
@@ -153,7 +185,7 @@ defmodule Elementary.Effect do
   end
 
   def apply("store", %{"empty" => %{}, "store" => store} = spec) do
-    {:ok, store} = Elementary.Index.get("store", store)
+    store = Index.spec!("store", store)
 
     case store.empty() do
       :ok -> "empty"
@@ -163,7 +195,7 @@ defmodule Elementary.Effect do
   end
 
   def apply("store", %{"reset" => %{}, "store" => store} = spec) do
-    {:ok, store} = Elementary.Index.get("store", store)
+    store = Index.spec!("store", store)
 
     case store.reset() do
       :ok -> "reset"
@@ -191,22 +223,24 @@ defmodule Elementary.Effect do
   end
 
   def apply("service", %{"app" => app, "params" => data} = spec) do
-    effect = "caller"
-
-    with {:ok, mod} <- Elementary.Index.get("app", app),
-         {:ok, settings} <- mod.settings,
-         {:ok, model} <- Elementary.App.init(mod, settings),
-         {:ok, model2} <- Elementary.App.filter(mod, effect, data, model) do
-      merged = Map.merge(model, model2)
-      Elementary.App.decode(mod, effect, data, merged)
-    else
-      {:error, e} when is_atom(e) ->
-        "#{e}"
-
-      {:error, e} ->
-        e
-    end
+    app
+    |> Service.run("caller", data)
     |> effect_result(spec)
+
+    # with {:ok, app_spec} <- Index.spec("app", app),
+    #     {:ok, settings} <- Elementary.App.settings(app_spec),
+    #     {:ok, model} <- Elementary.App.init(app_spec, settings),
+    #     {:ok, model2} <- Elementary.App.filter(app_spec, effect, data, model) do
+    #  merged = Map.merge(model, model2)
+    #  Elementary.App.decode_update(app_spec, effect, data, merged)
+    # else
+    #  {:error, e} when is_atom(e) ->
+    #    "#{e}"
+
+    #  {:error, e} ->
+    #    e
+    # end
+    # |> effect_result(spec)
   end
 
   def apply("test", %{"run" => test, "settings" => settings}) do
@@ -222,14 +256,16 @@ defmodule Elementary.Effect do
   end
 
   def apply("spec", %{"app" => app}) do
-    with {:ok, app} <- Elementary.Index.get("app", app),
-         {:ok, settings} <- app.settings do
-      settings = Map.put(settings, "state", UUID.uuid4())
+    with {:ok, spec} <- Index.spec("app", app),
+         {:ok, settings} <- App.settings(spec) do
+      %{"spec" => spec0} = spec
 
-      {:ok,
-       app.spec
-       |> Map.put("settings", settings)
-       |> Map.drop(["modules"])}
+      spec0 =
+        spec0
+        |> Map.put("settings", settings)
+        |> Map.drop(["modules"])
+
+      {:ok, spec0}
     end
   end
 

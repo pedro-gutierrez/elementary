@@ -12,7 +12,6 @@ defmodule Elementary.Spec do
     |> Enum.map(fn yaml ->
       case Kit.read_yaml(yaml) do
         {:ok, content} ->
-          content = Map.put(content, "source", yaml)
           Map.put_new(content, "version", "1")
 
         {:error, e} ->

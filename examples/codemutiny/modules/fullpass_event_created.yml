@@ -1,0 +1,19 @@
+kind: module
+name: fullpass_event_created
+spec:
+  init:
+    model:
+      stream:
+        name: fullpass_events
+        collection: fullpass
+        query: {}
+  decoders:
+    stream:
+      event:
+        id:
+          any: text
+  update:
+    event:
+      model:
+        id: "@data.id"
+  encoders: {}

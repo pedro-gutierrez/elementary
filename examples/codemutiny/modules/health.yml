@@ -5,14 +5,47 @@ spec:
     http:
       get:
         any: object
+    store:
+      streams:
+        streams:
+          list:
+            id:
+              any: text
+            tick:
+              any: date
   update:
     get:
+      cmds:
+        store: streams 
+    streams:
       model:
-        data:
-          object:
-            node:
-              node: {}
-            nodes:
-              nodes: {}
+        let:
+          store: "@model.store"
+          streams: "@data.streams"
+        in:
+          data:
+            encoder: health
       cmds:
         return: data
+  encoders:
+    streams:
+      store: "@store"
+      from: streams
+      as: streams
+    streamInfo:
+      name: "@id"
+      latest:
+        secondsSince: "@tick"
+    health:
+      object:
+        node:
+          node: {}
+        nodes:
+          nodes: {}
+        streams:
+          map: "@streams"
+          as: stream
+          with:
+            encoder: streamInfo
+        perf:
+          perf: {}

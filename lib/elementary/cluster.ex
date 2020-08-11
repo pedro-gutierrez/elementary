@@ -9,9 +9,10 @@ defmodule Elementary.Cluster do
 
   def init(_) do
     case Elementary.Index.spec("cluster", "default") do
-      :not_found -> []
+      :not_found ->
+        []
 
-      {:ok, %{"topology" => "hosts"}} ->
+      {:ok, %{"spec" => %{"topology" => "hosts"}}} ->
         topologies = [
           default: [
             strategy: Cluster.Strategy.ErlangHosts
@@ -24,5 +25,4 @@ defmodule Elementary.Cluster do
     end
     |> Supervisor.init(strategy: :one_for_one)
   end
-
 end

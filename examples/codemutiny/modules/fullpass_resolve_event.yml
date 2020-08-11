@@ -1,0 +1,90 @@
+kind: module
+name: fullpass_resolve_event 
+spec:
+  decoders:
+    http:
+      create:
+        method: POST
+        body:
+          id:
+            any: text
+    service:
+      noEvent: noEvent
+      event:
+        event:
+          any: object
+      location:
+        address:
+          any: text
+        location:
+          lat:
+            any: number
+          lon:
+            any: number
+      noLocation: noLocation
+    store:
+      updated:
+        updated: 1
+  update:
+    create:
+      model:
+        event: "@data.body"
+      cmds:
+        service: fbEvent
+    event:
+      model:
+        event: "@data.event"
+      cmds:
+        service: location
+    noEvent:
+      cmds:
+        return: not_found
+    noLocation:
+      model:
+        event: 
+          merge:
+            - "@model.event"
+            - status: noLocation
+      cmds:
+        store: update
+    location:
+      model:
+        event:
+          merge:
+            - "@model.event"
+            - "@data"
+            - status: success
+      cmds:
+        store: update
+    updated:
+      cmds:
+        return: accepted
+  encoders:
+    fbEvent:
+      app: fbGetEvent
+      params:
+        id: "@event.id"
+    location:
+      app: geoLocation
+      params:
+        query: 
+          join:
+            - maybe: "@event.place"
+            - maybe: "@event.street"
+            - maybe: "@event.zip"
+            - maybe: "@event.area"
+            - maybe: "@event.country"
+          using: " " 
+    update:
+      store: "@store"
+      ensure:
+        merge:
+          - "@event"
+          - updatedBy: "@session.identity"
+            source: fb  
+            updated:
+              now: {}
+      where:
+        id: "@event.id"
+      into: fullpass
+      as: updated

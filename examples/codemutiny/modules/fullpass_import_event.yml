@@ -1,0 +1,15 @@
+kind: module
+name: fullpass_import_event 
+spec:
+  decoders:
+    caller:
+      import:
+        any: object
+  update:
+    import:
+      model:
+        data: plop
+      cmds:
+        return: data
+  encoders: {}
+    #data: "@data"

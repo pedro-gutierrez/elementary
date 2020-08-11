@@ -1,0 +1,8 @@
+kind: stream
+name: fullpass_events
+spec:
+  settings: 
+    - codemutiny
+  collection: fullpass
+  apps:
+    - fullpass_import_event
