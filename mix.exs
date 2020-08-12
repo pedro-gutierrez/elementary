@@ -22,7 +22,6 @@ defmodule Elementary.MixProject do
         :file_system,
         :floki,
         :httpoison,
-        :libcluster,
         :jason,
         :mongodb_driver,
         :mustache,
