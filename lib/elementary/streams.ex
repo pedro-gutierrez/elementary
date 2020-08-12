@@ -28,6 +28,7 @@ defmodule Elementary.Streams do
     end
 
     def write(stream, data) do
+      # TODO: use settings.
       %{"spec" => %{"size" => size}} = Index.spec!("cluster", "default")
 
       {:ok, size} = Elementary.Encoder.encode(size)
