@@ -226,9 +226,6 @@ app() {
     rm -rf $ETC_DIR/*
     cp -rf $BUILD_DIR/examples/$ELEMENTARY_EXAMPLE/. $ETC_DIR
 
-EOF
-    chown $CM_USER:$CM_USER $PROD_DIR/.hosts.erlang 
-
     echo "Setting up elementary service..."
 	cat << EOF > /lib/systemd/system/elementary.service
 [Unit]
