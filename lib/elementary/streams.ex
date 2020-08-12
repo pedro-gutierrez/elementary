@@ -26,7 +26,7 @@ defmodule Elementary.Streams do
 
   defmodule Stream do
     use GenServer
-    alias Elementary.{Index, App, Stores.Store, Services.Service}
+    alias Elementary.{Index, App, Stores.Store, Services.Service, Cluster}
     require Logger
 
     def name(%{"name" => name}), do: name(name)
@@ -52,6 +52,11 @@ defmodule Elementary.Streams do
       registered_name = name(spec)
       %{"store" => store} = App.settings!(spec)
 
+      partitions =
+        "cluster"
+        |> Index.spec!("default")
+        |> Cluster.partitions()
+
       initial_state = %{
         stream: name,
         registered_name: registered_name,
@@ -61,6 +66,8 @@ defmodule Elementary.Streams do
         subscription: nil,
         offset: ""
       }
+      |> Map.merge(partitions)
+      |> IO.inspect()
 
       {:ok, initial_state, {:continue, :register}}
     end
@@ -84,14 +91,14 @@ defmodule Elementary.Streams do
       end
     end
 
-    def handle_continue(:subscribe, %{store: store, stream: stream, registered_name: stream_name, col: col} = state) do
+    def handle_continue(:subscribe, %{store: store, stream: stream, registered_name: stream_name, col: col, partition: partition} = state) do
       offset = read_offset(state)
 
       data_fn = fn data ->
         GenServer.cast({:global, stream_name}, data)
       end
 
-      {:ok, pid} = Store.subscribe(store, col, %{"offset" => offset}, data_fn)
+      {:ok, pid} = Store.subscribe(store, col, partition, %{"offset" => offset}, data_fn)
 
       IO.inspect(stream: stream, status: :subscribed)
       {:noreply, %{state | offset: offset, subscription: pid}}
@@ -114,6 +121,8 @@ defmodule Elementary.Streams do
 
     @impl true
     def handle_cast(%{"data" => data}, %{store: store, apps: apps} = state) do
+      IO.inspect(stream: data)
+
       :ok =
         Enum.each(apps, fn app ->
           with {:error, e} <- Service.run(app, "caller", data) do

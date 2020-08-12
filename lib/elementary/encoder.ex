@@ -785,21 +785,20 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
-  def encode(%{"node" => _}, _, _) do
-    {:ok, "#{Node.self()}"}
-  end
-
-  def encode(%{"nodes" => _}, _, _) do
-    {:ok, Node.list() |> Enum.map(fn n -> "#{n}" end) |> Enum.sort()}
-  end
-
-  def encode(%{"perf" => _}, _, _) do
+  def encode(%{"memory" => _}, _, _) do
     {:ok,
-     %{"memory" => Elementary.Kit.memory(),
-       "procs" => Elementary.Kit.procs()
+     %{"breakdown" => Elementary.Kit.memory(),
+       "top" => Elementary.Kit.procs()
      |> Enum.map(fn %{registered_name: name, memory: mem, message_queue_len: messages} ->
        %{"name" => name, "memory" => (mem / 1_000_000) |> Float.round(2), "queue" => messages}
      end)}}
+  end
+
+  def encode(%{"cluster" => _}, _, _) do
+    with {:ok, cluster} <- Elementary.Index.spec("cluster", "default"),
+         %{partition: partition, size: size} <- Elementary.Cluster.partitions(cluster) do
+          {:ok, %{"host" => Elementary.Kit.hostname(), "members" => Elementary.Kit.hostnames, "size" => size, "partition" => partition}}
+    end
   end
 
   def encode(spec, context, encoders) when is_map(spec) do

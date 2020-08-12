@@ -1,4 +1,7 @@
 kind: cluster
 name: default
 spec:
-  topology: hosts
+  size:
+    env: ELEMENTARY_CLUSTER_SIZE
+  prefix:
+    env: ELEMENTARY_CLUSTER_PREFIX

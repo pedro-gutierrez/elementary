@@ -43,14 +43,12 @@ spec:
         node: "@node"
     health:
       object:
-        node:
-          node: {}
-        nodes:
-          nodes: {}
+        cluster:
+          cluster: {}
         streams:
           map: "@streams"
           as: stream
           with:
             encoder: streamInfo
-        perf:
-          perf: {}
+        memory:
+          memory: {}

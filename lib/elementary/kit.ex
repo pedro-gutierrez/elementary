@@ -212,4 +212,23 @@ defmodule Elementary.Kit do
   def debug_fn(_) do
     fn _ -> :ok end
   end
+
+  def hostname() do
+    Node.self()
+    |> hostname()
+  end
+
+  def hostname(node) do
+      "#{node}"
+      |> String.split("@")
+      |> List.last()
+      |> String.split(".")
+      |> List.first()
+  end
+
+  def hostnames() do
+    [Node.self()|Node.list()]
+    |> Enum.map(&hostname(&1))
+  end
+
 end

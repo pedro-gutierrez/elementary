@@ -90,21 +90,6 @@ defmodule Elementary.Effect do
     |> effect_result(spec)
   end
 
-  def apply("store", %{"store" => store, "subscribe" => subscription, "from" => col} = spec) do
-    store = Index.spec!("store", store)
-    owner = self()
-
-    fun = fn item ->
-      send(owner, %{"effect" => "stream", "data" => item})
-    end
-
-    spawn_link(fn ->
-      Store.subscribe(store, col, subscription, fun)
-    end)
-
-    effect_result("subscribed", spec)
-  end
-
   def apply("store", %{"store" => store, "from" => col, "fetch" => query} = spec) do
     store = Index.spec!("store", store)
 
