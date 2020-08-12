@@ -8,27 +8,20 @@ spec:
         body:
           id:
             any: text
-    store:
-      created: created
+    stream:
+      written: true 
   update:
     create:
       model:
         event:
-          id:
-            uuid: {}
           ref: "@data.body.id"
-          source: fb
-          status: pending
           identity: "@model.session.identity"
-          timestamp:
-            now: {}
       cmds:
-        store: create
-    created:
+        stream: write 
+    written:
       cmds:
         return: accepted
   encoders:
-    create:
-      store: "@store"
-      insert: "@event"
-      into: fullpass
+    write:
+      write: "@event"
+      to: fullpass_events

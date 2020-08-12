@@ -17,7 +17,7 @@ spec:
                 any: text
               tick:
                 any: date
-              node:
+              host:
                 any: text
   update:
     get:
@@ -49,11 +49,10 @@ spec:
       from: streams
       as: streams
     streamInfo:
-      object:
-        name: "@id"
-        idle:
-          durationSince: "@tick"
-        node: "@node"
+      name: "@id"
+      idle:
+        durationSince: "@tick"
+      host: "@host"
     hostInfo:
       host: "@host"
       size: "@size"

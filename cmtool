@@ -41,8 +41,7 @@ packages() {
 		build-essential \
 		curl \
 		git \
-        ntp \
-        ntpdate \
+        chrony \
 		libssl-dev \
 		libreadline-dev \
 		libncurses5-dev \

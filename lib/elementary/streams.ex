@@ -18,40 +18,44 @@ defmodule Elementary.Streams do
     {Elementary.Streams.Stream, spec}
   end
 
-  def info() do
-    "stream"
-    |> Index.specs()
-    |> Enum.map(&Stream.info(&1))
-  end
-
   defmodule Stream do
     use GenServer
-    alias Elementary.{Index, App, Stores.Store, Services.Service, Cluster}
+    alias Elementary.{Kit, Index, App, Stores.Store, Services.Service, Cluster}
     require Logger
 
-    def name(%{"name" => name}), do: name(name)
-    def name(name), do: String.to_atom("#{name}_stream")
-
-    def info(%{"name" => name} = spec) do
-      registered_name = name(spec)
-
-      case :global.whereis_name(registered_name) do
-        :undefined ->
-          %{name: name}
-
-        pid ->
-          GenServer.call(pid, :info)
-      end
+    def start_link(spec) do
+      GenServer.start_link(__MODULE__, spec, name: __MODULE__)
     end
 
-    def start_link(spec) do
-      name = name(spec)
-      GenServer.start_link(__MODULE__, spec, name: name)
+    def write(stream, data) do
+      %{"spec" => %{"size" => size}} = Index.spec!("cluster", "default")
+
+      {:ok, size} = Elementary.Encoder.encode(size)
+      size = String.to_integer(size)
+
+      %{"spec" => %{"settings" => %{"store" => store}, "collection" => col}} =
+        Index.spec!("stream", stream)
+
+      partition = :rand.uniform(size)
+
+      data =
+        Map.merge(data, %{
+          "id" => UUID.uuid4(),
+          "p" => partition,
+          "ts" => DateTime.utc_now()
+        })
+
+      case "store" |> Index.spec!(store) |> Store.insert(col, data) do
+        :ok ->
+          true
+
+        _ ->
+          false
+      end
     end
 
     @impl true
     def init(%{"name" => name, "spec" => %{"apps" => apps, "collection" => col}} = spec) do
-      registered_name = name(spec)
       %{"store" => store} = App.settings!(spec)
 
       {:ok, cluster} = Cluster.info()
@@ -59,44 +63,27 @@ defmodule Elementary.Streams do
       initial_state =
         %{
           stream: name,
-          registered_name: registered_name,
+          id: "#{name}-#{cluster.partition}",
           store: store,
           col: col,
           apps: apps,
           subscription: nil,
-          offset: ""
+          offset: "",
+          partition: cluster.partition,
+          cluster_size: cluster.size,
+          host: Kit.hostname()
         }
-        |> Map.merge(cluster)
         |> IO.inspect()
 
-      {:ok, initial_state, {:continue, :register}}
+      {:ok, initial_state, {:continue, :subscribe}}
     end
 
     @impl true
-    def handle_continue(:register, %{registered_name: name, stream: stream} = state) do
-      case :global.register_name(name, self()) do
-        :yes ->
-          {:noreply, state, {:continue, :subscribe}}
-
-        _ ->
-          case :global.whereis_name(name) do
-            :undefined ->
-              {:noreply, state, {:continue, :register}}
-
-            pid when is_pid(pid) ->
-              ref = Process.monitor(pid)
-              IO.inspect(stream: stream, status: :waiting, for: pid, from: node(pid))
-              {:noreply, Map.put(state, :leader, ref)}
-          end
-      end
-    end
-
     def handle_continue(
           :subscribe,
           %{
             store: store,
             stream: stream,
-            registered_name: stream_name,
             col: col,
             partition: partition
           } = state
@@ -104,20 +91,16 @@ defmodule Elementary.Streams do
       offset = read_offset(state)
 
       data_fn = fn data ->
-        GenServer.cast({:global, stream_name}, data)
+        GenServer.cast(__MODULE__, data)
       end
 
       {:ok, pid} = Store.subscribe(store, col, partition, %{"offset" => offset}, data_fn)
 
-      IO.inspect(stream: stream, status: :subscribed)
+      IO.inspect(stream: stream, status: :subscribed, partition: partition)
       {:noreply, %{state | offset: offset, subscription: pid}}
     end
 
     @impl true
-    def handle_info({:DOWN, ref, :process, _, _}, %{leader: ref} = state) do
-      {:noreply, state, {:continue, :register}}
-    end
-
     def handle_info(other, state) do
       Logger.warn("unexpected info message #{inspect(other)} in #{inspect(state)}")
       {:noreply, state}
@@ -145,18 +128,15 @@ defmodule Elementary.Streams do
       {:noreply, state}
     end
 
-    @impl true
-    def handle_call(:info, _, state) do
-      {:reply, stream_info(state), state}
-    end
-
     def stop(reason, %{stream: stream} = state) do
       Logger.warn("stopped stream #{stream} (#{inspect(self())}): #{reason}")
       {:ok, state}
     end
 
-    defp read_offset(%{store: store, stream: stream}) do
-      case "store" |> Index.spec!(store) |> Store.find_one("streams", %{"id" => stream}) do
+    defp read_offset(%{store: store, id: id}) do
+      case "store"
+           |> Index.spec!(store)
+           |> Store.find_one("streams", %{"id" => id}) do
         {:ok, %{"offset" => offset}} ->
           offset
 
@@ -165,13 +145,13 @@ defmodule Elementary.Streams do
       end
     end
 
-    defp write_offset(%{store: store, stream: stream, offset: offset}) do
+    defp write_offset(%{store: store, id: id, host: host, offset: offset}) do
       store = Index.spec!("store", store)
 
-      case Store.ensure(store, "streams", %{"id" => stream}, %{
+      case Store.ensure(store, "streams", %{"id" => id}, %{
              "offset" => offset,
              "tick" => DateTime.utc_now(),
-             "node" => Node.self()
+             "host" => host
            }) do
         {:ok, 1} ->
           :ok
@@ -182,8 +162,8 @@ defmodule Elementary.Streams do
       end
     end
 
-    defp stream_info(%{stream: stream}) do
-      %{name: stream, node: Node.self()}
-    end
+    # defp stream_info(%{stream: stream}) do
+    #  %{name: stream, node: Node.self()}
+    # end
   end
 end
