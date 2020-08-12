@@ -37,7 +37,7 @@ defmodule Elementary.Streams do
       %{"spec" => %{"settings" => %{"store" => store}, "collection" => col}} =
         Index.spec!("stream", stream)
 
-      partition = :rand.uniform(size)
+      partition = :rand.uniform(size) - 1
 
       data =
         Map.merge(data, %{
