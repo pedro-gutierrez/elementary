@@ -107,12 +107,15 @@ defmodule Elementary.Stores do
 
     def subscribe(spec, col, partition, %{"offset" => offset}, fun, opts \\ []) do
       opts = opts |> Keyword.put(:started, Elementary.Kit.millis())
-      pipeline = [%{
-        "$match" => %{
-          "operationType" => "insert",
-          "fullDocument.p" => partition
+
+      pipeline = [
+        %{
+          "$match" => %{
+            "operationType" => "insert",
+            "fullDocument.p" => partition
+          }
         }
-      }]
+      ]
 
       resume_token_fn = fn %{"_data" => offset} ->
         fun.(%{"offset" => offset})

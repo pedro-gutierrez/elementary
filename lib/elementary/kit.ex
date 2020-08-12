@@ -155,7 +155,7 @@ defmodule Elementary.Kit do
   end
 
   def memory() do
-    :erlang.memory
+    :erlang.memory()
     |> Enum.map(fn {key, bytes} ->
       {key, (bytes / 1_000_000) |> Float.round(2)}
     end)
@@ -219,16 +219,15 @@ defmodule Elementary.Kit do
   end
 
   def hostname(node) do
-      "#{node}"
-      |> String.split("@")
-      |> List.last()
-      |> String.split(".")
-      |> List.first()
+    "#{node}"
+    |> String.split("@")
+    |> List.last()
+    |> String.split(".")
+    |> List.first()
   end
 
   def hostnames() do
-    [Node.self()|Node.list()]
+    [Node.self() | Node.list()]
     |> Enum.map(&hostname(&1))
   end
-
 end

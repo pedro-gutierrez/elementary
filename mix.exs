@@ -45,7 +45,6 @@ defmodule Elementary.MixProject do
       {:floki, "~> 0.27.0"},
       {:httpoison, "~> 1.6"},
       {:jason, "~> 1.1.2"},
-      {:libcluster, "~> 3.2"},
       {:mongodb_driver, "~> 0.6"},
       {:mustache, "~> 0.3.0"},
       {:nimble_strftime, "~> 0.1.0"},

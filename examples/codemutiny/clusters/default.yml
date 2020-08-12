@@ -1,6 +1,8 @@
 kind: cluster
 name: default
 spec:
+  store: "codemutiny"
+  refresh: 5
   size:
     env: ELEMENTARY_CLUSTER_SIZE
   prefix:

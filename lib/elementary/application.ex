@@ -12,10 +12,10 @@ defmodule Elementary.Application do
         [
           Elementary.Index,
           Elementary.Compiler,
-          # Elementary.Test,
-          Elementary.Logger,
-          Elementary.Cluster,
           Elementary.Stores,
+          Elementary.Logger,
+          # Elementary.Test,
+          Elementary.Cluster,
           Elementary.Services,
           Elementary.Streams,
           Elementary.Ports

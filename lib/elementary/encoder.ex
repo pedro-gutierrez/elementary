@@ -548,7 +548,7 @@ defmodule Elementary.Encoder do
 
   def encode(%{"durationSince" => date} = spec, context, encoders) do
     with {:ok, date} <- encode(date, context, encoders) do
-      seconds =  DateTime.diff(DateTime.utc_now(), date)
+      seconds = DateTime.diff(DateTime.utc_now(), date)
       {days, {hours, minutes, seconds}} = :calendar.seconds_to_daystime(seconds)
       {:ok, %{"days" => days, "hours" => hours, "minutes" => minutes, "seconds" => seconds}}
     end
@@ -787,18 +787,14 @@ defmodule Elementary.Encoder do
 
   def encode(%{"memory" => _}, _, _) do
     {:ok,
-     %{"breakdown" => Elementary.Kit.memory(),
-       "top" => Elementary.Kit.procs()
-     |> Enum.map(fn %{registered_name: name, memory: mem, message_queue_len: messages} ->
-       %{"name" => name, "memory" => (mem / 1_000_000) |> Float.round(2), "queue" => messages}
-     end)}}
-  end
-
-  def encode(%{"cluster" => _}, _, _) do
-    with {:ok, cluster} <- Elementary.Index.spec("cluster", "default"),
-         %{partition: partition, size: size} <- Elementary.Cluster.partitions(cluster) do
-          {:ok, %{"host" => Elementary.Kit.hostname(), "members" => Elementary.Kit.hostnames, "size" => size, "partition" => partition}}
-    end
+     %{
+       "breakdown" => Elementary.Kit.memory(),
+       "top" =>
+         Elementary.Kit.procs()
+         |> Enum.map(fn %{registered_name: name, memory: mem, message_queue_len: messages} ->
+           %{"name" => name, "memory" => (mem / 1_000_000) |> Float.round(2), "queue" => messages}
+         end)
+     }}
   end
 
   def encode(spec, context, encoders) when is_map(spec) do

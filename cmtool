@@ -165,18 +165,6 @@ firewall () {
     ufw allow out 80
     ufw allow in 80
     ufw allow out 27017
-    ufw allow from 80.211.159.183 to any port 4369 
-    ufw allow from 212.237.38.218 to any port 4369 
-    ufw allow from 80.211.150.191 to any port 4369 
-    ufw allow out from any to 80.211.159.183 port 4369   
-    ufw allow out from any to 80.211.150.191 port 4369   
-    ufw allow out from any to 212.237.38.218 port 4369   
-    ufw allow from 80.211.159.183 to any port 9000 
-    ufw allow from 212.237.38.218 to any port 9000 
-    ufw allow from 80.211.150.191 to any port 9000 
-    ufw allow out from any to 80.211.159.183 port 9000
-    ufw allow out from any to 80.211.150.191 port 9000 
-    ufw allow out from any to 212.237.38.218 port 9000 
     ufw --force enable
     ufw status
     echo "Firewall configured"
@@ -206,13 +194,6 @@ app() {
 	aws s3 cp s3://$BUCKET/elementary.env $ENV_FILE
 	chmod 600 $ENV_FILE
     
-    echo "Setting up distribution for $HOSTNAME..."
-    echo "BEAM_PORT=9000" >> $ENV_FILE
-    echo "ELIXIR_ERL_OPTIONS=\"-kernel inet_dist_listen_min 9000 inet_dist_listen_max 9000\"" >> $ENV_FILE
-    echo "RELEASE_NODE=elementary@$HOSTNAME.local" >> $ENV_FILE
-    echo "RELEASE_COOKIE=elementary" >> $ENV_FILE
-    echo "RELEASE_DISTRIBUTION=name" >> $ENV_FILE
-	
     echo "Installing app..."
 	BUILD_DIR=/home/$CM_USER/build
     if [ -d $BUILD_DIR ]; then 
@@ -244,13 +225,6 @@ app() {
     mkdir -p $ETC_DIR
     rm -rf $ETC_DIR/*
     cp -rf $BUILD_DIR/examples/$ELEMENTARY_EXAMPLE/. $ETC_DIR
-
-    echo "Configuring cluster..."
-    rm -rf $PROD_DIR/.hosts.erlang
-    cat << EOF > ${PROD_DIR}/.hosts.erlang
-'a0.local'.
-'a1.local'.
-'a2.local'.
 
 EOF
     chown $CM_USER:$CM_USER $PROD_DIR/.hosts.erlang 

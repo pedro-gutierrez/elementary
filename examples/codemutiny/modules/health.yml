@@ -6,6 +6,9 @@ spec:
       get:
         any: object
     store:
+      cluster:
+        cluster:
+          any: list
       streams:
         streams:
           list:
@@ -19,10 +22,16 @@ spec:
   update:
     get:
       cmds:
-        store: streams 
+        store: cluster
+    cluster:
+      model:
+        cluster: "@data.cluster"
+      cmds:
+        store: streams
     streams:
       model:
         let:
+          cluster: "@model.cluster"
           store: "@model.store"
           streams: "@data.streams"
         in:
@@ -31,6 +40,10 @@ spec:
       cmds:
         return: data
   encoders:
+    cluster:
+      store: "@store"
+      from: cluster
+      as: cluster
     streams:
       store: "@store"
       from: streams
@@ -41,10 +54,18 @@ spec:
         idle:
           durationSince: "@tick"
         node: "@node"
+    hostInfo:
+      host: "@host"
+      size: "@size"
+      partition: "@partition"
+      lastSeen:
+        durationSince: "@timestamp"
     health:
       object:
         cluster:
-          cluster: {}
+          map: "@cluster"
+          with: 
+            encoder: hostInfo
         streams:
           map: "@streams"
           as: stream

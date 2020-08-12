@@ -34,9 +34,11 @@ defmodule Elementary.Streams do
 
     def info(%{"name" => name} = spec) do
       registered_name = name(spec)
+
       case :global.whereis_name(registered_name) do
-        :undefined  ->
+        :undefined ->
           %{name: name}
+
         pid ->
           GenServer.call(pid, :info)
       end
@@ -52,22 +54,20 @@ defmodule Elementary.Streams do
       registered_name = name(spec)
       %{"store" => store} = App.settings!(spec)
 
-      partitions =
-        "cluster"
-        |> Index.spec!("default")
-        |> Cluster.partitions()
+      {:ok, cluster} = Cluster.info()
 
-      initial_state = %{
-        stream: name,
-        registered_name: registered_name,
-        store: store,
-        col: col,
-        apps: apps,
-        subscription: nil,
-        offset: ""
-      }
-      |> Map.merge(partitions)
-      |> IO.inspect()
+      initial_state =
+        %{
+          stream: name,
+          registered_name: registered_name,
+          store: store,
+          col: col,
+          apps: apps,
+          subscription: nil,
+          offset: ""
+        }
+        |> Map.merge(cluster)
+        |> IO.inspect()
 
       {:ok, initial_state, {:continue, :register}}
     end
@@ -91,7 +91,16 @@ defmodule Elementary.Streams do
       end
     end
 
-    def handle_continue(:subscribe, %{store: store, stream: stream, registered_name: stream_name, col: col, partition: partition} = state) do
+    def handle_continue(
+          :subscribe,
+          %{
+            store: store,
+            stream: stream,
+            registered_name: stream_name,
+            col: col,
+            partition: partition
+          } = state
+        ) do
       offset = read_offset(state)
 
       data_fn = fn data ->
