@@ -42,6 +42,7 @@ packages() {
 		curl \
 		git \
         ntp \
+        ntpdate \
 		libssl-dev \
 		libreadline-dev \
 		libncurses5-dev \
