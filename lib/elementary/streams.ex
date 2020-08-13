@@ -83,7 +83,6 @@ defmodule Elementary.Streams do
           } = state
         ) do
       offset = read_offset(state)
-      last_operation = Kit.datetime_from_mongo_id(offset)
 
       data_fn = fn data ->
         GenServer.cast(__MODULE__, data)
@@ -97,8 +96,7 @@ defmodule Elementary.Streams do
         collection: col,
         partition: partition,
         status: :subscribed,
-        offset: offset,
-        ts: last_operation
+        offset: offset
       )
 
       {:noreply, %{state | offset: offset, subscription: pid}}
