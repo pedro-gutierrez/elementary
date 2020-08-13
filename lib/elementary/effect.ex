@@ -136,7 +136,7 @@ defmodule Elementary.Effect do
 
     query = Kit.with_mongo_id(query)
 
-    case store.delete(col, query) do
+    case Store.delete(store, col, query) do
       {:ok, deleted} -> deleted
       {:error, e} -> "#{e}"
     end
@@ -146,7 +146,7 @@ defmodule Elementary.Effect do
   def apply("store", %{"store" => store, "aggregate" => pipeline, "from" => col} = spec) do
     store = Index.spec!("store", store)
 
-    case store.aggregate(col, pipeline) do
+    case Store.aggregate(store, col, pipeline) do
       {:ok, items} -> items
       {:error, e} -> "#{e}"
     end

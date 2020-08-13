@@ -2,7 +2,7 @@ defmodule Elementary.Cluster do
   @moduledoc false
 
   use Supervisor
-  alias Elementary.{Kit, Index, Encoder, Stores.Store}
+  alias Elementary.{Kit, Index, Stores.Store}
 
   def start_link(opts) do
     Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
@@ -24,22 +24,29 @@ defmodule Elementary.Cluster do
       GenServer.start_link(__MODULE__, spec, name: __MODULE__)
     end
 
+    def partition(%{"spec" => %{"prefix" => prefix}}) do
+      Elementary.Kit.hostname()
+      |> String.replace_prefix(prefix, "")
+      |> String.to_integer()
+    end
+
     @impl true
-    def init(%{"spec" => spec}) do
-      {:ok, %{"refresh" => refresh, "store" => store, "size" => size, "prefix" => prefix}} =
-        Encoder.encode(spec)
-
-      size = String.to_integer(size)
-
+    def init(
+          %{
+            "spec" => %{
+              "refresh" => refresh,
+              "store" => store,
+              "size" => size
+            }
+          } = spec
+        ) do
       partition =
         case size do
           1 ->
-            1
+            0
 
           size when size > 1 ->
-            Elementary.Kit.hostname()
-            |> String.replace_prefix(prefix, "")
-            |> String.to_integer()
+            partition(spec)
         end
 
       state = %{
@@ -71,8 +78,8 @@ defmodule Elementary.Cluster do
 
       Store.ensure(store, "cluster", %{"host" => host}, %{
         "size" => size,
-        "partition" => partition,
-        "timestamp" => DateTime.utc_now()
+        "p" => partition,
+        "ts" => "$$NOW"
       })
 
       Process.send_after(self(), :report, refresh * 1000)

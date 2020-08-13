@@ -40,6 +40,19 @@ defmodule Elementary.Compiler do
         Index.put(spec)
       end)
 
+      ["cluster", "settings", "port", "store"]
+      |> Enum.each(fn kind ->
+        kind
+        |> Index.specs()
+        |> Enum.each(fn %{"spec" => spec} = spec0 ->
+          encoded = Elementary.Encoder.encode!(spec)
+
+          spec0
+          |> Map.put("spec", encoded)
+          |> Index.put()
+        end)
+      end)
+
       send(owner, {:total, length(specs)})
     end)
 
@@ -196,107 +209,9 @@ end
 #          |> log(%{"collection" => col, "op" => "ensure_index", "index" => name}, log: :disabled)
 #        end
 
-#        def delete(col, doc) when is_map(doc) do
-#          started = Elementary.Kit.millis()
-#          doc = Elementary.Kit.with_mongo_id(doc)
+#
 
-#          case Mongo.delete_one(
-#                 @store,
-#                 col,
-#                 doc
-#               ) do
-#            {:ok, %Mongo.DeleteResult{acknowledged: true, deleted_count: deleted}} ->
-#              {:ok, deleted}
-
-#            {:error, e} ->
-#              {:error, mongo_error(e)}
-#          end
-#          |> log(%{"collection" => col, "op" => "delete", "where" => doc}, started: started)
-#        end
-
-#        def find_one(col, query, opts \\ []) do
-#          started = Elementary.Kit.millis()
-#          query = Elementary.Kit.with_mongo_id(query)
-
-#          {res, op} =
-#            case opts[:delete] do
-#              true ->
-#                {Mongo.find_one_and_delete(@store, col, query), :find_one_and_delete}
-
-#              _ ->
-#                {Mongo.find_one(@store, col, query), :find_one}
-#            end
-
-#          case res do
-#            nil ->
-#              {:error, :not_found}
-
-#            doc ->
-#              {:ok, Elementary.Kit.without_mongo_id(doc)}
-#          end
-#          |> log(%{"collection" => col, "op" => op, "where" => query}, started: started)
-#        end
-
-#        def aggregate(col, p, opts \\ []) do
-#          started = Elementary.Kit.millis()
-#          p = pipeline(p)
-
-#          {:ok,
-#           Mongo.aggregate(@store, col, p, opts)
-#           |> Stream.map(&Elementary.Kit.without_mongo_id(&1))
-#           |> Enum.to_list()}
-#          |> log(%{"collection" => col, "op" => "aggregate", "pipeline" => p, "options" => opts},
-#            started: started,
-#            data: :summary
-#          )
-#        end
-
-#        defp pipeline(items) do
-#          Enum.map(items, &pipeline_item(&1))
-#        end
-
-#        defp pipeline_item(%{"$match" => query}) do
-#          %{"$match" => Elementary.Kit.with_mongo_id(query)}
-#        end
-
-#        defp pipeline_item(%{
-#               "$lookup" => %{
-#                 "from" => foreignCol,
-#                 "localField" => localField,
-#                 "foreignField" => foreignField,
-#                 "as" => as
-#               }
-#             }) do
-#          %{
-#            "$lookup" => %{
-#              "from" => foreignCol,
-#              "localField" => intern_field(localField),
-#              "foreignField" => intern_field(foreignField),
-#              "as" => as
-#            }
-#          }
-#        end
-
-#        defp pipeline_item(%{
-#               "$lookup" => %{
-#                 "from" => foreignCol,
-#                 "as" => as
-#               }
-#             }) do
-#          %{
-#            "$lookup" => %{
-#              "from" => foreignCol,
-#              "localField" => intern_field(as),
-#              "foreignField" => "_id",
-#              "as" => as
-#            }
-#          }
-#        end
-
-#        defp pipeline_item(other), do: other
-
-#        defp intern_field("id"), do: "_id"
-#        defp intern_field(other), do: other
+#
 #      end}
 #   ]
 # end

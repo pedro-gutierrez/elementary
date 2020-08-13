@@ -28,11 +28,7 @@ defmodule Elementary.Streams do
     end
 
     def write(stream, data) do
-      # TODO: use settings.
       %{"spec" => %{"size" => size}} = Index.spec!("cluster", "default")
-
-      {:ok, size} = Elementary.Encoder.encode(size)
-      size = String.to_integer(size)
 
       %{"spec" => %{"settings" => %{"store" => store}, "collection" => col}} =
         Index.spec!("stream", stream)
@@ -40,11 +36,10 @@ defmodule Elementary.Streams do
       partition = :rand.uniform(size) - 1
 
       data =
-        Map.merge(data, %{
-          "id" => UUID.uuid4(),
-          "p" => partition,
-          "ts" => DateTime.utc_now()
-        })
+        data
+        |> Map.put("p", partition)
+        |> Map.drop(["id", "_id"])
+        |> IO.inspect()
 
       case "store" |> Index.spec!(store) |> Store.insert(col, data) do
         :ok ->
@@ -61,20 +56,18 @@ defmodule Elementary.Streams do
 
       {:ok, cluster} = Cluster.info()
 
-      initial_state =
-        %{
-          stream: name,
-          id: "#{name}-#{cluster.partition}",
-          store: store,
-          col: col,
-          apps: apps,
-          subscription: nil,
-          offset: "",
-          partition: cluster.partition,
-          cluster_size: cluster.size,
-          host: Kit.hostname()
-        }
-        |> IO.inspect()
+      initial_state = %{
+        stream: name,
+        id: "#{name}-#{cluster.partition}",
+        store: store,
+        col: col,
+        apps: apps,
+        subscription: nil,
+        offset: "",
+        partition: cluster.partition,
+        cluster_size: cluster.size,
+        host: Kit.hostname()
+      }
 
       {:ok, initial_state, {:continue, :subscribe}}
     end
@@ -90,6 +83,7 @@ defmodule Elementary.Streams do
           } = state
         ) do
       offset = read_offset(state)
+      last_operation = Kit.datetime_from_mongo_id(offset)
 
       data_fn = fn data ->
         GenServer.cast(__MODULE__, data)
@@ -97,7 +91,16 @@ defmodule Elementary.Streams do
 
       {:ok, pid} = Store.subscribe(store, col, partition, %{"offset" => offset}, data_fn)
 
-      IO.inspect(stream: stream, status: :subscribed, partition: partition)
+      IO.inspect(
+        stream: stream,
+        store: store,
+        collection: col,
+        partition: partition,
+        status: :subscribed,
+        offset: offset,
+        ts: last_operation
+      )
+
       {:noreply, %{state | offset: offset, subscription: pid}}
     end
 
@@ -113,8 +116,10 @@ defmodule Elementary.Streams do
     end
 
     @impl true
-    def handle_cast(%{"data" => data}, %{store: store, apps: apps} = state) do
-      IO.inspect(stream: data)
+    def handle_cast(%{"data" => %{"id" => id} = data}, %{store: store, apps: apps} = state) do
+      data =
+        data
+        |> Map.put("ts", Kit.datetime_from_mongo_id(id))
 
       :ok =
         Enum.each(apps, fn app ->
@@ -151,7 +156,7 @@ defmodule Elementary.Streams do
 
       case Store.ensure(store, "streams", %{"id" => id}, %{
              "offset" => offset,
-             "tick" => DateTime.utc_now(),
+             "ts" => "$$NOW",
              "host" => host
            }) do
         {:ok, 1} ->
@@ -162,9 +167,5 @@ defmodule Elementary.Streams do
           :ok
       end
     end
-
-    # defp stream_info(%{stream: stream}) do
-    #  %{name: stream, node: Node.self()}
-    # end
   end
 end

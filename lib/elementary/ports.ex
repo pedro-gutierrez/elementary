@@ -2,7 +2,7 @@ defmodule Elementary.Ports do
   @moduledoc false
 
   use Supervisor
-  alias Elementary.{Index, Encoder}
+  alias Elementary.{Index}
 
   def start_link(opts) do
     Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
@@ -35,9 +35,6 @@ defmodule Elementary.Ports do
 
   defmodule Port do
     def start_link(%{"name" => name, "spec" => %{"port" => port}}) do
-      {:ok, port} = Encoder.encode(port)
-      {port, ""} = Integer.parse(port)
-
       routes =
         "app"
         |> Index.specs()

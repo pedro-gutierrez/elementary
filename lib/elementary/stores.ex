@@ -162,7 +162,7 @@ defmodule Elementary.Stores do
         |> case do
           %{"$push" => _} = doc -> doc
           %{"$pull" => _} = doc -> doc
-          doc -> %{"$set" => doc}
+          doc -> [%{"$set" => doc}]
         end
 
       case spec
@@ -262,6 +262,92 @@ defmodule Elementary.Stores do
           {:ok, Elementary.Kit.without_mongo_id(doc)}
       end
       |> log(%{"col" => col, "op" => op, "where" => query}, spec, opts)
+    end
+
+    def aggregate(spec, col, p, opts \\ []) do
+      store = Stores.store_name(spec)
+
+      opts =
+        opts
+        |> Keyword.put(:started, Elementary.Kit.millis())
+
+      p = pipeline(p)
+
+      {:ok,
+       Mongo.aggregate(store, col, p, opts)
+       |> Stream.map(&Elementary.Kit.without_mongo_id(&1))
+       |> Enum.to_list()}
+      |> log(%{"col" => col, "op" => "aggregate", "pipeline" => p, "options" => opts}, spec, opts)
+    end
+
+    defp pipeline(items) do
+      Enum.map(items, &pipeline_item(&1))
+    end
+
+    defp pipeline_item(%{"$match" => query}) do
+      %{"$match" => Elementary.Kit.with_mongo_id(query)}
+    end
+
+    defp pipeline_item(%{
+           "$lookup" => %{
+             "from" => foreignCol,
+             "localField" => localField,
+             "foreignField" => foreignField,
+             "as" => as
+           }
+         }) do
+      %{
+        "$lookup" => %{
+          "from" => foreignCol,
+          "localField" => intern_field(localField),
+          "foreignField" => intern_field(foreignField),
+          "as" => as
+        }
+      }
+    end
+
+    defp pipeline_item(%{
+           "$lookup" => %{
+             "from" => foreignCol,
+             "as" => as
+           }
+         }) do
+      %{
+        "$lookup" => %{
+          "from" => foreignCol,
+          "localField" => intern_field(as),
+          "foreignField" => "_id",
+          "as" => as
+        }
+      }
+    end
+
+    defp pipeline_item(other), do: other
+
+    defp intern_field("id"), do: "_id"
+    defp intern_field(other), do: other
+
+    def delete(spec, col, doc, opts \\ []) when is_map(doc) do
+      store = Stores.store_name(spec)
+
+      opts =
+        opts
+        |> Keyword.put(:started, Elementary.Kit.millis())
+
+      doc = Elementary.Kit.with_mongo_id(doc)
+
+      case Mongo.delete_one(
+             store,
+             col,
+             doc
+           ) do
+        {:ok, %Mongo.DeleteResult{acknowledged: true, deleted_count: deleted}} ->
+          {:ok, deleted}
+
+        {:error, e} ->
+          {:error, mongo_error(e)}
+      end
+      |> log(%{"collection" => col, "op" => "delete", "where" => doc}, spec, opts)
     end
 
     defp log(data, meta, spec, opts) do

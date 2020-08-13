@@ -5,6 +5,16 @@ defmodule Elementary.Encoder do
 
   defguard is_literal(v) when is_binary(v) or is_number(v) or is_atom(v)
 
+  def encode!(spec) do
+    case encode(spec) do
+      {:ok, encoded} ->
+        encoded
+
+      other ->
+        raise "Could not encode #{inspect(spec)}: #{inspect(other)}"
+    end
+  end
+
   def encode(spec) do
     encode(spec, %{}, %{})
   end
@@ -352,7 +362,7 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
-  def encode(%{"integerFrom" => str} = spec, context, encoders) do
+  def encode(%{"intFrom" => str} = spec, context, encoders) do
     with {:ok, str} <- encode(str, context, encoders),
          {int, ""} <- Integer.parse(str) do
       {:ok, int}
@@ -548,9 +558,14 @@ defmodule Elementary.Encoder do
 
   def encode(%{"durationSince" => date} = spec, context, encoders) do
     with {:ok, date} <- encode(date, context, encoders) do
-      seconds = DateTime.diff(DateTime.utc_now(), date)
-      {days, {hours, minutes, seconds}} = :calendar.seconds_to_daystime(seconds)
-      {:ok, %{"days" => days, "hours" => hours, "minutes" => minutes, "seconds" => seconds}}
+      {:ok, Elementary.Calendar.duration_between(DateTime.utc_now(), date)}
+    end
+    |> result(spec, context)
+  end
+
+  def encode(%{"durationBetween" => dates} = spec, context, encoders) do
+    with {:ok, [from, to]} <- encode_specs(dates, context, encoders) do
+      {:ok, Elementary.Calendar.duration_between(to, from)}
     end
     |> result(spec, context)
   end

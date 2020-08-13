@@ -11,14 +11,7 @@ spec:
           any: list
       streams:
         streams:
-          list:
-            object:
-              id:
-                any: text
-              tick:
-                any: date
-              host:
-                any: text
+          any: list
   update:
     get:
       cmds:
@@ -43,22 +36,34 @@ spec:
     cluster:
       store: "@store"
       from: cluster
+      aggregate:
+        - $addFields:
+            object:
+              now: $$NOW
       as: cluster
     streams:
       store: "@store"
       from: streams
+      aggregate:
+        - $addFields:
+            object:
+              now: $$NOW
       as: streams
     streamInfo:
       name: "@id"
       idle:
-        durationSince: "@tick"
+        durationBetween: 
+          - "@ts"
+          - "@now"
       host: "@host"
     hostInfo:
       host: "@host"
       size: "@size"
-      partition: "@partition"
+      partition: "@p"
       lastSeen:
-        durationSince: "@timestamp"
+        durationBetween:
+          - "@ts"
+          - "@now"
     health:
       object:
         cluster:

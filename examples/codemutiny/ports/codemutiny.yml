@@ -2,4 +2,5 @@ kind: port
 name: codemutiny
 spec:
   port:
-    env: PORT
+    intFrom:
+      env: PORT

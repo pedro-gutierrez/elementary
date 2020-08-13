@@ -4,6 +4,7 @@ spec:
   store: "codemutiny"
   refresh: 5
   size:
-    env: ELEMENTARY_CLUSTER_SIZE
+    intFrom:
+      env: ELEMENTARY_CLUSTER_SIZE
   prefix:
     env: ELEMENTARY_CLUSTER_PREFIX
