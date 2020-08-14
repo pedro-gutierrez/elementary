@@ -15,7 +15,10 @@ defmodule Elementary.Streams do
   end
 
   defp service_spec(spec) do
-    {Elementary.Streams.Stream, spec}
+    %{
+      id: Stream.name(spec),
+      start: {Elementary.Streams.Stream, :start_link, [spec]}
+    }
   end
 
   defmodule Stream do
@@ -24,8 +27,10 @@ defmodule Elementary.Streams do
     require Logger
 
     def start_link(spec) do
-      GenServer.start_link(__MODULE__, spec, name: __MODULE__)
+      GenServer.start_link(__MODULE__, spec, name: name(spec))
     end
+
+    def name(%{"name" => name}), do: String.to_atom("#{name}_stream")
 
     def write(stream, data) do
       %{"spec" => %{"size" => size}} = Index.spec!("cluster", "default")
@@ -39,7 +44,6 @@ defmodule Elementary.Streams do
         data
         |> Map.put("p", partition)
         |> Map.drop(["id", "_id"])
-        |> IO.inspect()
 
       case "store" |> Index.spec!(store) |> Store.insert(col, data) do
         :ok ->
@@ -50,6 +54,14 @@ defmodule Elementary.Streams do
       end
     end
 
+    def write_async(stream, data) do
+      spawn(fn ->
+        write(stream, data)
+      end)
+
+      :ok
+    end
+
     @impl true
     def init(%{"name" => name, "spec" => %{"apps" => apps, "collection" => col}} = spec) do
       %{"store" => store} = App.settings!(spec)
@@ -57,6 +69,7 @@ defmodule Elementary.Streams do
       {:ok, cluster} = Cluster.info()
 
       initial_state = %{
+        registered: name(spec),
         stream: name,
         id: "#{name}-#{cluster.partition}",
         store: store,
@@ -76,6 +89,7 @@ defmodule Elementary.Streams do
     def handle_continue(
           :subscribe,
           %{
+            registered: registered,
             store: store,
             stream: stream,
             col: col,
@@ -85,7 +99,7 @@ defmodule Elementary.Streams do
       offset = read_offset(state)
 
       data_fn = fn data ->
-        GenServer.cast(__MODULE__, data)
+        GenServer.cast(registered, data)
       end
 
       {:ok, pid} = Store.subscribe(store, col, partition, %{"offset" => offset}, data_fn)
@@ -149,7 +163,7 @@ defmodule Elementary.Streams do
       end
     end
 
-    defp write_offset(%{store: store, id: id, host: host, offset: offset}) do
+    defp write_offset(%{stream: stream, store: store, id: id, host: host, offset: offset}) do
       store = Index.spec!("store", store)
 
       case Store.ensure(store, "streams", %{"id" => id}, %{
@@ -160,8 +174,8 @@ defmodule Elementary.Streams do
         {:ok, 1} ->
           :ok
 
-        {:error, e} ->
-          Logger.error("Error updating offset: #{inspect(e)}")
+        other ->
+          Logger.error("Error updating offset for stream \"#{stream}\": #{inspect(other)}")
           :ok
       end
     end

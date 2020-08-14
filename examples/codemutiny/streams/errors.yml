@@ -1,0 +1,7 @@
+kind: stream
+name: errors 
+spec:
+  settings: 
+    - codemutiny
+  collection: errors 
+  apps: []

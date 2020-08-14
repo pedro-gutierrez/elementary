@@ -1,0 +1,7 @@
+kind: stream
+name: telemetry
+spec:
+  settings: 
+    - codemutiny
+  collection: telemetry 
+  apps: []

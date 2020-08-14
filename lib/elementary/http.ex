@@ -1,4 +1,6 @@
 defmodule Elementary.Http do
+  alias Elementary.{Streams.Stream}
+
   @effect "http"
 
   defmodule Headers do
@@ -255,12 +257,11 @@ defmodule Elementary.Http do
         req
       )
 
-    Elementary.Logger.log(%{
-      "kind" => "app",
-      "name" => app,
+    Stream.write_async("access", %{
+      "app" => app,
       "method" => method,
       "status" => status,
-      "duration" => floor(elapsed / 1000)
+      "elapsed" => floor(elapsed / 1000)
     })
 
     {req, resp}
