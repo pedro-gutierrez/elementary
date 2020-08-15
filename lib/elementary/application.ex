@@ -3,6 +3,7 @@ defmodule Elementary.Application do
 
   use Application
   require Logger
+  alias Elementary.{Slack, Kit}
 
   def start(_type, _args) do
     Logger.configure(level: :info)
@@ -22,6 +23,10 @@ defmodule Elementary.Application do
         strategy: :one_for_one,
         name: Elementary.Supervisor
       )
+
+    Slack.notify("cluster", "Server did start", %{
+      host: Kit.hostname()
+    })
 
     {:ok, pid}
   end

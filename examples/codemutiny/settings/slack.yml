@@ -1,0 +1,9 @@
+kind: settings
+name: slack
+spec:
+  errors:
+    env: ELEMENTARY_SLACK_ERRORS
+  telemetry:
+    env: ELEMENTARY_SLACK_TELEMETRY
+  cluster:
+    env: ELEMENTARY_SLACK_CLUSTER
