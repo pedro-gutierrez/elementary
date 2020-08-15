@@ -3,4 +3,4 @@ name: codemutiny
 spec:
   port:
     intFrom:
-      env: PORT
+      env: ELEMENTARY_PORT

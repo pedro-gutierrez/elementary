@@ -13,7 +13,6 @@ defmodule Elementary.Application do
           Elementary.Index,
           Elementary.Compiler,
           Elementary.Stores,
-          Elementary.Logger,
           # Elementary.Test,
           Elementary.Cluster,
           Elementary.Services,

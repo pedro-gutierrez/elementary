@@ -114,19 +114,19 @@ defmodule Elementary.Http do
               })
 
             {:error, req, e} ->
-              resp = encoded_error(app, e)
+              resp = error_response(app, e)
               reply(req, app, method, start, resp)
 
             {:error, e} ->
-              resp = encoded_error(app, e)
+              resp = error_response(app, e)
               reply(req, app, method, start, resp)
 
             {:ok, other} ->
-              resp = encoded_error(app, %{error: :invalid_http_response, data: other})
+              resp = error_response(app, %{error: :invalid_http_response, data: other})
               reply(req, app, method, start, resp)
 
             other ->
-              resp = encoded_error(app, %{unexpected: other})
+              resp = error_response(app, %{unexpected: other})
               reply(req, app, method, start, resp)
           end
 
@@ -134,18 +134,8 @@ defmodule Elementary.Http do
     end
   end
 
-  defp encoded_error(app, err) do
-    info =
-      Map.merge(err, %{
-        "kind" => "app",
-        "name" => app,
-        "level" => "error"
-      })
-
-    Elementary.Logger.log(info)
-    Logger.error("#{inspect(info, pretty: true)}")
-
-    %{"status" => 500, "headers" => %{}, "body" => %{}}
+  defp error_response(_, err) do
+    %{"status" => 500, "headers" => %{}, "body" => %{}, "error" => err}
   end
 
   defp resolve_app(_, mod) when is_atom(mod), do: {:ok, mod}
@@ -247,7 +237,7 @@ defmodule Elementary.Http do
         headers
       )
 
-    resp = %{status: status, headers: headers, body: body}
+    resp2 = %{status: status, headers: headers, body: body}
 
     req =
       :cowboy_req.reply(
@@ -257,14 +247,20 @@ defmodule Elementary.Http do
         req
       )
 
-    Stream.write_async("access", %{
+    access_log_record = %{
       "app" => app,
       "method" => method,
       "status" => status,
       "elapsed" => floor(elapsed / 1000)
-    })
+    }
 
-    {req, resp}
+    Stream.write_async("access", access_log_record)
+
+    if status >= 500 do
+      Logger.error("#{inspect(resp, pretty: true)}")
+    end
+
+    {req, resp2}
   end
 
   defmodule Client do

@@ -8,12 +8,6 @@ defmodule Elementary.Effect do
     {:ok, %{"uuid" => UUID.uuid4()}}
   end
 
-  def apply("logs", %{"query" => query} = spec) do
-    Index.spec!("logger", "default")
-    |> Elementary.Logger.query(query)
-    |> effect_result(spec)
-  end
-
   def apply("file", %{"named" => name}) do
     case Elementary.Encoder.encode(name) do
       {:ok, file} ->

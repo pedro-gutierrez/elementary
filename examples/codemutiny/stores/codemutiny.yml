@@ -3,7 +3,7 @@ name: codemutiny
 spec:
   pool: 10 
   url:
-    env: MONGO_URL
+    env: ELEMENTARY_MONGO_URL
   collections:
     identities: {}
     subscriptions: {}

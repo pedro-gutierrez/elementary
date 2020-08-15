@@ -48,8 +48,6 @@ defmodule Elementary.Stores do
     @dialyzer {:no_return, {:ping, 0}}
 
     def ping(spec) do
-      opts = [started: Kit.millis()]
-
       case spec |> Stores.store_name() |> Mongo.ping() do
         {:ok, _} ->
           :ok
@@ -57,7 +55,6 @@ defmodule Elementary.Stores do
         {:error, e} ->
           {:error, mongo_error(e)}
       end
-      |> log(%{"op" => "ping"}, spec, opts)
     end
 
     def stats(spec) do
@@ -82,8 +79,7 @@ defmodule Elementary.Stores do
       |> IO.inspect()
     end
 
-    def insert(spec, col, doc, opts \\ []) when is_map(doc) do
-      opts = opts |> Keyword.put(:started, Elementary.Kit.millis())
+    def insert(spec, col, doc) when is_map(doc) do
       doc = Elementary.Kit.with_mongo_id(doc)
 
       case spec
@@ -98,11 +94,6 @@ defmodule Elementary.Stores do
         {:error, e} ->
           {:error, mongo_error(e)}
       end
-      |> log(
-        %{"col" => col, "op" => "insert", "doc" => doc},
-        spec,
-        opts
-      )
     end
 
     def subscribe(spec, col, partition, %{"offset" => offset}, fun, opts \\ []) do
@@ -154,7 +145,6 @@ defmodule Elementary.Stores do
     end
 
     def update(spec, col, where, doc, upsert \\ false) when is_map(doc) do
-      started = Elementary.Kit.millis()
       where = Elementary.Kit.with_mongo_id(where)
 
       doc =
@@ -184,22 +174,9 @@ defmodule Elementary.Stores do
         {:error, e} ->
           {:error, mongo_error(e)}
       end
-      |> log(
-        %{
-          "col" => col,
-          "op" => "update",
-          "where" => "where",
-          "doc" => doc,
-          "upsert" => upsert
-        },
-        spec,
-        started: started
-      )
     end
 
     def find_all(spec, col, query, opts \\ []) do
-      started = Elementary.Kit.millis()
-
       opts =
         case opts[:sort] do
           nil ->
@@ -232,20 +209,13 @@ defmodule Elementary.Stores do
        |> Mongo.find(col, query, opts)
        |> Stream.map(&Elementary.Kit.without_mongo_id(&1))
        |> Enum.to_list()}
-      |> log(
-        %{"col" => col, "op" => "find", "where" => query, "opts" => opts},
-        spec,
-        started: started,
-        data: :summary
-      )
     end
 
     def find_one(spec, col, query, opts \\ []) do
       store = Stores.store_name(spec)
-      opts = opts |> Keyword.put(:started, Elementary.Kit.millis())
       query = Elementary.Kit.with_mongo_id(query)
 
-      {res, op} =
+      {res, _} =
         case opts[:delete] do
           true ->
             {Mongo.find_one_and_delete(store, col, query), :find_one_and_delete}
@@ -261,7 +231,6 @@ defmodule Elementary.Stores do
         doc ->
           {:ok, Elementary.Kit.without_mongo_id(doc)}
       end
-      |> log(%{"col" => col, "op" => op, "where" => query}, spec, opts)
     end
 
     def aggregate(spec, col, p, opts \\ []) do
@@ -277,7 +246,6 @@ defmodule Elementary.Stores do
        Mongo.aggregate(store, col, p, opts)
        |> Stream.map(&Elementary.Kit.without_mongo_id(&1))
        |> Enum.to_list()}
-      |> log(%{"col" => col, "op" => "aggregate", "pipeline" => p, "options" => opts}, spec, opts)
     end
 
     defp pipeline(items) do
@@ -327,12 +295,8 @@ defmodule Elementary.Stores do
     defp intern_field("id"), do: "_id"
     defp intern_field(other), do: other
 
-    def delete(spec, col, doc, opts \\ []) when is_map(doc) do
+    def delete(spec, col, doc) when is_map(doc) do
       store = Stores.store_name(spec)
-
-      opts =
-        opts
-        |> Keyword.put(:started, Elementary.Kit.millis())
 
       doc = Elementary.Kit.with_mongo_id(doc)
 
@@ -347,52 +311,6 @@ defmodule Elementary.Stores do
         {:error, e} ->
           {:error, mongo_error(e)}
       end
-      |> log(%{"collection" => col, "op" => "delete", "where" => doc}, spec, opts)
-    end
-
-    defp log(data, meta, spec, opts) do
-      if :enable == (opts[:log] || :enable) do
-        meta
-        |> with_log_payload(data, spec, opts[:data] || :full)
-        |> with_log_duration(spec, opts)
-        |> with_log_meta(spec)
-        |> Elementary.Logger.log()
-      end
-
-      data
-    end
-
-    defp with_log_payload(meta, {:ok, data}, _, :summary) when is_list(data) do
-      Map.put(meta, "result", %{"list" => %{"size" => length(data)}})
-    end
-
-    defp with_log_payload(meta, {:ok, data}, _, _) do
-      Map.put(meta, "result", data)
-    end
-
-    defp with_log_payload(meta, {:error, reason}, _, _) do
-      Map.put(meta, "result", reason)
-    end
-
-    defp with_log_payload(meta, other, _, _) do
-      Map.put(meta, "result", other)
-    end
-
-    defp with_log_duration(meta, _, opts) do
-      case opts[:started] do
-        nil ->
-          meta
-
-        started ->
-          Map.put(meta, "duration", Elementary.Kit.millis_since(started))
-      end
-    end
-
-    defp with_log_meta(meta, %{"name" => name}) do
-      Map.merge(meta, %{
-        "kind" => "store",
-        "name" => name
-      })
     end
 
     defp mongo_error(%DBConnection.ConnectionError{}) do

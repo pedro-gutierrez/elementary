@@ -1,8 +1,6 @@
 defmodule Elementary.Decoder do
   @moduledoc false
 
-  require Logger
-
   import Elementary.Encoder, only: [encode: 2]
 
   defguard is_literal(v) when is_binary(v) or is_number(v) or is_atom(v)

@@ -138,7 +138,7 @@ defmodule Elementary.Streams do
           with {:error, e} <- Service.run(app, "caller", data) do
             error = Map.merge(e, %{"app" => app, "timestamp" => DateTime.utc_now()})
             store = Index.spec!("store", store)
-            Store.insert(store, "errors", error, logs: :disable)
+            Store.insert(store, "errors", error)
           end
         end)
 
@@ -163,7 +163,7 @@ defmodule Elementary.Streams do
       end
     end
 
-    defp write_offset(%{stream: stream, store: store, id: id, host: host, offset: offset}) do
+    defp write_offset(%{store: store, id: id, host: host, offset: offset}) do
       store = Index.spec!("store", store)
 
       case Store.ensure(store, "streams", %{"id" => id}, %{
@@ -171,11 +171,12 @@ defmodule Elementary.Streams do
              "ts" => "$$NOW",
              "host" => host
            }) do
-        {:ok, 1} ->
+        {:ok, _} ->
           :ok
 
-        other ->
-          Logger.error("Error updating offset for stream \"#{stream}\": #{inspect(other)}")
+        {:error, e} ->
+          Logger.error("Error updating offset \"#{offset}\" for stream \"#{id}\": #{inspect(e)}")
+
           :ok
       end
     end

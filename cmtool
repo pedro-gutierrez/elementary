@@ -238,7 +238,7 @@ User=$CM_USER
 Group=$CM_USER
 Restart=on-failure
 EnvironmentFile=$ENV_FILE
-Environment=PORT=$ELEMENTARY_PORT
+Environment=ELEMENTARY_PORT=$ELEMENTARY_PORT
 Environment=LANG=en_US.UTF-8
 Environment=ELEMENTARY_HOME=$ETC_DIR
 Environment=ELEMENTARY_WEBROOT=https://www.$ELEMENTARY_EXAMPLE.io
