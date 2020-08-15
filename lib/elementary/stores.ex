@@ -80,7 +80,7 @@ defmodule Elementary.Stores do
     end
 
     def insert(spec, col, doc) when is_map(doc) do
-      doc = Elementary.Kit.with_mongo_id(doc)
+      doc = Kit.with_mongo_id(doc)
 
       case spec
            |> Stores.store_name()
@@ -97,7 +97,7 @@ defmodule Elementary.Stores do
     end
 
     def subscribe(spec, col, partition, %{"offset" => offset}, fun, opts \\ []) do
-      opts = opts |> Keyword.put(:started, Elementary.Kit.millis())
+      opts = opts |> Keyword.put(:started, Kit.millis())
 
       pipeline = [
         %{
@@ -114,7 +114,7 @@ defmodule Elementary.Stores do
 
       doc_fn = fn
         %{"fullDocument" => doc} ->
-          fun.(%{"data" => Elementary.Kit.without_mongo_id(doc)})
+          fun.(%{"data" => Kit.without_mongo_id(doc)})
 
         other ->
           Logger.warn("unexpected change stream doc #{inspect(other)}")
@@ -145,10 +145,10 @@ defmodule Elementary.Stores do
     end
 
     def update(spec, col, where, doc, upsert \\ false) when is_map(doc) do
-      where = Elementary.Kit.with_mongo_id(where)
+      where = Kit.with_mongo_id(where)
 
       doc =
-        Elementary.Kit.with_mongo_id(doc)
+        Kit.with_mongo_id(doc)
         |> case do
           %{"$push" => _} = doc -> doc
           %{"$pull" => _} = doc -> doc
@@ -201,19 +201,19 @@ defmodule Elementary.Stores do
           limit: Keyword.get(opts, :limit, 20)
         )
 
-      query = Elementary.Kit.with_mongo_id(query)
+      query = Kit.with_mongo_id(query)
 
       {:ok,
        spec
        |> Stores.store_name()
        |> Mongo.find(col, query, opts)
-       |> Stream.map(&Elementary.Kit.without_mongo_id(&1))
+       |> Stream.map(&Kit.without_mongo_id(&1))
        |> Enum.to_list()}
     end
 
     def find_one(spec, col, query, opts \\ []) do
       store = Stores.store_name(spec)
-      query = Elementary.Kit.with_mongo_id(query)
+      query = Kit.with_mongo_id(query)
 
       {res, _} =
         case opts[:delete] do
@@ -229,7 +229,7 @@ defmodule Elementary.Stores do
           {:error, :not_found}
 
         doc ->
-          {:ok, Elementary.Kit.without_mongo_id(doc)}
+          {:ok, Kit.without_mongo_id(doc)}
       end
     end
 
@@ -238,13 +238,13 @@ defmodule Elementary.Stores do
 
       opts =
         opts
-        |> Keyword.put(:started, Elementary.Kit.millis())
+        |> Keyword.put(:started, Kit.millis())
 
       p = pipeline(p)
 
       {:ok,
        Mongo.aggregate(store, col, p, opts)
-       |> Stream.map(&Elementary.Kit.without_mongo_id(&1))
+       |> Stream.map(&Kit.without_mongo_id(&1))
        |> Enum.to_list()}
     end
 
@@ -253,7 +253,7 @@ defmodule Elementary.Stores do
     end
 
     defp pipeline_item(%{"$match" => query}) do
-      %{"$match" => Elementary.Kit.with_mongo_id(query)}
+      %{"$match" => Kit.with_mongo_id(query)}
     end
 
     defp pipeline_item(%{
@@ -298,7 +298,7 @@ defmodule Elementary.Stores do
     def delete(spec, col, doc) when is_map(doc) do
       store = Stores.store_name(spec)
 
-      doc = Elementary.Kit.with_mongo_id(doc)
+      doc = Kit.with_mongo_id(doc)
 
       case Mongo.delete_one(
              store,

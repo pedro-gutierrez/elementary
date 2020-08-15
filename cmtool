@@ -182,10 +182,6 @@ hosts() {
 ::1     localhost ip6-localhost ip6-loopback
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
-
-80.211.159.183 a0.local
-212.237.38.218 a1.local
-80.211.150.191 a2.local
 EOF
 }
 
