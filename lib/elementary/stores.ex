@@ -3,6 +3,7 @@ defmodule Elementary.Stores do
 
   use Supervisor
   alias Elementary.{Kit, Index, Encoder}
+  require Logger
 
   def start_link(opts) do
     Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
@@ -108,8 +109,12 @@ defmodule Elementary.Stores do
         }
       ]
 
-      resume_token_fn = fn %{"_data" => offset} ->
-        fun.(%{"offset" => offset})
+      resume_token_fn = fn
+        %{"_data" => offset} ->
+          fun.(%{"offset" => offset})
+
+        other ->
+          Logger.warn("Unexpected offset #{inspect(other)} from collection #{col}")
       end
 
       doc_fn = fn
