@@ -114,7 +114,7 @@ defmodule Elementary.Stores do
           fun.(%{"offset" => offset})
 
         other ->
-          Logger.warn("Unexpected offset #{inspect(other)} from collection #{col}")
+          Logger.warn("Unexpected resume token #{inspect(other)} from collection #{col}")
       end
 
       doc_fn = fn
