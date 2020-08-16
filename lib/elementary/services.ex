@@ -42,7 +42,7 @@ defmodule Elementary.Services do
       {:stop, :normal, res, nil}
     end
 
-    defp with_telemetry({micros, res0} = res, app) do
+    defp with_telemetry({micros, res0} = res, app) when micros > 10000 do
       status =
         case res0 do
           {:error, _} ->
@@ -60,6 +60,8 @@ defmodule Elementary.Services do
 
       res
     end
+
+    defp with_telemetry(res, _), do: res
 
     defp with_error_logging({_, {:error, e}} = res, app, effect, data) do
       data =
