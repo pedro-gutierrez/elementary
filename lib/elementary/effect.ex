@@ -2,10 +2,18 @@ defmodule Elementary.Effect do
   @moduledoc false
 
   require Logger
-  alias Elementary.{Kit, App, Index, Stores.Store, Services.Service}
+  alias Elementary.{Kit, App, Index, Stores.Store, Services.Service, Slack}
 
   def apply("uuid", _) do
     {:ok, %{"uuid" => UUID.uuid4()}}
+  end
+
+  def apply("slack", %{"channel" => channel, "text" => text, "data" => data}) do
+    Slack.notify(channel, text, data)
+  end
+
+  def apply("slack", %{"channel" => channel, "text" => text}) do
+    Slack.notify(channel, text)
   end
 
   def apply("file", %{"named" => name}) do

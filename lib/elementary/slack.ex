@@ -33,7 +33,7 @@ defmodule Elementary.Slack do
   end
 
   defp code(doc) do
-    case Jason.encode(doc) do
+    case Jason.encode(doc, pretty: true) do
       {:ok, json} ->
         "```#{json}```"
 

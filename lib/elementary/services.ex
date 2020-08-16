@@ -11,6 +11,7 @@ defmodule Elementary.Services do
 
   defmodule Service do
     use GenServer, restart: :temporary
+    require Logger
 
     alias Elementary.{Index, App, Streams.Stream}
 
@@ -31,18 +32,23 @@ defmodule Elementary.Services do
     end
 
     def handle_call({:data, data}, _, %{app: app, effect: effect}) do
+      spec = Index.spec!("app", app)
+
       {_, res} =
         :timer.tc(fn ->
-          spec = Index.spec!("app", app)
           App.run(spec, effect, data)
         end)
-        |> with_telemetry(app)
-        |> with_error_logging(app, effect, data)
+        |> with_telemetry(app, spec)
+        |> with_error(app, effect, data, spec)
 
       {:stop, :normal, res, nil}
     end
 
-    defp with_telemetry({micros, res0} = res, app) when micros > 10000 do
+    defp with_telemetry(res, _, %{"spec" => %{"telemetry" => false}}) do
+      res
+    end
+
+    defp with_telemetry({micros, res0} = res, app, _) when micros > 10000 do
       status =
         case res0 do
           {:error, _} ->
@@ -55,15 +61,19 @@ defmodule Elementary.Services do
       Stream.write_async("telemetry", %{
         "app" => app,
         "status" => status,
-        "duration" => micros / 1000
+        "duration" => trunc(micros / 1000)
       })
 
       res
     end
 
-    defp with_telemetry(res, _), do: res
+    defp with_telemetry(res, _, _), do: res
 
-    defp with_error_logging({_, {:error, e}} = res, app, effect, data) do
+    defp with_error(res, _, _, _, %{"spec" => %{"errors" => false}}) do
+      res
+    end
+
+    defp with_error({_, {:error, e}} = res, app, effect, data, _) do
       data =
         cond do
           is_map(data) or is_binary(data) or is_number(data) ->
@@ -73,17 +83,21 @@ defmodule Elementary.Services do
             "#{inspect(data)}"
         end
 
-      Stream.write_async("errors", %{
+      error = %{
         "app" => app,
         "effect" => effect,
         "data" => data,
         "error" => e
-      })
+      }
+
+      Stream.write_async("errors", error)
+
+      Logger.error("#{inspect(error, pretty: true)}")
 
       res
     end
 
-    defp with_error_logging(res, _, _, _) do
+    defp with_error(res, _, _, _, _) do
       res
     end
   end

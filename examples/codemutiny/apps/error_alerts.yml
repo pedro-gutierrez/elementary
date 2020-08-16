@@ -1,0 +1,9 @@
+kind: app
+name: error_alerts 
+spec:
+  errors: false
+  telemetry: false
+  settings:
+    - slack
+  modules:
+    - error_alerts 

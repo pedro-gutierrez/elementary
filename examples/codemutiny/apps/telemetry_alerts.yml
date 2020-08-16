@@ -1,0 +1,8 @@
+kind: app
+name: telemetry_alerts 
+spec:
+  telemetry: false
+  settings:
+    - slack
+  modules:
+    - telemetry_alerts 
