@@ -150,8 +150,6 @@ defmodule Elementary.Http do
     end
   end
 
-  defp resolve_app(_, _), do: {:error, :not_found}
-
   defp body(req, headers) do
     case :cowboy_req.has_body(req) do
       false ->

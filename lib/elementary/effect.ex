@@ -197,20 +197,15 @@ defmodule Elementary.Effect do
   end
 
   def apply("http", spec) do
-    case Elementary.Http.Client.run(
-           debug: spec["debug"],
-           method: spec["method"] || "get",
-           url: spec["url"],
-           body: spec["body"],
-           headers: spec["headers"],
-           query: spec["query"]
-         ) do
-      {:ok, resp} ->
-        resp
-
-      {:error, e} ->
-        "#{e}"
-    end
+    [
+      debug: spec["debug"],
+      method: spec["method"] || "get",
+      url: spec["url"],
+      body: spec["body"],
+      headers: spec["headers"],
+      query: spec["query"]
+    ]
+    |> Elementary.Http.Client.run()
     |> effect_result(spec)
   end
 

@@ -10,16 +10,15 @@ defmodule Elementary.Stores do
   end
 
   def init(_) do
-    Index.specs("store")
-    |> Enum.map(&store_spec(&1))
+    [Elementary.Stores.Monitor | "store" |> Index.specs() |> Enum.map(&store_spec(&1))]
     |> Supervisor.init(strategy: :one_for_one)
   end
 
   def store_name(%{"name" => name}), do: store_name(name)
   def store_name(name), do: String.to_atom("#{name}_store")
 
-  defp store_spec(%{"name" => name, "spec" => spec}) do
-    name = store_name(name)
+  defp store_spec(%{"name" => store_name, "spec" => spec}) do
+    name = store_name(store_name)
     pool_size = spec["pool"] || 1
 
     {:ok, url_spec} = Encoder.encode(spec["url"] || %{"db" => name})
@@ -34,12 +33,48 @@ defmodule Elementary.Stores do
              name: name,
              url: url,
              pool_size: pool_size
+             # after_connect: {Elementary.Stores.Monitor, :monitor, [store_name]}
            ]
          ]},
       type: :worker,
       restart: :permanent,
       shutdown: 5000
     }
+  end
+
+  defmodule Monitor do
+    use GenServer
+    alias Elementary.Stores
+    require Logger
+
+    def start_link(_) do
+      GenServer.start_link(__MODULE__, nil, name: __MODULE__)
+    end
+
+    def monitor(conn, store) do
+      GenServer.call(__MODULE__, {:monitor, conn, store})
+    end
+
+    @impl true
+    def init(_) do
+      Registry.register(:events_registry, :topology, self())
+      {:ok, %{host: Elementary.Kit.hostname()}}
+    end
+
+    @impl true
+    def handle_info(
+          {:broadcast, :topology, %Mongo.Events.ServerSelectionEmptyEvent{}},
+          %{
+            host: host
+          } = state
+        ) do
+      Elementary.Slack.notify("cluster", "No connection from *#{host}* to its store")
+      {:noreply, state}
+    end
+
+    def handle_info(_msg, state) do
+      {:noreply, state}
+    end
   end
 
   defmodule Store do
@@ -322,12 +357,21 @@ defmodule Elementary.Stores do
       :connection_error
     end
 
+    defp mongo_error(%Mongo.Error{code: 10107, host: nil, message: _}) do
+      :connection_error
+    end
+
     defp mongo_error(%{write_errors: [error]}) do
       mongo_error(error)
     end
 
     defp mongo_error(%{"code" => 11000}) do
       :conflict
+    end
+
+    defp mongo_error(error) do
+      Logger.warn("Got unknown mongo error #{inspect(error)}")
+      :unknown
     end
   end
 end
