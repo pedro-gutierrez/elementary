@@ -57,7 +57,8 @@ packages() {
 		python3 \
 		python3-pip \
 		esl-erlang \
-		elixir
+		elixir \
+        mongodb-clients
 }
 
 setup_aws() {
