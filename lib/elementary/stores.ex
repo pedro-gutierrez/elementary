@@ -83,6 +83,118 @@ defmodule Elementary.Stores do
 
     @dialyzer {:no_return, {:ping, 0}}
 
+    def empty(%{"spec" => %{"collections" => cols}} = spec) do
+      Enum.reduce_while(cols, :ok, fn {col, _}, _ ->
+        case empty_collection(spec, col) do
+          :ok ->
+            {:cont, :ok}
+
+          {:error, e} ->
+            {:halt, mongo_error(e)}
+        end
+      end)
+    end
+
+    defp empty_collection(spec, col) do
+      case spec |> Stores.store_name() |> Mongo.delete_many(col, %{}) do
+        {:ok, _} ->
+          :ok
+
+        {:error, e} ->
+          {:halt, mongo_error(e)}
+      end
+    end
+
+    def reset(%{"spec" => %{"collections" => cols}} = spec) do
+      Enum.reduce_while(cols, :ok, fn {col, col_spec}, _ ->
+        with :ok <- drop_collection(spec, col),
+             :ok <- create_collection(spec, col, col_spec),
+             :ok <- ensure_indexes(spec, col, col_spec["indexes"] || []) do
+          {:cont, :ok}
+        else
+          {:error, e} ->
+            {:halt, mongo_error(e)}
+        end
+      end)
+    end
+
+    def create_collection(spec, col, col_spec) do
+      opts = collection_create_opts(col_spec)
+
+      with {:error, %Mongo.Error{code: 48}} <-
+             spec |> Stores.store_name() |> Mongo.create(col, opts) do
+        :ok
+      end
+    end
+
+    defp collection_create_opts(%{"max" => max, "size" => size}) do
+      [capped: true, max: max, size: size]
+    end
+
+    defp collection_create_opts(_), do: []
+
+    def drop_collection(spec, col) do
+      case spec |> Stores.store_name() |> Mongo.drop_collection(col) do
+        :ok ->
+          :ok
+
+        {:error, %{code: 26}} ->
+          :ok
+
+        {:error, e} ->
+          {:halt, mongo_error(e)}
+      end
+    end
+
+    def ensure_indexes(spec, col, indices) do
+      Enum.map(indices, fn
+        %{"lookup" => field} when is_binary(field) ->
+          {"_#{field}_", [unique: false, key: [{field, 1}]]}
+
+        %{"unique" => field} when is_binary(field) ->
+          {"_#{field}_", [unique: true, key: [{field, 1}]]}
+
+        %{"unique" => fields} when is_list(fields) ->
+          {Enum.join([""] ++ fields ++ [""], "_"),
+           [unique: true, key: Enum.map(fields, fn f -> {f, 1} end)]}
+
+        %{"geo" => field} ->
+          {"_#{field}_", [key: %{field => "2dsphere"}]}
+
+        %{"expire" => field, "after" => seconds} ->
+          {"_#{field}_", [expireAfterSeconds: seconds, key: [{field, 1}]]}
+      end)
+      |> Enum.each(fn {name, opts} ->
+        case ensure_index(spec, col, name, opts) do
+          :ok ->
+            :ok
+
+          other ->
+            raise "Error creating index #{inspect(spec)} on collection #{col}: #{inspect(other)}"
+        end
+      end)
+    end
+
+    def ensure_index(spec, col, name, opts) do
+      with {:ok, _} <-
+             spec
+             |> Stores.store_name()
+             |> Mongo.command(
+               [
+                 createIndexes: col,
+                 indexes: [
+                   Keyword.merge(opts, name: name)
+                 ]
+               ],
+               []
+             ) do
+        :ok
+      else
+        {:error, %{message: msg}} ->
+          {:error, msg}
+      end
+    end
+
     def ping(spec) do
       case spec |> Stores.store_name() |> Mongo.ping() do
         {:ok, _} ->

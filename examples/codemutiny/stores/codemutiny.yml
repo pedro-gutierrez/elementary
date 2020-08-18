@@ -5,8 +5,18 @@ spec:
   url:
     env: ELEMENTARY_MONGO_URL
   collections:
+    access:
+      max: 100000 
+      size: 10000000
+    telemetry:
+      max: 100000 
+      size: 10000000
+    error:
+      max: 100000 
+      size: 10000000
     identities: {}
     subscriptions: {}
+    plans: {}
     tokens:
       indexes:
         - expire: nonce

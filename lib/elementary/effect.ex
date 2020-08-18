@@ -179,7 +179,7 @@ defmodule Elementary.Effect do
   def apply("store", %{"empty" => %{}, "store" => store} = spec) do
     store = Index.spec!("store", store)
 
-    case store.empty() do
+    case Store.empty(store) do
       :ok -> "empty"
       {:error, e} -> "#{e}"
     end
@@ -189,7 +189,7 @@ defmodule Elementary.Effect do
   def apply("store", %{"reset" => %{}, "store" => store} = spec) do
     store = Index.spec!("store", store)
 
-    case store.reset() do
+    case Store.reset(store) do
       :ok -> "reset"
       {:error, e} -> "#{e}"
     end
