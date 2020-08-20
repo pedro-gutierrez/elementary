@@ -62,8 +62,8 @@ defmodule Elementary.Stores do
     end
 
     @impl true
-    def handle_call({:monitor, _, store}, _, %{host: host} = state) do
-      Slack.notify_async("cluster", "Host *#{host}* established a connection to store *#{store}*")
+    def handle_call({:monitor, _, _store}, _, %{host: _host} = state) do
+      # Slack.notify_async("cluster", "Host *#{host}* established a connection to store *#{store}*")
       {:reply, :ok, state}
     end
 

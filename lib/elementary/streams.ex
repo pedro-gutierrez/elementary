@@ -114,7 +114,10 @@ defmodule Elementary.Streams do
         offset: offset
       )
 
-      Slack.notify("cluster", "Stream *#{stream}* ready in host *#{host}*")
+      Slack.notify(
+        "cluster",
+        "Host *#{host}* subscribed to *partition #{partition}* of stream *#{stream}*"
+      )
 
       {:noreply, %{state | offset: offset, subscription: pid}}
     end
