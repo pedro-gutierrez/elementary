@@ -160,6 +160,10 @@ defmodule Elementary.Streams do
 
         {:error, :not_found} ->
           ""
+
+        other ->
+          Logger.warn("Unexpected #{inspect(other)} from stream #{id} while reading offset")
+          ""
       end
     end
 

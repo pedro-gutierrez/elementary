@@ -109,7 +109,8 @@ defmodule Elementary.Stores do
       Enum.reduce_while(cols, :ok, fn {col, col_spec}, _ ->
         with :ok <- drop_collection(spec, col),
              :ok <- create_collection(spec, col, col_spec),
-             :ok <- ensure_indexes(spec, col, col_spec["indexes"] || []) do
+             :ok <- ensure_indexes(spec, col, col_spec["indexes"] || []),
+             :ok <- ensure_data(spec, col, col_spec["data"] || []) do
           {:cont, :ok}
         else
           {:error, e} ->
@@ -192,6 +193,19 @@ defmodule Elementary.Stores do
       else
         {:error, %{message: msg}} ->
           {:error, msg}
+      end
+    end
+
+    def ensure_data(_spec, _col, []), do: :ok
+
+    def ensure_data(spec, col, [%{"id" => id} = doc | rest]) do
+      with {:ok, _} <- ensure(spec, col, %{"id" => id}, doc) do
+        IO.inspect(
+          col: col,
+          doc: id
+        )
+
+        ensure_data(spec, col, rest)
       end
     end
 

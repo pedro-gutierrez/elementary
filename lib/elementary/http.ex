@@ -49,7 +49,7 @@ defmodule Elementary.Http do
     def mime(_), do: :other
   end
 
-  alias Elementary.{Services.Service}
+  alias Elementary.{Services.Service, Index}
   alias Elementary.Http.Headers
   require Logger
 
@@ -245,20 +245,31 @@ defmodule Elementary.Http do
         req
       )
 
-    access_log_record = %{
-      "app" => app,
-      "method" => method,
-      "status" => status,
-      "elapsed" => floor(elapsed / 1000)
-    }
-
-    Stream.write_async("access", access_log_record)
+    maybe_access_log(app, method, status, elapsed)
 
     if status >= 500 do
       Logger.error("#{inspect(resp, pretty: true)}")
     end
 
     {req, resp2}
+  end
+
+  defp maybe_access_log(app, method, status, elapsed) do
+    case Index.spec!("app", app) do
+      %{"spec" => %{"access" => false}} ->
+        :ok
+
+      _ ->
+        access_log_record = %{
+          "app" => app,
+          "method" => method,
+          "status" => status,
+          "elapsed" => floor(elapsed / 1000)
+        }
+
+        Stream.write_async("access", access_log_record)
+        :ok
+    end
   end
 
   defmodule Client do

@@ -18,9 +18,8 @@ defmodule Elementary.Services do
     def run(app, effect, data) do
       spec = {__MODULE__, %{app: app, effect: effect}}
 
-      with {:ok, pid} <- DynamicSupervisor.start_child(Elementary.Services, spec) do
-        GenServer.call(pid, {:data, data})
-      end
+      {:ok, pid} = DynamicSupervisor.start_child(Elementary.Services, spec)
+      GenServer.call(pid, {:data, data})
     end
 
     def start_link(app) do
@@ -38,10 +37,25 @@ defmodule Elementary.Services do
         :timer.tc(fn ->
           App.run(spec, effect, data)
         end)
+        |> with_debug(app, spec)
         |> with_telemetry(app, spec)
         |> with_error(app, effect, data, spec)
 
       {:stop, :normal, res, nil}
+    end
+
+    defp with_debug({micros, res2} = res, app, %{"spec" => %{"debug" => true}}) do
+      IO.inspect(%{
+        app: app,
+        elapsed: micros,
+        result: res2
+      })
+
+      res
+    end
+
+    defp with_debug(res, _, _) do
+      res
     end
 
     defp with_telemetry(res, _, %{"spec" => %{"telemetry" => false}}) do

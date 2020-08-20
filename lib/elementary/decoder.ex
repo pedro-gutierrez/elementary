@@ -9,6 +9,7 @@ defmodule Elementary.Decoder do
     {:ok, nil}
   end
 
+
   def decode(nil = spec, data, _) do
     decode_error(spec, data)
   end

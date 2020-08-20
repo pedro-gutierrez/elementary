@@ -1,6 +1,8 @@
 kind: app
 name: index
 spec:
+  access: false
+  telemetry: false
   routes:
     codemutiny:
       get: /

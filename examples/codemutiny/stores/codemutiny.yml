@@ -1,22 +1,53 @@
 kind: store
-name: codemutiny  
+name: codemutiny
 spec:
-  pool: 10 
+  pool: 10
   url:
     env: ELEMENTARY_MONGO_URL
   collections:
-    access:
-      max: 100000 
-      size: 10000000
-    telemetry:
-      max: 100000 
-      size: 10000000
-    error:
-      max: 100000 
-      size: 10000000
+    access: {}
+    telemetry: {}
+    errors: {}
     identities: {}
-    subscriptions: {}
-    plans: {}
+    subscriptions:
+      data:
+        - id: "1518527c-40e2-45ac-9359-a04dcb838f4e"
+          created:
+            now: {}
+          identity: "113081001828322708292"
+          plan: P-7YC371846A4660914
+          product: PROD-7YC371846A4660914
+          gateway:
+            id: I-FJRLTX1KVHJ6
+            name: paypal
+          confirmed:
+            now: {}
+          approval_pending:
+            now: {}
+          approved:
+            now: {}
+    plans:
+      data:
+        - id: P-7YC371846A4660914
+          product: PROD-7YC371846A4660914
+          name: Free
+          price: 0
+          tax: 0
+          items:
+            - enabled: true
+              feature: passes
+              limit: 3
+            - enabled: true
+              feature: rooms
+              limit: 3
+            - enabled: true
+              feature: notifications
+            - enabled: false
+              feature: chat
+            - enabled: false
+              feature: bid
+            - enabled: false
+              feature: priority
     tokens:
       indexes:
         - expire: nonce
