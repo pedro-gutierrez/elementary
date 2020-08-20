@@ -44,7 +44,7 @@ defmodule Elementary.Stores do
 
   defmodule Monitor do
     use GenServer
-    alias Elementary.{Slack, Stores}
+    alias Elementary.{Stores}
     require Logger
 
     def start_link(_) do
