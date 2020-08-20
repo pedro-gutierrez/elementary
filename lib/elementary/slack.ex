@@ -2,6 +2,12 @@ defmodule Elementary.Slack do
   require Logger
   alias Elementary.Index
 
+  def notify_async(channel, title, doc \\ nil) do
+    spawn(fn ->
+      notify(channel, title, doc)
+    end)
+  end
+
   def notify(channel, title, doc \\ nil) do
     %{"spec" => spec} = Index.spec!("settings", "slack")
 

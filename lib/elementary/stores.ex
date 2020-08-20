@@ -32,8 +32,8 @@ defmodule Elementary.Stores do
            [
              name: name,
              url: url,
-             pool_size: pool_size
-             # after_connect: {Elementary.Stores.Monitor, :monitor, [store_name]}
+             pool_size: pool_size,
+             after_connect: {Elementary.Stores.Monitor, :monitor, [store_name]}
            ]
          ]},
       type: :worker,
@@ -44,7 +44,7 @@ defmodule Elementary.Stores do
 
   defmodule Monitor do
     use GenServer
-    alias Elementary.Stores
+    alias Elementary.{Slack, Stores}
     require Logger
 
     def start_link(_) do
@@ -59,6 +59,12 @@ defmodule Elementary.Stores do
     def init(_) do
       Registry.register(:events_registry, :topology, self())
       {:ok, %{host: Elementary.Kit.hostname()}}
+    end
+
+    @impl true
+    def handle_call({:monitor, _, store}, _, %{host: host} = state) do
+      Slack.notify_async("cluster", "Host *#{host}* established a connection to store *#{store}*")
+      {:reply, :ok, state}
     end
 
     @impl true

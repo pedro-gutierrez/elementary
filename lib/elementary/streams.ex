@@ -2,7 +2,7 @@ defmodule Elementary.Streams do
   @moduledoc false
 
   use Supervisor
-  alias Elementary.{Index, Streams.Stream}
+  alias Elementary.{Index, Streams.Stream, Slack}
 
   def start_link(opts) do
     Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
@@ -93,7 +93,8 @@ defmodule Elementary.Streams do
             store: store,
             stream: stream,
             col: col,
-            partition: partition
+            partition: partition,
+            host: host
           } = state
         ) do
       offset = read_offset(state)
@@ -112,6 +113,8 @@ defmodule Elementary.Streams do
         status: :subscribed,
         offset: offset
       )
+
+      Slack.notify("cluster", "Stream *#{stream}* ready in host *#{host}*")
 
       {:noreply, %{state | offset: offset, subscription: pid}}
     end
