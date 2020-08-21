@@ -1,7 +1,7 @@
 kind: store
 name: codemutiny
 spec:
-  pool: 10
+  pool: 20
   url:
     env: ELEMENTARY_MONGO_URL
   collections:

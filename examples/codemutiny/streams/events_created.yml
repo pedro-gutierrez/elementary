@@ -1,0 +1,7 @@
+kind: stream
+name: events_created
+spec:
+  settings: 
+    - codemutiny
+  apps:
+    - fullpass_resolve_event

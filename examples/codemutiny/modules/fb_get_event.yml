@@ -1,5 +1,5 @@
 kind: module
-name: fbGetEvent
+name: facebook_get_event 
 spec:
   decoders:
     caller:

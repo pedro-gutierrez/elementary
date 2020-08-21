@@ -1,7 +1,0 @@
-kind: app
-name: fullpass_import_event
-spec:
-  settings:
-    - codemutiny
-  modules:
-    - fullpass_import_event

@@ -24,4 +24,4 @@ spec:
   encoders:
     write:
       write: "@event"
-      to: fullpass_events
+      to: events_created

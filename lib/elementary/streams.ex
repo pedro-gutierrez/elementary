@@ -35,10 +35,11 @@ defmodule Elementary.Streams do
     def write(stream, data) do
       %{"spec" => %{"size" => size}} = Index.spec!("cluster", "default")
 
-      %{"spec" => %{"settings" => %{"store" => store}, "collection" => col}} =
-        Index.spec!("stream", stream)
+      %{"spec" => %{"settings" => %{"store" => store}}} = Index.spec!("stream", stream)
 
       partition = :rand.uniform(size) - 1
+
+      col = stream
 
       data =
         data
@@ -63,7 +64,7 @@ defmodule Elementary.Streams do
     end
 
     @impl true
-    def init(%{"name" => name, "spec" => %{"apps" => apps, "collection" => col}} = spec) do
+    def init(%{"name" => name, "spec" => %{"apps" => apps}} = spec) do
       %{"store" => store} = App.settings!(spec)
 
       {:ok, cluster} = Cluster.info()
@@ -73,7 +74,7 @@ defmodule Elementary.Streams do
         stream: name,
         id: "#{name}-#{cluster.partition}",
         store: store,
-        col: col,
+        col: name,
         apps: apps,
         subscription: nil,
         offset: "",

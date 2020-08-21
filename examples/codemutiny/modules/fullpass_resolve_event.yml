@@ -2,12 +2,14 @@ kind: module
 name: fullpass_resolve_event 
 spec:
   decoders:
-    http:
-      create:
-        method: POST
-        body:
-          id:
-            any: text
+    caller:
+      resolve:
+        ref:
+          any: text
+        identity:
+          any: text
+        ts:
+          any: date
     service:
       noEvent: noEvent
       event:
@@ -26,44 +28,38 @@ spec:
       updated:
         updated: 1
   update:
-    create:
+    resolve:
       model:
-        event: "@data.body"
+        event: "@data"
       cmds:
-        service: fbEvent
-    event:
-      model:
-        event: "@data.event"
-      cmds:
-        service: location
+        service: facebook_get_event
     noEvent:
       cmds:
-        return: not_found
+        stream: noSuchEvent
     noLocation:
+      cmds:
+        stream: noLocation
+    event:
       model:
         event: 
           merge:
+            - "@data.event"
             - "@model.event"
-            - status: noLocation
       cmds:
-        store: update
+        service: location
     location:
       model:
         event:
           merge:
             - "@model.event"
             - "@data"
-            - status: success
       cmds:
-        store: update
-    updated:
-      cmds:
-        return: accepted
+        stream: resolved
   encoders:
-    fbEvent:
-      app: fbGetEvent
+    facebook_get_event:
+      app: facebook_get_event 
       params:
-        id: "@event.id"
+        id: "@event.ref"
     location:
       app: geoLocation
       params:
@@ -74,17 +70,13 @@ spec:
             - maybe: "@event.zip"
             - maybe: "@event.area"
             - maybe: "@event.country"
-          using: " " 
-    update:
-      store: "@store"
-      ensure:
-        merge:
-          - "@event"
-          - updatedBy: "@session.identity"
-            source: fb  
-            updated:
-              now: {}
-      where:
-        id: "@event.id"
-      into: fullpass
-      as: updated
+          using: " "
+    noSuchEvent:
+      write: "@event"
+      to: events_unknown
+    noLocation:
+      write: "@event"
+      to: events_unlocated
+    resolved:
+      write: "@event"
+      to: events_resolved
