@@ -253,6 +253,12 @@ defmodule Elementary.Effect do
     |> effect_result(spec)
   end
 
+  def apply("facebook", %{"resolve" => id} = spec) do
+    id
+    |> Elementary.Facebook.resolve_event()
+    |> effect_result(spec)
+  end
+
   def apply(effect, data) do
     {:error, %{"error" => "no_such_effect", "effect" => effect, "data" => data}}
   end

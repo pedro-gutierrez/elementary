@@ -1,0 +1,7 @@
+kind: app
+name: fullpass_unknown_event_alert
+spec:
+  settings:
+    - codemutiny
+  modules:
+    - fullpass_unknown_event_alert

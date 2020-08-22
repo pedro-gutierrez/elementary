@@ -1,4 +1,21 @@
 defmodule Elementary.Facebook do
+  alias Elementary.Http
+
+  def resolve_event(id) do
+    {:ok, %{"status" => code, "body" => html}} =
+      Http.Client.run(url: "https://www.facebook.com/events/#{id}")
+
+    case code do
+      200 ->
+        with {:ok, event} <- parse_event(html) do
+          {:ok, Map.put(event, "id", id)}
+        end
+
+      404 ->
+        {:error, :no_such_event}
+    end
+  end
+
   def parse_event(html) do
     html =
       html
@@ -16,7 +33,13 @@ defmodule Elementary.Facebook do
       |> event_with_place_fallback(doc)
       |> event_with_related_events(doc)
 
-    {:ok, event}
+    case has_values(event, ["cover", "title", "starts", "place"]) do
+      true ->
+        {:ok, event}
+
+      false ->
+        {:error, :no_such_event}
+    end
   end
 
   defp event_from_json(doc) do
@@ -76,17 +99,22 @@ defmodule Elementary.Facebook do
   defp event_with_start_date_fallback(event, doc) do
     case event["starts"] do
       nil ->
-        starts =
-          doc
-          |> Floki.find("#event_time_info div[content]")
-          |> Floki.attribute("content")
-          |> Enum.at(0)
-          |> String.split(" to ")
-          |> Enum.at(0)
+        case doc
+             |> Floki.find("#event_time_info div[content]")
+             |> Floki.attribute("content") do
+          [] ->
+            event
 
-        {:ok, starts, _} = DateTime.from_iso8601(starts)
+          [starts | _] ->
+            starts =
+              starts
+              |> String.split(" to ")
+              |> Enum.at(0)
 
-        Map.put(event, "starts", starts)
+            {:ok, starts, _} = DateTime.from_iso8601(starts)
+
+            Map.put(event, "starts", starts)
+        end
 
       _ ->
         event
@@ -96,13 +124,15 @@ defmodule Elementary.Facebook do
   defp event_with_place_fallback(event, doc) do
     case event["place"] do
       nil ->
-        place =
-          doc
-          |> Floki.find("commented ul li table a")
-          |> Enum.at(0)
-          |> Floki.text()
+        case doc
+             |> Floki.find("commented ul li table a") do
+          [] ->
+            event
 
-        Map.put(event, "place", place)
+          [place | _] ->
+            place = Floki.text(place)
+            Map.put(event, "place", place)
+        end
 
       _ ->
         event
@@ -121,5 +151,17 @@ defmodule Elementary.Facebook do
       |> Enum.uniq()
 
     Map.put(event, "related", related)
+  end
+
+  defp has_values(_, []), do: true
+
+  defp has_values(event, [key | rest]) do
+    case event[key] do
+      nil ->
+        false
+
+      _ ->
+        has_values(event, rest)
+    end
   end
 end

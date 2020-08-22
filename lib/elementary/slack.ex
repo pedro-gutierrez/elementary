@@ -6,6 +6,8 @@ defmodule Elementary.Slack do
     spawn(fn ->
       notify(channel, title, doc)
     end)
+
+    :ok
   end
 
   def notify(channel, title, doc \\ nil) do
@@ -14,6 +16,7 @@ defmodule Elementary.Slack do
     case spec[channel] do
       nil ->
         Logger.warn("No webhook configured for slack channel \"#{channel}\"")
+        :error
 
       url ->
         text =
@@ -35,6 +38,13 @@ defmodule Elementary.Slack do
             "content-type" => "application/json"
           }
         )
+        |> case do
+          %{"status" => 200, "body" => "ok"} ->
+            :ok
+
+          _ ->
+            :error
+        end
     end
   end
 

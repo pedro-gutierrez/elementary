@@ -3,4 +3,5 @@ name: events_unlocated
 spec:
   settings: 
     - codemutiny
-  apps: []
+  apps:
+    - fullpass_unlocated_event_alert

@@ -3,4 +3,5 @@ name: events_unknown
 spec:
   settings: 
     - codemutiny
-  apps: []
+  apps:
+    - fullpass_unknown_event_alert

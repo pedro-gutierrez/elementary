@@ -10,11 +10,11 @@ spec:
           any: text
         ts:
           any: date
-    service:
-      noEvent: noEvent
+    facebook:
+      noEvent: no_such_event
       event:
-        event:
-          any: object
+        any: object
+    service:
       location:
         address:
           any: text
@@ -27,15 +27,17 @@ spec:
     store:
       updated:
         any: number
+    stream:
+      streamed: true
   update:
     resolve:
       model:
         event: "@data"
       cmds:
-        service: facebook_get_event
+        facebook: resolveEvent
     noEvent:
       cmds:
-        stream: noSuchEvent
+        stream: noEvent
     noLocation:
       cmds:
         stream: noLocation
@@ -43,7 +45,7 @@ spec:
       model:
         event: 
           merge:
-            - "@data.event"
+            - "@data"
             - "@model.event"
       cmds:
         service: location
@@ -51,18 +53,18 @@ spec:
       model:
         event:
           merge:
-            - "@model.event"
             - "@data"
+            - "@model.event"
       cmds:
         store: resolved
     updated:
       cmds:
         slack: resolved_alert
+    streamed: {}
   encoders:
-    facebook_get_event:
-      app: facebook_get_event 
-      params:
-        id: "@event.ref"
+    resolveEvent:
+      object:
+        resolve: "@event.ref"
     location:
       app: geoLocation
       params:
@@ -74,7 +76,7 @@ spec:
             - maybe: "@event.area"
             - maybe: "@event.country"
           using: " "
-    noSuchEvent:
+    noEvent:
       write: "@event"
       to: events_unknown
     noLocation:
@@ -90,5 +92,5 @@ spec:
       object:
         channel: events
         text:
-          format: "Event *{{ title }}* with id *{{ id }}* was resolved"
+          format: "Succesfully resolved event *{{ title }}* with id *{{ id }}*"
           params: "@event"

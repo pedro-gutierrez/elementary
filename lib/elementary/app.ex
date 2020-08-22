@@ -73,8 +73,6 @@ defmodule Elementary.App do
 
   def filter(_, _, _, model), do: {:ok, model}
 
-  def decode_update(%{"name" => "none"}, _, _, model), do: {:ok, model}
-
   def decode_update(spec, effect, data, model) do
     with {:ok, %{"event" => event, "decoded" => decoded}} <- do_decode(spec, effect, data, model) do
       update(spec, event, decoded, model)
@@ -82,8 +80,12 @@ defmodule Elementary.App do
   end
 
   defp do_decode(%{"spec" => %{"decoders" => decoders}}, effect, data, model) do
-    with decoders when is_map(decoders) <- decoders[effect] do
-      decode_first(decoders, data, model)
+    case decoders[effect] do
+      nil ->
+        {:error, "no_decoder"}
+
+      decoders ->
+        decode_first(decoders, data, model)
     end
     |> case do
       {:error, e} ->
@@ -106,7 +108,7 @@ defmodule Elementary.App do
     end)
     |> case do
       nil ->
-        {:error, %{"reason" => "no_decoder"}}
+        {:error, "no_decoder"}
 
       decoded ->
         {:ok, decoded}

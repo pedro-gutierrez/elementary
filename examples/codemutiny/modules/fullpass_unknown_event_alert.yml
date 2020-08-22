@@ -1,0 +1,21 @@
+kind: module
+name: fullpass_unknown_event_alert 
+spec:
+  decoders:
+    caller:
+      alert:
+        ref:
+          any: text
+  update:
+    alert:
+      model:
+        alert: "@data"
+      cmds:
+        slack: alert
+  encoders:
+    alert:
+      object:
+        channel: events 
+        text:
+          format: "Event with id *{{ ref }}* could not be resolved"
+          params: "@alert"

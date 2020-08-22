@@ -1,6 +1,0 @@
-kind: app
-name: facebook_get_event
-spec:
-  modules:
-    - facebook_get_event
-    - http
