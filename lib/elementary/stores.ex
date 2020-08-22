@@ -400,6 +400,9 @@ defmodule Elementary.Stores do
         nil ->
           {:error, :not_found}
 
+        {:error, e} ->
+          {:error, e}
+
         doc ->
           {:ok, Kit.without_mongo_id(doc)}
       end

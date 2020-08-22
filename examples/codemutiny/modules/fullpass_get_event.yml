@@ -8,6 +8,7 @@ spec:
           id:
             any: text
     store:
+      not_found: not_found
       event:
         any: object
   update:
@@ -21,9 +22,12 @@ spec:
         data: "@data"
       cmds:
         return: data
+    not_found:
+      cmds:
+        return: not_found
   encoders:
     fetch:
       store: "@store"
       fetch:
         id: "@id" 
-      from: fullpass
+      from: events_view 

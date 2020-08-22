@@ -98,29 +98,34 @@ defmodule Elementary.Streams do
             host: host
           } = state
         ) do
-      offset = read_offset(state)
+      case read_offset(state) do
+        {:error, e} ->
+          Logger.warn("Error #{inspect(e)} from stream #{stream} while reading offset")
+          {:stop, :error_subscribing, state}
 
-      data_fn = fn data ->
-        GenServer.cast(registered, data)
+        {:ok, offset} ->
+          data_fn = fn data ->
+            GenServer.cast(registered, data)
+          end
+
+          {:ok, pid} = Store.subscribe(store, col, partition, %{"offset" => offset}, data_fn)
+
+          IO.inspect(
+            stream: stream,
+            store: store,
+            collection: col,
+            partition: partition,
+            status: :subscribed,
+            offset: offset
+          )
+
+          Slack.notify(
+            "cluster",
+            "Host *#{host}* subscribed to *partition #{partition}* of stream *#{stream}*"
+          )
+
+          {:noreply, %{state | offset: offset, subscription: pid}}
       end
-
-      {:ok, pid} = Store.subscribe(store, col, partition, %{"offset" => offset}, data_fn)
-
-      IO.inspect(
-        stream: stream,
-        store: store,
-        collection: col,
-        partition: partition,
-        status: :subscribed,
-        offset: offset
-      )
-
-      Slack.notify(
-        "cluster",
-        "Host *#{host}* subscribed to *partition #{partition}* of stream *#{stream}*"
-      )
-
-      {:noreply, %{state | offset: offset, subscription: pid}}
     end
 
     @impl true
@@ -163,14 +168,13 @@ defmodule Elementary.Streams do
            |> Index.spec!(store)
            |> Store.find_one("streams", %{"id" => id}) do
         {:ok, %{"offset" => offset}} ->
-          offset
+          {:ok, offset}
 
         {:error, :not_found} ->
-          ""
+          {:ok, ""}
 
         other ->
-          Logger.warn("Unexpected #{inspect(other)} from stream #{id} while reading offset")
-          ""
+          other
       end
     end
 

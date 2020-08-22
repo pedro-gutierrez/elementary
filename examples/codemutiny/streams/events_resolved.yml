@@ -1,6 +1,0 @@
-kind: stream
-name: events_resolved
-spec:
-  settings: 
-    - codemutiny
-  apps: []

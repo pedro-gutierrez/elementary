@@ -7,3 +7,5 @@ spec:
     env: ELEMENTARY_SLACK_TELEMETRY
   cluster:
     env: ELEMENTARY_SLACK_CLUSTER
+  events:
+    env: ELEMENTARY_SLACK_EVENTS
