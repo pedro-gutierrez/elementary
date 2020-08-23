@@ -77,6 +77,10 @@ defmodule Elementary.Encoder do
     {:ok, v}
   end
 
+  @dates [NaiveDateTime, DateTime]
+
+  def encode(%{__struct__: struct} = date, _, _) when struct in @dates, do: {:ok, date}
+
   def encode(%{"resolve" => items} = spec, context, encoders) do
     with {:ok, [first | rest] = items} when is_list(items) <- encode(items, context, encoders) do
       Enum.reduce_while(rest, first, fn item, current ->

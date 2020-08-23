@@ -1,8 +1,9 @@
 kind: stream
 name: errors 
 spec:
-  settings: 
+  settings:
     - codemutiny
-  collection: errors 
-  apps:
-    - error_alerts
+  alert:
+    channel: errors
+    title: "App *{{ app }}* returned an error"
+    doc: true

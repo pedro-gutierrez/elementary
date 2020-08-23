@@ -16,23 +16,27 @@ defmodule Elementary.Services do
     alias Elementary.{Index, App, Streams.Stream}
 
     def run(app, effect, data) do
-      spec = {__MODULE__, %{app: app, effect: effect}}
+      case Index.spec("app", app) do
+        {:ok, spec} ->
+          spec = {__MODULE__, %{app: app, spec: spec, effect: effect}}
+          {:ok, pid} = DynamicSupervisor.start_child(Elementary.Services, spec)
+          GenServer.call(pid, {:data, data})
 
-      {:ok, pid} = DynamicSupervisor.start_child(Elementary.Services, spec)
-      GenServer.call(pid, {:data, data})
+        :not_found ->
+          Logger.warn("Undefined app \"#{app}\"")
+          {:error, :no_such_app}
+      end
     end
 
-    def start_link(app) do
-      GenServer.start_link(__MODULE__, app)
+    def start_link(state) do
+      GenServer.start_link(__MODULE__, state)
     end
 
-    def init(app) do
-      {:ok, app}
+    def init(state) do
+      {:ok, state}
     end
 
-    def handle_call({:data, data}, _, %{app: app, effect: effect}) do
-      spec = Index.spec!("app", app)
-
+    def handle_call({:data, data}, _, %{app: app, spec: spec, effect: effect}) do
       {_, res} =
         :timer.tc(fn ->
           App.run(spec, effect, data)

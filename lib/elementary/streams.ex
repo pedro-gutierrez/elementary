@@ -64,10 +64,28 @@ defmodule Elementary.Streams do
     end
 
     @impl true
-    def init(%{"name" => name, "spec" => %{"apps" => apps}} = spec) do
+    def init(%{"name" => name, "spec" => spec0} = spec) do
       %{"store" => store} = App.settings!(spec)
 
       {:ok, cluster} = Cluster.info()
+
+      alert =
+        case spec0 do
+          %{"alert" => alert} ->
+            alert
+
+          _ ->
+            nil
+        end
+
+      apps =
+        case spec0 do
+          %{"apps" => apps} ->
+            apps
+
+          _ ->
+            []
+        end
 
       initial_state = %{
         registered: name(spec),
@@ -76,6 +94,7 @@ defmodule Elementary.Streams do
         store: store,
         col: name,
         apps: apps,
+        alert: alert,
         subscription: nil,
         offset: "",
         partition: cluster.partition,
@@ -140,17 +159,22 @@ defmodule Elementary.Streams do
     end
 
     @impl true
-    def handle_cast(%{"data" => %{"id" => id} = data}, %{store: store, apps: apps} = state) do
+    def handle_cast(%{"data" => %{"id" => id} = data}, %{apps: apps} = state) do
       data =
         data
         |> Map.put("ts", Kit.datetime_from_mongo_id(id))
 
+      maybe_alert(data, state)
+
       :ok =
         Enum.each(apps, fn app ->
           with {:error, e} <- Service.run(app, "caller", data) do
-            error = Map.merge(e, %{"app" => app, "timestamp" => DateTime.utc_now()})
-            store = Index.spec!("store", store)
-            Store.insert(store, "errors", error)
+            error =
+              e |> error_as_map() |> Map.merge(%{"app" => app, "timestamp" => DateTime.utc_now()})
+
+            Stream.write_async("errors", error)
+            # store = Index.spec!("store", store)
+            # Store.insert(store, "errors", error)
           end
         end)
 
@@ -161,6 +185,12 @@ defmodule Elementary.Streams do
     def stop(reason, %{stream: stream} = state) do
       Logger.warn("stopped stream #{stream} (#{inspect(self())}): #{reason}")
       {:ok, state}
+    end
+
+    defp error_as_map(map) when is_map(map), do: map
+
+    defp error_as_map(other) do
+      %{"error" => other}
     end
 
     defp read_offset(%{store: store, id: id}) do
@@ -193,6 +223,24 @@ defmodule Elementary.Streams do
           Logger.error("Error updating offset \"#{offset}\" for stream \"#{id}\": #{inspect(e)}")
 
           :ok
+      end
+    end
+
+    defp maybe_alert(_, %{alert: nil}), do: false
+
+    defp maybe_alert(data, %{alert: %{"channel" => channel, "title" => title} = spec}) do
+      with {:ok, title} <- Elementary.Encoder.encode(%{"format" => title, "params" => data}, data) do
+        doc =
+          case spec["doc"] do
+            true ->
+              data
+
+            _ ->
+              nil
+          end
+
+        Elementary.Slack.notify_async(channel, title, doc)
+        true
       end
     end
   end

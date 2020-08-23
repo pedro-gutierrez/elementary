@@ -1,0 +1,11 @@
+kind: stream
+name: events_resolved
+spec:
+  settings: 
+    - codemutiny
+  alert:
+    channel: events
+    title: "Succesfully resolved event *{{ title }}* with id *{{ ref}}*"
+  apps:
+    - fullpass_update_events_view
+    - fullpass_create_related_events

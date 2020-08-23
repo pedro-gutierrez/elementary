@@ -24,9 +24,9 @@ spec:
           lon:
             any: number
       noLocation: noLocation
-    store:
-      updated:
-        any: number
+   # store:
+   #   updated:
+   #     any: number
     stream:
       streamed: true
   update:
@@ -56,10 +56,11 @@ spec:
             - "@data"
             - "@model.event"
       cmds:
-        store: resolved
-    updated:
-      cmds:
-        slack: resolved_alert
+        stream: resolved
+        #store: resolved
+   # updated:
+   #   cmds:
+   #     slack: resolved_alert
     streamed: {}
   encoders:
     resolveEvent:
@@ -83,14 +84,17 @@ spec:
       write: "@event"
       to: events_unlocated
     resolved:
-      store: "@store"
-      ensure: "@event"
-      where:
-        id: "@event.id"
-      into: "events_view"
-    resolved_alert:
-      object:
-        channel: events
-        text:
-          format: "Succesfully resolved event *{{ title }}* with id *{{ id }}*"
-          params: "@event"
+      write: "@event"
+      to: events_resolved
+   # resolved:
+   #   store: "@store"
+   #   ensure: "@event"
+   #   where:
+   #     id: "@event.id"
+   #   into: "events_view"
+   # resolved_alert:
+   #   object:
+   #     channel: events
+   #     text:
+   #       format: "Succesfully resolved event *{{ title }}* with id *{{ id }}*"
+   #       params: "@event"

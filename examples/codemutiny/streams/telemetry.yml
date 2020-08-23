@@ -3,6 +3,6 @@ name: telemetry
 spec:
   settings: 
     - codemutiny
-  collection: telemetry 
-  apps:
-    - telemetry_alerts
+  alert:
+    channel: telemetry
+    title: "App *{{ app }}* took *{{ duration }}ms* and returned *{{ status }}*"
