@@ -54,3 +54,10 @@ spec:
           after: 60
         - expire: session
           after: 3600
+    events_resolved:
+      indexes:
+        - ref
+    events_unlocated:
+      indexes:
+        - ref
+    

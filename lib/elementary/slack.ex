@@ -40,15 +40,14 @@ defmodule Elementary.Slack do
               "#{title} #{code(doc)}"
           end
 
-        body =
-          %{
-            "attachments" => [
-              %{
-                "color" => sev,
-                "text" => text
-              }
-            ]
-          }
+        body = %{
+          "attachments" => [
+            %{
+              "color" => sev,
+              "text" => text
+            }
+          ]
+        }
 
         Elementary.Http.Client.run(
           method: "post",

@@ -145,10 +145,12 @@ defmodule Elementary.Streams do
             offset: offset
           )
 
-          Slack.notify(
-            "cluster",
-            "Host *#{host}* subscribed to *partition #{partition}* of stream *#{stream}*"
-          )
+          Slack.notify(%{
+            channel: "cluster",
+            title: "Host `#{host}` subscribed to `partition #{partition}` of stream `#{stream}`",
+            severity: "good",
+            doc: nil
+          })
 
           {:noreply, %{state | offset: offset, subscription: pid}}
       end
@@ -235,10 +237,11 @@ defmodule Elementary.Streams do
 
     defp maybe_alert(_, %{alert: nil}, _), do: false
 
-    defp maybe_alert(data, %{alert: %{"channel" => channel, "title" => title} = spec}, %{host: host}) do
-
-      with  data <- Map.merge(%{"host" => host}, data),
-            {:ok, title} <- Elementary.Encoder.encode(%{"format" => title, "params" => data}, data) do
+    defp maybe_alert(data, %{alert: %{"channel" => channel, "title" => title} = spec}, %{
+           host: host
+         }) do
+      with data <- Map.merge(%{"host" => host}, data),
+           {:ok, title} <- Elementary.Encoder.encode(%{"format" => title, "params" => data}, data) do
         doc =
           case spec["doc"] do
             true ->
@@ -248,12 +251,14 @@ defmodule Elementary.Streams do
               nil
           end
 
-        sev = case Elementary.Encoder.encode(spec["severity"] || "@severity", data) do
-          {:ok, sev} ->
-            sev
-          _ ->
-            "default"
-        end
+        sev =
+          case Elementary.Encoder.encode(spec["severity"] || "@severity", data) do
+            {:ok, sev} ->
+              sev
+
+            _ ->
+              "default"
+          end
 
         Elementary.Slack.notify_async(%{
           channel: channel,

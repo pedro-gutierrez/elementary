@@ -5,5 +5,5 @@ spec:
     - codemutiny
   alert:
     channel: events 
-    title: "Location for event *{{ title }}* with id `{{ ref }}` could not be found"
+    title: "Location for event *{{ title }}* with id `{{ ref }}` could not be found from host `{{ host }}`"
     severity: warning

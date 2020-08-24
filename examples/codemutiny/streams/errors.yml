@@ -5,5 +5,5 @@ spec:
     - codemutiny
   alert:
     channel: errors
-    title: "App *{{ app }}* returned an error"
+    title: "App *{{ app }}* returned an error in host `{{ host }}`"
     doc: true

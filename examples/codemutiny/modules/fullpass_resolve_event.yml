@@ -27,18 +27,27 @@ spec:
     stream:
       streamed: true
     store:
-      existingEvent:
-        projection:
+      alreadyResolved:
+        resolved:
+          any: object
+      notResolved:
+        resolved: not_found
+      notLocated:
+        unlocated:
           any: object
       newEvent:
-        projection: not_found 
+        unlocated: not_found
   update:
     resolve:
       model:
         event: "@data"
       cmds:
-        store: findProjection
-    existingEvent: {}
+        store: findResolved
+    alreadyResolved: {}
+    notResolved:
+      cmds:
+        store: findUnLocated
+    notLocated: {}
     newEvent:
       cmds:
         facebook: resolveEvent
@@ -66,12 +75,18 @@ spec:
         stream: resolved
     streamed: {}
   encoders:
-    findProjection:
+    findResolved:
       store: "@store"
       fetch:
-        id: "@event.ref"
-      from: events_view
-      as: projection
+        ref: "@event.ref"
+      from: events_resolved
+      as: resolved
+    findUnLocated:
+      store: "@store"
+      fetch:
+        ref: "@event.ref"
+      from: events_unlocated
+      as: unlocated
     resolveEvent:
       object:
         resolve: "@event.ref"

@@ -74,7 +74,13 @@ defmodule Elementary.Stores do
             host: host
           } = state
         ) do
-      Elementary.Slack.notify("cluster", "No connection from *#{host}* to its store")
+      Elementary.Slack.notify(%{
+        channel: "cluster",
+        title: "No connection from `#{host}` to its store",
+        severity: "danger",
+        doc: nil
+      })
+
       {:noreply, state}
     end
 

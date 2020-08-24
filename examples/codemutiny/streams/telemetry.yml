@@ -5,4 +5,4 @@ spec:
     - codemutiny
   alert:
     channel: telemetry
-    title: "App *{{ app }}* took *{{ duration }}ms* and returned *{{ status }}*"
+    title: "App *{{ app }}* took `{{ duration }}ms` and returned *{{ status }}* in host `{{ host }}`"

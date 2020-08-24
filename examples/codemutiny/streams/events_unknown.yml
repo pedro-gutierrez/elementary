@@ -5,5 +5,5 @@ spec:
     - codemutiny
   alert:
     channel: errors
-    title: "Event with id `{{ ref }}` could not be resolved"
+    title: "Event with id `{{ ref }}` could not be resolved from host `{{ host }}`"
     severity: danger 

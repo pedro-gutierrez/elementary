@@ -66,7 +66,7 @@ defmodule Elementary.Services do
       res
     end
 
-    defp with_telemetry({micros, res0}=res, app, %{"spec" => spec}) do
+    defp with_telemetry({micros, res0} = res, app, %{"spec" => spec}) do
       spec
       |> telemetry_profile()
       |> maybe_report_telemetry(micros, res0, app)
@@ -124,9 +124,7 @@ defmodule Elementary.Services do
         "duration" => trunc(micros / 1000),
         "severity" => severity
       })
-
     end
-
 
     defp with_error(res, _, _, _, %{"spec" => %{"errors" => false}}) do
       res

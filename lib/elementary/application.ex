@@ -24,7 +24,12 @@ defmodule Elementary.Application do
         name: Elementary.Supervisor
       )
 
-    Slack.notify("cluster", "Server *#{Kit.hostname()}* did start")
+    Slack.notify(%{
+      channel: "cluster",
+      title: "Server `#{Kit.hostname()}` did start",
+      severity: "good",
+      doc: nil
+    })
 
     {:ok, pid}
   end
