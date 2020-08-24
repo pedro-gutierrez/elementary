@@ -188,7 +188,7 @@ defmodule Elementary.Encoder do
           data =
             case spec["as"] do
               nil ->
-                Map.merge(context, data)
+                Enum.map(data, fn item -> Map.merge(context, item) end)
 
               as ->
                 Enum.map(data, fn item -> Map.merge(context, %{as => item}) end)
