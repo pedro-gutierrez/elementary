@@ -31,7 +31,8 @@ spec:
       model:
         query: "@data.query"
       cmds:
-        http: query 
+        stop: fakeLocation
+        #http: query 
     noLocation:
       cmds:
         stop: noLocation 
@@ -58,3 +59,8 @@ spec:
       as: locations
     noLocation: "noLocation"
     location: "@data"
+    fakeLocation:
+      address: "fake address"
+      location:
+        lat: 36.7167
+        lon: 4.4260
