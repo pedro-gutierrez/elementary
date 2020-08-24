@@ -23,7 +23,8 @@ defmodule Elementary.Resolver do
 
     spec0 =
       Enum.reduce(["init", "decoders", "encoders", "update"], spec0, fn section, acc ->
-        Map.put(acc, section, Map.get(modules, section, %{}))
+        m1 = %{section => Map.get(modules, section, %{})}
+        Spec.merge(m1, acc)
       end)
 
     Map.put(spec, "spec", spec0)

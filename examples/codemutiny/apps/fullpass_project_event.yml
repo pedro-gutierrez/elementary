@@ -1,0 +1,28 @@
+kind: app
+name: fullpass_event_projection
+spec:
+  settings:
+    - codemutiny
+  modules:
+    - http
+  decoders:
+    caller:
+      project:
+        any: object
+    store:
+      updated:
+        any: number
+  update:
+    project:
+      model:
+        event: "@data"
+      cmds:
+        store: projection
+    updated: {}
+  encoders:
+    projection:
+      store: "@store"
+      ensure: "@event"
+      where:
+        id: "@event.id"
+      into: "events_view"
