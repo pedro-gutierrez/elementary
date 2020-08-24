@@ -26,10 +26,20 @@ spec:
       noLocation: noLocation
     stream:
       streamed: true
+    store:
+      existingEvent:
+        projection:
+          any: object
+      newEvent:
+        projection: not_found 
   update:
     resolve:
       model:
         event: "@data"
+      cmds:
+        store: findProjection
+    existingEvent: {}
+    newEvent:
       cmds:
         facebook: resolveEvent
     noEvent:
@@ -56,6 +66,12 @@ spec:
         stream: resolved
     streamed: {}
   encoders:
+    findProjection:
+      store: "@store"
+      fetch:
+        id: "@event.ref"
+      from: events_view
+      as: projection
     resolveEvent:
       object:
         resolve: "@event.ref"

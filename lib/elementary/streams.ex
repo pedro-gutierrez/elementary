@@ -171,7 +171,7 @@ defmodule Elementary.Streams do
         data
         |> Map.put("ts", Kit.datetime_from_mongo_id(id))
 
-      maybe_alert(data, state)
+      maybe_alert(data, state, state)
 
       :ok =
         Enum.each(apps, fn app ->
@@ -233,10 +233,12 @@ defmodule Elementary.Streams do
       end
     end
 
-    defp maybe_alert(_, %{alert: nil}), do: false
+    defp maybe_alert(_, %{alert: nil}, _), do: false
 
-    defp maybe_alert(data, %{alert: %{"channel" => channel, "title" => title} = spec}) do
-      with {:ok, title} <- Elementary.Encoder.encode(%{"format" => title, "params" => data}, data) do
+    defp maybe_alert(data, %{alert: %{"channel" => channel, "title" => title} = spec}, %{host: host}) do
+
+      with  data <- Map.merge(%{"host" => host}, data),
+            {:ok, title} <- Elementary.Encoder.encode(%{"format" => title, "params" => data}, data) do
         doc =
           case spec["doc"] do
             true ->
