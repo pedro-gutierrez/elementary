@@ -66,7 +66,49 @@ defmodule Elementary.Services do
       res
     end
 
-    defp with_telemetry({micros, res0} = res, app, _) when micros > 10000 do
+    defp with_telemetry({micros, res0}=res, app, %{"spec" => spec}) do
+      spec
+      |> telemetry_profile()
+      |> maybe_report_telemetry(micros, res0, app)
+
+      res
+    end
+
+    defp telemetry_profile(%{"telemetry" => profile}), do: profile
+
+    defp telemetry_profile(_), do: "fast"
+
+    defp maybe_report_telemetry("fast", micros, res, app) when micros > 150_000 do
+      report_telemetry(micros, res, app, "danger")
+    end
+
+    defp maybe_report_telemetry("fast", micros, res, app) when micros > 100_000 do
+      report_telemetry(micros, res, app, "warning")
+    end
+
+    defp maybe_report_telemetry("fast", _, _, _), do: :ok
+
+    defp maybe_report_telemetry("average", micros, res, app) when micros > 500_0000 do
+      report_telemetry(micros, res, app, "danger")
+    end
+
+    defp maybe_report_telemetry("average", micros, res, app) when micros > 300_0000 do
+      report_telemetry(micros, res, app, "warning")
+    end
+
+    defp maybe_report_telemetry("average", _, _, _), do: :ok
+
+    defp maybe_report_telemetry("slow", micros, res, app) when micros > 1_500_0000 do
+      report_telemetry(micros, res, app, "danger")
+    end
+
+    defp maybe_report_telemetry("slow", micros, res, app) when micros > 1_000_0000 do
+      report_telemetry(micros, res, app, "warning")
+    end
+
+    defp maybe_report_telemetry(_, _, _, _), do: :ok
+
+    defp report_telemetry(micros, res0, app, severity) do
       status =
         case res0 do
           {:error, _} ->
@@ -79,13 +121,12 @@ defmodule Elementary.Services do
       Stream.write_async("telemetry", %{
         "app" => app,
         "status" => status,
-        "duration" => trunc(micros / 1000)
+        "duration" => trunc(micros / 1000),
+        "severity" => severity
       })
 
-      res
     end
 
-    defp with_telemetry(res, _, _), do: res
 
     defp with_error(res, _, _, _, %{"spec" => %{"errors" => false}}) do
       res

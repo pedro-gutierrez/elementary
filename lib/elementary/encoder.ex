@@ -185,6 +185,15 @@ defmodule Elementary.Encoder do
           {:ok, []}
 
         [_ | _] ->
+          data =
+            case spec["as"] do
+              nil ->
+                Map.merge(context, data)
+
+              as ->
+                Enum.map(data, fn item -> Map.merge(context, %{as => item}) end)
+            end
+
           encode_items(encoder, data, encoders)
 
         other ->

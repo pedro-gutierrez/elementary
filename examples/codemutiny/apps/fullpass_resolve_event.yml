@@ -1,6 +1,7 @@
 kind: app
 name: fullpass_resolve_event
 spec:
+  telemetry: slow
   settings:
     - codemutiny
     - named: google

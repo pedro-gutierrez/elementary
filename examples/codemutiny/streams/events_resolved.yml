@@ -5,7 +5,8 @@ spec:
     - codemutiny
   alert:
     channel: events
-    title: "Succesfully resolved event *{{ title }}* with id *{{ ref }}*"
+    title: "Succesfully resolved event *{{ title }}* with id `{{ ref }}`"
+    severity: good
   apps:
     - fullpass_event_projection
     - fullpass_create_related_events

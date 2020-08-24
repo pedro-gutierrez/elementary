@@ -3,5 +3,7 @@ name: events_unlocated
 spec:
   settings: 
     - codemutiny
-  apps:
-    - fullpass_unlocated_event_alert
+  alert:
+    channel: events 
+    title: "Location for event *{{ title }}* with id `{{ ref }}` could not be found"
+    severity: warning

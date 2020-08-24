@@ -41,10 +41,7 @@ defmodule Elementary.Streams do
 
       col = stream
 
-      data =
-        data
-        |> Map.put("p", partition)
-        |> Map.drop(["id", "_id"])
+      data = stream_doc_from_data(partition, data)
 
       case "store" |> Index.spec!(store) |> Store.insert(col, data) do
         :ok ->
@@ -53,6 +50,16 @@ defmodule Elementary.Streams do
         _ ->
           false
       end
+    end
+
+    defp stream_doc_from_data(partition, data) when is_map(data) do
+      data
+      |> Map.put("p", partition)
+      |> Map.drop(["id", "_id"])
+    end
+
+    defp stream_doc_from_data(partition, data) when is_list(data) do
+      Enum.map(data, &stream_doc_from_data(partition, &1))
     end
 
     def write_async(stream, data) do
@@ -239,7 +246,20 @@ defmodule Elementary.Streams do
               nil
           end
 
-        Elementary.Slack.notify_async(channel, title, doc)
+        sev = case Elementary.Encoder.encode(spec["severity"] || "@severity", data) do
+          {:ok, sev} ->
+            sev
+          _ ->
+            "default"
+        end
+
+        Elementary.Slack.notify_async(%{
+          channel: channel,
+          severity: sev,
+          title: title,
+          doc: doc
+        })
+
         true
       end
     end

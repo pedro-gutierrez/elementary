@@ -11,6 +11,18 @@ defmodule Elementary.Slack do
   end
 
   def notify(channel, title, doc \\ nil) do
+    notify(%{channel: channel, title: title, severity: "default", doc: doc})
+  end
+
+  def notify_async(data) do
+    spawn(fn ->
+      notify(data)
+    end)
+
+    :ok
+  end
+
+  def notify(%{channel: channel, severity: sev, title: title, doc: doc}) do
     %{"spec" => spec} = Index.spec!("settings", "slack")
 
     case spec[channel] do
@@ -28,12 +40,20 @@ defmodule Elementary.Slack do
               "#{title} #{code(doc)}"
           end
 
+        body =
+          %{
+            "attachments" => [
+              %{
+                "color" => sev,
+                "text" => text
+              }
+            ]
+          }
+
         Elementary.Http.Client.run(
           method: "post",
           url: url,
-          body: %{
-            "text" => text
-          },
+          body: body,
           headers: %{
             "content-type" => "application/json"
           }

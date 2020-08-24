@@ -1,6 +1,7 @@
 kind: app
 name: geoLocation 
 spec:
+  telemetry: average 
   settings:
     - google
   modules:

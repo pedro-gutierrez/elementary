@@ -1,6 +1,7 @@
 kind: app
 name: fullpass_create_event
 spec:
+  telemetry: fast
   routes:
     codemutiny:
       post: "/api/fullpass/events"

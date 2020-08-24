@@ -15,7 +15,10 @@ spec:
   update:
     project:
       model:
-        event: "@data"
+        event: 
+          merge:
+            - "@data"
+            - id: "@data.ref"
       cmds:
         store: projection
     updated: {}

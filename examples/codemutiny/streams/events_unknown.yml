@@ -3,5 +3,7 @@ name: events_unknown
 spec:
   settings: 
     - codemutiny
-  apps:
-    - fullpass_unknown_event_alert
+  alert:
+    channel: errors
+    title: "Event with id `{{ ref }}` could not be resolved"
+    severity: danger 

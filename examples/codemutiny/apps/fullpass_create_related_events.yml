@@ -1,0 +1,37 @@
+kind: app
+name: fullpass_create_related_events
+spec:
+  settings:
+    - codemutiny
+  decoders:
+    caller:
+      events:
+        identity:
+          any: text
+        related:
+          non_empty: list
+      no_events:
+        related:
+          empty: list
+    stream:
+      written: true 
+  update:
+    no_events: {}
+    events:
+      model:
+        let:
+          identity: "@data.identity"
+        in:
+          events:
+            map: "@data.related"
+            as: ref
+            with:
+              ref: "@ref"
+              identity: "@identity"
+      cmds:
+        stream: events
+    written: {}
+  encoders:
+    events:
+      write: "@events"
+      to: events_created

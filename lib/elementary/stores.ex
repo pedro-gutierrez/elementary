@@ -264,6 +264,23 @@ defmodule Elementary.Stores do
       end
     end
 
+    def insert(spec, col, docs) when is_list(docs) do
+      docs = Enum.map(docs, &Kit.with_mongo_id(&1))
+
+      case spec
+           |> Stores.store_name()
+           |> Mongo.insert_many(
+             col,
+             docs
+           ) do
+        {:ok, _} ->
+          :ok
+
+        {:error, e} ->
+          {:error, mongo_error(e)}
+      end
+    end
+
     def subscribe(spec, col, partition, %{"offset" => offset}, fun, opts \\ []) do
       opts = opts |> Keyword.put(:started, Kit.millis())
 

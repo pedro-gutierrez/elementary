@@ -1,8 +1,0 @@
-kind: app
-name: fullpass_unlocated_event_alert
-spec:
-  debug: true
-  settings:
-    - codemutiny
-  modules:
-    - fullpass_unlocated_event_alert
