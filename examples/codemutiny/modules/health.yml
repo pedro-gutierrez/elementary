@@ -72,7 +72,6 @@ spec:
             encoder: hostInfo
         streams:
           map: "@streams"
-          as: stream
           with:
             encoder: streamInfo
         memory:
