@@ -1,0 +1,10 @@
+kind: stream
+name: events_blocked
+spec:
+  settings: 
+    - codemutiny
+  alert:
+    channel: events
+    title: "Event *{{ title }}* with id `{{ ref }}` was blocked by host `{{ host }}`"
+    severity: warning 
+  apps: []

@@ -43,7 +43,17 @@ defmodule Elementary.App do
              settings,
              encoders
            ) do
-      %{"model" => model, "cmds" => cmds} = Map.merge(%{"model" => %{}, "cmds" => %{}}, encoded)
+      default = %{"model" => %{}, "cmds" => %{}}
+
+      %{"model" => model, "cmds" => cmds} =
+        case encoded do
+          %{"model" => _, "cmds" => _} ->
+            Map.merge(default, encoded)
+
+          _ when is_map(encoded) ->
+            Map.merge(default, %{"model" => encoded})
+        end
+
       {:ok, Map.merge(settings, model), cmds}
     end
   end

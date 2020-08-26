@@ -1,6 +1,25 @@
 kind: module
 name: fullpass_resolve_event 
 spec:
+  init:
+    allowed:
+      - kiz
+      - semba
+      - urban
+      - zouk
+      - afr
+      - congress
+      - fest
+      - toma
+      - salsa
+      - bachata
+      - latin
+      - lisbon
+      - your dj
+      - sbk
+      - sensual
+      - temptation
+      - tarrax
   decoders:
     caller:
       resolve:
@@ -12,8 +31,14 @@ spec:
           any: date
     facebook:
       noEvent: no_such_event
-      event:
-        any: object
+      eventAllowed:
+        having:
+          title:
+            matchingSome: "@allowed"
+      eventBlocked:
+        having:
+          title:
+            matchingNone: "@allowed"
     service:
       location:
         address:
@@ -57,7 +82,7 @@ spec:
     noLocation:
       cmds:
         stream: noLocation
-    event:
+    eventAllowed:
       model:
         event: 
           merge:
@@ -65,6 +90,14 @@ spec:
             - "@model.event"
       cmds:
         service: location
+    eventBlocked:
+      model:
+        event: 
+          merge:
+            - "@data"
+            - "@model.event"
+      cmds:
+        stream: eventBlocked
     location:
       model:
         event:
@@ -104,6 +137,9 @@ spec:
     noEvent:
       write: "@event"
       to: events_unknown
+    eventBlocked:
+      write: "@event"
+      to: events_blocked
     noLocation:
       write: "@event"
       to: events_unlocated

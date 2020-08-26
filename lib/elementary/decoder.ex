@@ -183,6 +183,58 @@ defmodule Elementary.Decoder do
     |> result(spec)
   end
 
+  def decode(%{"having" => spec} = spec0, data, context) do
+    with {:ok, _} <- decode(spec, data, context) do
+      {:ok, data}
+    end
+    |> result(spec0)
+  end
+
+  def decode(%{"matchingSome" => spec} = spec0, data, context) do
+    with {:ok, items} when is_list(items) <- encode(spec, context) do
+      Enum.reduce_while(items, false, fn item, _ ->
+        case fuzzy_match?(data, item) do
+          true ->
+            {:halt, true}
+
+          false ->
+            {:cont, false}
+        end
+      end)
+      |> case do
+        true ->
+          {:ok, data}
+
+        false ->
+          decode_error(spec0, data)
+      end
+    end
+    |> result(spec0)
+  end
+
+  def decode(%{"matchingNone" => spec} = spec0, data, context) do
+    with {:ok, items} when is_list(items) <- encode(spec, context) do
+      Enum.reduce_while(items, false, fn item, _ ->
+        case fuzzy_match?(data, item) do
+          true ->
+            {:halt, false}
+
+          false ->
+            {:cont, true}
+        end
+      end)
+      |> case do
+        true ->
+          {:ok, data}
+
+        false ->
+          decode_error(spec0, data)
+      end
+    end
+    |> result(spec0)
+    |> IO.inspect()
+  end
+
   def decode(%{"list" => %{"without" => dec}} = spec, data, context) when is_list(data) do
     with {:ok, dec} <- encode(dec, context),
          nil <-
@@ -466,4 +518,10 @@ defmodule Elementary.Decoder do
 
   def decode_error?({:error, %{error: :decode}}), do: true
   def decode_error?(_), do: false
+
+  def fuzzy_match?(str1, str2) when is_binary(str1) and is_binary(str2) do
+    str1
+    |> String.downcase()
+    |> String.contains?(String.downcase(str2))
+  end
 end
