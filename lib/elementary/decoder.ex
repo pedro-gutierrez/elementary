@@ -232,7 +232,6 @@ defmodule Elementary.Decoder do
       end
     end
     |> result(spec0)
-    |> IO.inspect()
   end
 
   def decode(%{"list" => %{"without" => dec}} = spec, data, context) when is_list(data) do
