@@ -31,6 +31,7 @@ defmodule Elementary.Stores do
          [
            [
              connect_timeout: 30_000,
+             timeout: 30_000,
              name: name,
              url: url,
              pool_size: pool_size,
