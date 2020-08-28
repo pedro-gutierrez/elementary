@@ -350,14 +350,20 @@ defmodule Elementary.Stores do
           doc -> [%{"$set" => doc}]
         end
 
-      case spec
-           |> Stores.store_name()
-           |> Mongo.update_one(
-             col,
-             where,
-             doc,
-             upsert: upsert
-           ) do
+      try do
+        spec
+        |> Stores.store_name()
+        |> Mongo.update_one(
+          col,
+          where,
+          doc,
+          upsert: upsert
+        )
+      rescue
+        e ->
+          {:error, e}
+      end
+      |> case do
         {:ok,
          %Mongo.UpdateResult{
            acknowledged: true,

@@ -312,7 +312,7 @@ defmodule Elementary.Http do
     end
 
     defp response({:error, %HTTPoison.Error{reason: error}}) do
-      %{"error" => error}
+      %{"error" => "#{error}"}
     end
 
     defp decode_body(body, headers) do

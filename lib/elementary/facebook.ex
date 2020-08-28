@@ -2,17 +2,20 @@ defmodule Elementary.Facebook do
   alias Elementary.Http
 
   def resolve_event(id) do
-    {:ok, %{"status" => code, "body" => html}} =
-      Http.Client.run(url: "https://www.facebook.com/events/#{id}")
+    with {:ok, %{"status" => code, "body" => html}} <-
+           Http.Client.run(url: "https://www.facebook.com/events/#{id}") do
+      case code do
+        200 ->
+          with {:ok, event} <- parse_event(html) do
+            {:ok, Map.put(event, "id", id)}
+          end
 
-    case code do
-      200 ->
-        with {:ok, event} <- parse_event(html) do
-          {:ok, Map.put(event, "id", id)}
-        end
-
-      404 ->
-        {:error, :no_such_event}
+        404 ->
+          {:error, "no_such_event"}
+      end
+    else
+      {:ok, %{"error" => e}} ->
+        {:error, e}
     end
   end
 

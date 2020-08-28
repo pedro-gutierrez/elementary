@@ -164,7 +164,9 @@ defmodule Elementary.Streams do
 
     @impl true
     def handle_cast(%{"offset" => offset}, state) do
-      {:noreply, %{state | offset: offset}}
+      state = %{state | offset: offset}
+      :ok = write_offset(state)
+      {:noreply, state}
     end
 
     @impl true
@@ -187,7 +189,6 @@ defmodule Elementary.Streams do
           end
         end)
 
-      :ok = write_offset(state)
       {:noreply, state}
     end
 
