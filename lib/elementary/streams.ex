@@ -17,13 +17,44 @@ defmodule Elementary.Streams do
   defp service_spec(spec) do
     %{
       id: Stream.name(spec),
-      start: {Elementary.Streams.Stream, :start_link, [spec]}
+      start: {Elementary.Streams.StreamSupervisor, :start_link, [spec]}
     }
+  end
+
+  defmodule StreamSupervisor do
+    use Supervisor
+    alias Elementary.{App, Index, Stores, Stores.Store, Streams.Stream}
+
+    def name(%{"name" => name}) do
+      String.to_atom("#{name}_supervisor")
+    end
+
+    def start_link(spec) do
+      Supervisor.start_link(__MODULE__, spec, name: name(spec))
+    end
+
+    def init(%{"name" => name} = spec) do
+      %{"store" => store} = App.settings!(spec)
+
+      store_spec =
+        "store"
+        |> Index.spec!(store)
+        |> Map.put("name", name)
+
+      [
+        %{
+          id: Stream.name(spec),
+          start: {Stream, :start_link, [spec]}
+        },
+        Stores.store_spec(store_spec)
+      ]
+      |> Supervisor.init(strategy: :one_for_one)
+    end
   end
 
   defmodule Stream do
     use GenServer
-    alias Elementary.{Kit, Index, App, Stores.Store, Services.Service, Cluster}
+    alias Elementary.{Kit, Index, Stores.Store, Services.Service, Cluster}
     require Logger
 
     def start_link(spec) do
@@ -35,15 +66,13 @@ defmodule Elementary.Streams do
     def write(stream, data) do
       %{"spec" => %{"size" => size}} = Index.spec!("cluster", "default")
 
-      %{"spec" => %{"settings" => %{"store" => store}}} = Index.spec!("stream", stream)
-
       partition = :rand.uniform(size) - 1
 
       col = stream
 
       data = stream_doc_from_data(partition, data)
 
-      case "store" |> Index.spec!(store) |> Store.insert(col, data) do
+      case Store.insert(stream, col, data) do
         :ok ->
           true
 
@@ -72,8 +101,6 @@ defmodule Elementary.Streams do
 
     @impl true
     def init(%{"name" => name, "spec" => spec0} = spec) do
-      %{"store" => store} = App.settings!(spec)
-
       {:ok, cluster} = Cluster.info()
 
       alert =
@@ -98,7 +125,7 @@ defmodule Elementary.Streams do
         registered: name(spec),
         stream: name,
         id: "#{name}-#{cluster.partition}",
-        store: store,
+        store: name,
         col: name,
         apps: apps,
         alert: alert,
@@ -203,10 +230,8 @@ defmodule Elementary.Streams do
       %{"error" => other}
     end
 
-    defp read_offset(%{store: store, id: id}) do
-      case "store"
-           |> Index.spec!(store)
-           |> Store.find_one("streams", %{"id" => id}) do
+    defp read_offset(%{stream: stream, id: id}) do
+      case Store.find_one(stream, "streams", %{"id" => id}) do
         {:ok, %{"offset" => offset}} ->
           {:ok, offset}
 
@@ -218,10 +243,8 @@ defmodule Elementary.Streams do
       end
     end
 
-    defp write_offset(%{store: store, id: id, host: host, offset: offset}) do
-      store = Index.spec!("store", store)
-
-      case Store.ensure(store, "streams", %{"id" => id}, %{
+    defp write_offset(%{stream: stream, id: id, host: host, offset: offset}) do
+      case Store.ensure(stream, "streams", %{"id" => id}, %{
              "offset" => offset,
              "ts" => "$$NOW",
              "host" => host

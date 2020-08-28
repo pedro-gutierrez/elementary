@@ -17,7 +17,7 @@ defmodule Elementary.Stores do
   def store_name(%{"name" => name}), do: store_name(name)
   def store_name(name), do: String.to_atom("#{name}_store")
 
-  defp store_spec(%{"name" => store_name, "spec" => spec}) do
+  def store_spec(%{"name" => store_name, "spec" => spec}) do
     name = store_name(store_name)
     pool_size = spec["pool"] || 1
 
@@ -430,7 +430,7 @@ defmodule Elementary.Stores do
           {:error, :not_found}
 
         {:error, e} ->
-          {:error, e}
+          {:error, mongo_error(e)}
 
         doc ->
           {:ok, Kit.without_mongo_id(doc)}
