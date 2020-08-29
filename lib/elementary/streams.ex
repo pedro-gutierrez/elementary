@@ -107,7 +107,8 @@ defmodule Elementary.Streams do
         host: Kit.hostname()
       }
 
-      {:ok, initial_state, {:continue, :subscribe}}
+      {:ok, initial_state}
+      # {:continue, :subscribe}}
     end
 
     @impl true
