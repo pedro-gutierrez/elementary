@@ -326,6 +326,8 @@ defmodule Elementary.Stores do
             Keyword.put(opts, :start_after, %{"_data" => offset})
         end
 
+      opts = opts |> Keyword.merge(timeout: 30_000, connect_timeout: 30_000, pool_timeout: 30_000)
+
       pid =
         spawn_link(fn ->
           spec
