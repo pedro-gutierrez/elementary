@@ -30,8 +30,8 @@ defmodule Elementary.Stores do
         {Mongo, :start_link,
          [
            [
-             connect_timeout: 30_000,
-             timeout: 30_000,
+             timeout: 5000,
+             pool_timeout: 8000,
              name: name,
              url: url,
              pool_size: pool_size,
