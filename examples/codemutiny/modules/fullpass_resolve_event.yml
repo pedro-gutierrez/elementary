@@ -20,6 +20,10 @@ spec:
       - sensual
       - temptation
       - tarrax
+      - mambo
+      - dance
+      - danse
+      - baila
   decoders:
     caller:
       resolve:
