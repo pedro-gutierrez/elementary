@@ -346,11 +346,7 @@ defmodule Elementary.Stores do
 
       doc =
         Kit.with_mongo_id(doc)
-        |> case do
-          %{"$push" => _} = doc -> doc
-          %{"$pull" => _} = doc -> doc
-          doc -> [%{"$set" => doc}]
-        end
+        |> update_spec()
 
       try do
         spec
@@ -379,24 +375,39 @@ defmodule Elementary.Stores do
       end
     end
 
+    def update_many(spec, col, where, doc) do
+      where = Kit.with_mongo_id(where)
+
+      doc =
+        Kit.with_mongo_id(doc)
+        |> update_spec()
+
+      try do
+        spec
+        |> Stores.store_name()
+        |> Mongo.update_many(
+          col,
+          where,
+          doc
+        )
+      rescue
+        e ->
+          {:error, e}
+      end
+      |> case do
+        {:ok,
+         %Mongo.UpdateResult{
+           modified_count: modified
+         }} ->
+          {:ok, modified}
+
+        {:error, e} ->
+          {:error, mongo_error(e)}
+      end
+    end
+
     def find_all(spec, col, query, opts \\ []) do
-      opts =
-        case opts[:sort] do
-          nil ->
-            []
-
-          sort ->
-            [
-              sort:
-                Enum.map(sort, fn
-                  {k, "asc"} ->
-                    {k, 1}
-
-                  {k, "desc"} ->
-                    {k, -1}
-                end)
-            ]
-        end
+      opts = with_sort(opts)
 
       opts =
         Keyword.merge(opts,
@@ -413,6 +424,31 @@ defmodule Elementary.Stores do
        |> Stream.map(&Kit.without_mongo_id(&1))
        |> Enum.to_list()}
     end
+
+    defp with_sort(opts) do
+      case opts[:sort] do
+        nil ->
+          opts
+
+        sort ->
+          Keyword.put(
+            opts,
+            :sort,
+            Enum.map(sort, fn
+              {k, "asc"} ->
+                {k, 1}
+
+              {k, "desc"} ->
+                {k, -1}
+            end)
+          )
+      end
+    end
+
+    defp update_spec(%{"$unset" => _} = doc), do: doc
+    defp update_spec(%{"$push" => _} = doc), do: doc
+    defp update_spec(%{"$pull" => _} = doc), do: doc
+    defp update_spec(doc), do: [%{"$set" => doc}]
 
     def find_one(spec, col, query, opts \\ []) do
       store = Stores.store_name(spec)
@@ -436,6 +472,25 @@ defmodule Elementary.Stores do
 
         doc ->
           {:ok, Kit.without_mongo_id(doc)}
+      end
+    end
+
+    def find_one_and_update(spec, col, query, update, opts) do
+      store = Stores.store_name(spec)
+      query = Kit.with_mongo_id(query)
+      opts = with_sort(opts)
+
+      update = update_spec(update)
+
+      case Mongo.find_one_and_update(store, col, query, update, opts) do
+        {:ok, nil} ->
+          {:error, :not_found}
+
+        {:ok, item} ->
+          {:ok, Kit.without_mongo_id(item)}
+
+        {:error, e} ->
+          {:error, mongo_error(e)}
       end
     end
 
@@ -516,6 +571,15 @@ defmodule Elementary.Stores do
 
         {:error, e} ->
           {:error, mongo_error(e)}
+      end
+    end
+
+    def count(spec, col, where) do
+      store = Stores.store_name(spec)
+      where = Kit.with_mongo_id(where)
+
+      with {:error, e} <- Mongo.count_documents(store, col, where) do
+        {:error, mongo_error(e)}
       end
     end
 

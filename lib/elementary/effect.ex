@@ -58,6 +58,11 @@ defmodule Elementary.Effect do
     |> effect_result(spec)
   end
 
+  def apply("stream", %{"info" => _} = spec) do
+    Elementary.Streams.info()
+    |> effect_result(spec)
+  end
+
   def apply("stores", %{"stats" => _} = spec) do
     "store"
     |> Index.specs()

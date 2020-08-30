@@ -92,4 +92,8 @@ defmodule Elementary.Calendar do
   def time_ago(amount, :month) do
     {:ok, DateTime.utc_now() |> DateTime.add(-3600 * 24 * 30 * amount, :second)}
   end
+
+  def time_ago(amount, :second) do
+    {:ok, DateTime.utc_now() |> DateTime.add(-amount, :second)}
+  end
 end

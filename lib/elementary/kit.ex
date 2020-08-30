@@ -128,6 +128,12 @@ defmodule Elementary.Kit do
   end
 
   def with_mongo_id(%{"id" => id} = doc) do
+    id =
+      case BSON.ObjectId.decode(id) do
+        {:ok, id} -> id
+        :error -> id
+      end
+
     doc
     |> Map.put("_id", id)
     |> Map.drop(["id"])

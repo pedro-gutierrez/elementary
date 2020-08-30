@@ -122,11 +122,11 @@ defmodule Elementary.Http do
               reply(req, app, method, start, resp)
 
             {:ok, other} ->
-              resp = error_response(app, %{error: :invalid_http_response, data: other})
+              resp = error_response(app, %{"invalid_http_response" => other})
               reply(req, app, method, start, resp)
 
             other ->
-              resp = error_response(app, %{unexpected: other})
+              resp = error_response(app, %{"unexpected" => other})
               reply(req, app, method, start, resp)
           end
 
