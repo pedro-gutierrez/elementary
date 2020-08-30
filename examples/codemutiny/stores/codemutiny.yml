@@ -56,8 +56,8 @@ spec:
           after: 3600
     events_resolved:
       indexes:
-        - ref
+        - unique: ref
     events_unlocated:
       indexes:
-        - ref
+        - unique: ref
     

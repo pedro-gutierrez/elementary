@@ -162,35 +162,35 @@ defmodule Elementary.Stores do
     end
 
     def ensure_indexes(spec, col, indices) do
-      Enum.map(indices, fn
-        %{"lookup" => field} when is_binary(field) ->
-          {"_#{field}_", [unique: false, key: [{field, 1}]]}
-
-        %{"unique" => field} when is_binary(field) ->
-          {"_#{field}_", [unique: true, key: [{field, 1}]]}
-
-        %{"unique" => fields} when is_list(fields) ->
-          {Enum.join([""] ++ fields ++ [""], "_"),
-           [unique: true, key: Enum.map(fields, fn f -> {f, 1} end)]}
-
-        %{"geo" => field} ->
-          {"_#{field}_", [key: %{field => "2dsphere"}]}
-
-        %{"expire" => field, "after" => seconds} ->
-          {"_#{field}_", [expireAfterSeconds: seconds, key: [{field, 1}]]}
-      end)
-      |> Enum.each(fn {name, opts} ->
-        case ensure_index(spec, col, name, opts) do
-          :ok ->
-            :ok
-
-          other ->
-            raise "Error creating index #{inspect(spec)} on collection #{col}: #{inspect(other)}"
-        end
+      Enum.each(indices, fn index ->
+        ensure_index(spec, col, index)
       end)
     end
 
-    def ensure_index(spec, col, name, opts) do
+    def index_spec(%{"lookup" => field}) when is_binary(field) do
+      {"_#{field}_", [unique: false, key: [{field, 1}]]}
+    end
+
+    def index_spec(%{"unique" => field}) when is_binary(field) do
+      {"_#{field}_", [unique: true, key: [{field, 1}]]}
+    end
+
+    def index_spec(%{"unique" => fields}) when is_list(fields) do
+      {Enum.join([""] ++ fields ++ [""], "_"),
+       [unique: true, key: Enum.map(fields, fn f -> {f, 1} end)]}
+    end
+
+    def index_spec(%{"geo" => field}) do
+      {"_#{field}_", [key: %{field => "2dsphere"}]}
+    end
+
+    def index_spec(%{"expire" => field, "after" => seconds}) do
+      {"_#{field}_", [expireAfterSeconds: seconds, key: [{field, 1}]]}
+    end
+
+    def ensure_index(spec, col, index) do
+      {name, opts} = index_spec(index)
+
       with {:ok, _} <-
              spec
              |> Stores.store_name()

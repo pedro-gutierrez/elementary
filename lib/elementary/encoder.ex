@@ -231,7 +231,7 @@ defmodule Elementary.Encoder do
     |> result(spec, context)
   end
 
-  def encode(%{"unique" => items} = spec, context, encoders) do
+  def encode(%{"distinct" => items} = spec, context, encoders) do
     case encode(items, context, encoders) do
       {:ok, items} when is_list(items) ->
         {:ok, Enum.uniq(items)}

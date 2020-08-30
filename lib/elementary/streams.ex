@@ -293,6 +293,9 @@ defmodule Elementary.Streams do
             []
         end
 
+      :ok = Store.ensure_index(store, name, %{"lookup" => "started"})
+      :ok = Store.ensure_index(store, name, %{"lookup" => "finished"})
+
       initial_state = %{
         registered: name(spec),
         stream: name,

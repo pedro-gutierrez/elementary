@@ -26,7 +26,7 @@ spec:
     subscriptions:
       model:
         products:
-          unique:
+          distinct:
             map: "@data.subscriptions"
             with: "@product"
       cmds:

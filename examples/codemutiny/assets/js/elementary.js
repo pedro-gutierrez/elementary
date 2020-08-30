@@ -1,6 +1,6 @@
 export default (appUrl, appEffects, deps, facts) => {
 
-    var {Mustache, moment} = deps;
+    var { Mustache, moment } = deps;
 
     const state = {}
 
@@ -43,13 +43,13 @@ export default (appUrl, appEffects, deps, facts) => {
         return [].concat(...arr)
     }
 
-    function getIn(paths, ctx){
+    function getIn(paths, ctx) {
         var value = ctx;
         for (var i = 0; i < paths.length; i++) {
             var path = paths[i];
             if (!hasProp(value, path)) {
                 if (path === "$" && typeOf(value) === "object") {
-                    return {value: Object.values(value)}
+                    return { value: Object.values(value) }
                 }
 
                 return error(path, value, "Missing key");
@@ -57,13 +57,13 @@ export default (appUrl, appEffects, deps, facts) => {
             }
             value = value[path];
         }
-        return {value};
+        return { value };
     }
-    
+
     function getInOrDefault(spec, defaultVal, ctx) {
-        var {err, value} = getIn(spec, ctx);
+        var { err, value } = getIn(spec, ctx);
         if (err) return encode(defaultVal, ctx);
-        return {value};
+        return { value };
     }
 
     function encodeObject(spec, ctx) {
@@ -86,9 +86,9 @@ export default (appUrl, appEffects, deps, facts) => {
     }
 
     function encodeKeyOrDefault(spec, defaultVal, ctx) {
-        var {err, value} = encodeKey(spec, ctx);
+        var { err, value } = encodeKey(spec, ctx);
         if (err) return encode(defaultVal, ctx);
-        return {value};
+        return { value };
     }
 
     function encodeList(items, ctx) {
@@ -156,21 +156,21 @@ export default (appUrl, appEffects, deps, facts) => {
 
     function encodeMaybe(spec, ctx) {
         const { err, value } = encode(spec.maybe, ctx);
-        if (!err || !spec.otherwise) return {value};
+        if (!err || !spec.otherwise) return { value };
         return encode(spec.otherwise, ctx);
     }
 
     function encodeMaybeWith(spec, ctx) {
         var obj = {}
-        for (var i=0; i<spec.maybe_with.length; i++) {
+        for (var i = 0; i < spec.maybe_with.length; i++) {
             var prop = spec.maybe_with[i];
-            var {value} = encode("@"+prop, ctx);
+            var { value } = encode("@" + prop, ctx);
             if (value && value.length) {
                 obj[prop] = value
             }
-       }
+        }
 
-        return {value: obj};
+        return { value: obj };
     }
 
     function encodeEqual(spec, ctx) {
@@ -182,7 +182,7 @@ export default (appUrl, appEffects, deps, facts) => {
             var s = spec.equal[i];
             var { err: equalErr, value: equalValue } = encode(s, ctx);
             if (equalErr) return error(spec, ctx, equalErr);
-            if (equalValue!= expected) return { value: false };
+            if (equalValue != expected) return { value: false };
         }
 
         return { value: true };
@@ -215,7 +215,7 @@ export default (appUrl, appEffects, deps, facts) => {
         var { err, value } = encode(spec.is_set, ctx);
         if (err) return error(spec, ctx, err);
         if (!value) return { value: false };
-        return {value: !isEmpty(value)};
+        return { value: !isEmpty(value) };
     }
 
     function encodeNot(spec, ctx) {
@@ -243,7 +243,7 @@ export default (appUrl, appEffects, deps, facts) => {
             if (whenErr) return error(s.when, ctx, whenErr);
             if (whenValue) {
                 s = s.then || s;
-                var { err: thenErr, value: thenValue} = encode(s, ctx);
+                var { err: thenErr, value: thenValue } = encode(s, ctx);
                 if (thenErr) return error(s, ctx, thenErr);
                 return { value: thenValue };
             }
@@ -315,23 +315,23 @@ export default (appUrl, appEffects, deps, facts) => {
     //}
 
     function encodeData(spec) {
-        return {value: spec.data};
+        return { value: spec.data };
     }
 
     function encodeEmpty(spec, ctx) {
-        var {err, value} = encode(spec.empty, ctx);
+        var { err, value } = encode(spec.empty, ctx);
         if (err) return error(spec.empty, ctx, err);
-        return {value: isEmpty(value)};
+        return { value: isEmpty(value) };
     }
 
     function encodeHas(spec, ctx) {
-        var {err, value} = encode(spec.has, ctx);
+        var { err, value } = encode(spec.has, ctx);
         if (err) return error(spec.has, ctx, err);
-        return {value: hasProp(ctx, value)};
+        return { value: hasProp(ctx, value) };
     }
 
     function encodeMember(spec, ctx) {
-        var {err, value} = encode(spec.member, ctx);
+        var { err, value } = encode(spec.member, ctx);
         if (err) return error(spec.member, ctx, err);
         var valueType = typeOf(value);
 
@@ -344,7 +344,7 @@ export default (appUrl, appEffects, deps, facts) => {
         if (value.length != 2) return error(spec, ctx, {
             reason: "invalid lenght",
             data: value,
-            expect: {length: 2}
+            expect: { length: 2 }
         });
 
         var [col, item] = value;
@@ -356,14 +356,14 @@ export default (appUrl, appEffects, deps, facts) => {
             expected: "list"
         });
 
-        return {value: col.indexOf(item) != -1};
+        return { value: col.indexOf(item) != -1 };
     }
 
     function encodeAdd(spec, ctx) {
-        var {err: itemErr, value: item} = encode(spec.add, ctx);
+        var { err: itemErr, value: item } = encode(spec.add, ctx);
         if (itemErr) return error(spec.add, ctx, itemErr);
 
-        var {err: colErr, value: col} = encode(spec.to, ctx);
+        var { err: colErr, value: col } = encode(spec.to, ctx);
         if (colErr) return error(spec.to, ctx, colErr);
 
         var colType = typeOf(col);
@@ -374,14 +374,14 @@ export default (appUrl, appEffects, deps, facts) => {
             expected: "list"
         });
 
-        return {value: col.concat([item])};
+        return { value: col.concat([item]) };
     }
 
-    function encodeRemove(spec, ctx){
-        var {err: itemErr, value: item} = encode(spec.remove, ctx);
+    function encodeRemove(spec, ctx) {
+        var { err: itemErr, value: item } = encode(spec.remove, ctx);
         if (itemErr) return error(spec.remove, ctx, itemErr);
 
-        var {err: colErr, value: col} = encode(spec.from, ctx);
+        var { err: colErr, value: col } = encode(spec.from, ctx);
         if (colErr) return error(spec.from, ctx, colErr);
 
         var colType = typeOf(col);
@@ -396,21 +396,21 @@ export default (appUrl, appEffects, deps, facts) => {
             return i != item;
         });
 
-        console.log("removing from list", {col, item, out});
-        return {value: out};
+        console.log("removing from list", { col, item, out });
+        return { value: out };
     }
 
     function encodeMatch(spec, ctx) {
-        var {err, value} = encode(spec.match, ctx);
+        var { err, value } = encode(spec.match, ctx);
         if (err) return error(spec.match, ctx, err);
-        var {err: decodeErr } = decode(value, ctx);
-        return {value: !decodeErr};
+        var { err: decodeErr } = decode(value, ctx);
+        return { value: !decodeErr };
     }
 
 
     function encodeIndex(spec, ctx) {
         var path = isEmpty(spec.index) ? "@items" : spec.index;
-        var {err, value} = encode(path, ctx);
+        var { err, value } = encode(path, ctx);
         if (err) return error(path, ctx, err);
         var source = value;
 
@@ -425,31 +425,31 @@ export default (appUrl, appEffects, deps, facts) => {
         var indexExpr = isEmpty(spec.with) ? "@item.id" : spec.with;
 
         var out = {}
-        for( var i=0; i<source.length; i++) {
+        for (var i = 0; i < source.length; i++) {
 
             var item = source[i];
             var itemCtx = Object.assign({}, ctx);
             itemCtx[spec.as || "item"] = item;
 
-            var {err: indexErr, value: indexValue} = encode(indexExpr, itemCtx);
-            if(indexErr) return error(indexExpr, itemCtx, indexErr);
+            var { err: indexErr, value: indexValue } = encode(indexExpr, itemCtx);
+            if (indexErr) return error(indexExpr, itemCtx, indexErr);
 
             var key = indexValue;
-            if( typeOf(key) != 'text') return error(indexExpr, itemCtx, {
+            if (typeOf(key) != 'text') return error(indexExpr, itemCtx, {
                 reason: "Type mismatch",
                 actual: value,
                 expectedType: "text"
             });
             out[key] = item;
         }
-        return {value: out};
+        return { value: out };
 
     }
 
     function encodeGroup(spec, ctx) {
 
         var path = isEmpty(spec.group) ? "@items" : spec.group;
-        var {err, value} = encode(path, ctx);
+        var { err, value } = encode(path, ctx);
         if (err) return error(path, ctx, err);
         var source = value;
 
@@ -465,17 +465,17 @@ export default (appUrl, appEffects, deps, facts) => {
 
         var out = {}
 
-        for( var i=0; i<source.length; i++) {
+        for (var i = 0; i < source.length; i++) {
 
             var item = source[i];
             var itemCtx = Object.assign({}, ctx);
             itemCtx[spec.as || "item"] = item;
 
-            var {err: groupErr, value: groupValue} = encode(groupExpr, itemCtx);
-            if(groupErr) return error(groupExpr, itemCtx, groupErr);
+            var { err: groupErr, value: groupValue } = encode(groupExpr, itemCtx);
+            if (groupErr) return error(groupExpr, itemCtx, groupErr);
 
             var key = groupValue;
-            if( typeOf(key) != 'text') return error(groupExpr, itemCtx, {
+            if (typeOf(key) != 'text') return error(groupExpr, itemCtx, {
                 reason: "Type mismatch",
                 actual: value,
                 expected: "text"
@@ -484,18 +484,18 @@ export default (appUrl, appEffects, deps, facts) => {
             if (!out[key]) out[key] = []
             out[key].push(item);
         }
-        return {value: out}
+        return { value: out }
     }
 
     function encodeResolve(spec, ctx) {
-        var {err, value} = encode(spec.resolve, ctx);
+        var { err, value } = encode(spec.resolve, ctx);
         if (err) return error(spec.resolve, ctx, err);
         var path = value;
         var pathType = typeOf(path);
         switch (pathType) {
             case 'list':
                 path = "@" + path.join(".");
-                return encodeKeyOrDefault({key: path}, spec.otherwise, ctx);
+                return encodeKeyOrDefault({ key: path }, spec.otherwise, ctx);
 
             case 'text':
                 return getInOrDefault([path], spec.otherwise, ctx);
@@ -511,7 +511,7 @@ export default (appUrl, appEffects, deps, facts) => {
     }
 
     function encodeLet(spec, ctx) {
-        var {err, value} = encode(spec.let, ctx);
+        var { err, value } = encode(spec.let, ctx);
         if (err) return error(spec.let, ctx, err);
         var letCtx = Object.assign({}, ctx, value);
         return encode(spec.in, letCtx);
@@ -610,7 +610,7 @@ export default (appUrl, appEffects, deps, facts) => {
         if (!value || value.length < 2) return error(spec, ctx, {
             error: "not_enough_arguments",
             actual: value,
-            expect: {type: "list", min_length: 2}
+            expect: { type: "list", min_length: 2 }
         });
         var num = value[0];
         for (var i = 1; i < value.length; i++) {
@@ -721,20 +721,20 @@ export default (appUrl, appEffects, deps, facts) => {
     }
 
     function encodeFirst(spec, ctx) {
-        var {err, value: first } = encode(spec.first, ctx);
+        var { err, value: first } = encode(spec.first, ctx);
         if (err) return error(spec.first, ctx, err);
-        var {err, value: items } = encode(spec.in, ctx);
+        var { err, value: items } = encode(spec.in, ctx);
         if (err) return error(spec.in, ctx, err);
         if (!Array.isArray(items)) return error(spec, items, "not_a_list");
         if (!items.length) return error(spec, ctx, "empty_list");
-        for (var i=0; i<items.length; i++) {
+        for (var i = 0; i < items.length; i++) {
             var item = items[i];
-            var {err, decoded} = decode(first, item);
+            var { err, decoded } = decode(first, item);
             if (!err && decoded) {
-                return {value: item};
-            } 
+                return { value: item };
+            }
         }
-        return error(spec, ctx, "no_item_matched"); 
+        return error(spec, ctx, "no_item_matched");
     }
 
     function encodeHead(spec, ctx) {
@@ -780,7 +780,7 @@ export default (appUrl, appEffects, deps, facts) => {
         if (err) return error(spec, ctx, err);
         var { err: err2, value: v2 } = encode(spec.greaterThan[1], ctx);
         if (err2) return error(spec, ctx, err2);
-        return { value: v1 > v2};
+        return { value: v1 > v2 };
     }
 
     function encodeLowerThan(spec, ctx) {
@@ -810,15 +810,15 @@ export default (appUrl, appEffects, deps, facts) => {
             clause = spec["default"]
 
         }
-        var { err: clauseErr, value: clauseValue} = encode(clause, ctx);
+        var { err: clauseErr, value: clauseValue } = encode(clause, ctx);
         if (clauseErr) return error(clause, ctx, clauseErr);
         return { value: clauseValue };
     }
 
     function encodeChoose(spec, ctx) {
-        var {err, value : v1} = encode(spec.choose, ctx);
+        var { err, value: v1 } = encode(spec.choose, ctx);
         if (err) return error(spec.choose, ctx, err);
-        var {err, value: when} = encode(spec.when, ctx);
+        var { err, value: when } = encode(spec.when, ctx);
         if (err) return error(spec.when, ctx, err);
         if (when === v1) {
             return encode(spec.then, ctx);
@@ -828,9 +828,9 @@ export default (appUrl, appEffects, deps, facts) => {
     }
 
     function encodeIf(spec, ctx) {
-        var {err, value} = encode(spec.if, ctx);
+        var { err, value } = encode(spec.if, ctx);
         if (err) return encode(spec.else, ctx);
-        return encode(spec.then,ctx);
+        return encode(spec.then, ctx);
     }
 
     function encodePipeline(spec, ctx) {
@@ -910,10 +910,10 @@ export default (appUrl, appEffects, deps, facts) => {
     function encodeCombine(spec, ctx) {
         var path = isEmpty(spec.combine) ? "@items" : spec.combine;
 
-        var {err, value: source} = encode(path, ctx);
+        var { err, value: source } = encode(path, ctx);
         if (err) return error(path, ctx, err);
 
-        var {err: withErr, value: dest} = encode(spec.with, ctx);
+        var { err: withErr, value: dest } = encode(spec.with, ctx);
         if (withErr) return error(spec.with, ctx, withErr);
 
         var sourceType = typeOf(source);
@@ -926,13 +926,13 @@ export default (appUrl, appEffects, deps, facts) => {
             expectedType: sourceType
         });
 
-        switch(sourceType) {
-            case "object" :
-                return {value: Object.assign(source, dest)}
-            case "list" :
-                return {value: source.concat(dest)};
+        switch (sourceType) {
+            case "object":
+                return { value: Object.assign(source, dest) }
+            case "list":
+                return { value: source.concat(dest) };
             default:
-                return {value: source + dest}
+                return { value: source + dest }
         }
     }
 
@@ -943,8 +943,8 @@ export default (appUrl, appEffects, deps, facts) => {
         }), ctx);
     }
 
-    function encodeUnique(spec, ctx) {
-        var itemsSpec = isEmpty(spec.unique) ? "@items" : spec.unique;
+    function encodeDistinct(spec, ctx) {
+        var itemsSpec = isEmpty(spec.distinct) ? "@items" : spec.distinct;
         var { err: itemsErr, value: items } = encode(itemsSpec, ctx);
         if (itemsErr) return error(itemsSpec, ctx, itemsErr);
         if (!Array.isArray(items)) return error(itemsSpec, items, {
@@ -963,7 +963,7 @@ export default (appUrl, appEffects, deps, facts) => {
                 var itemCtx = Object.assign({}, ctx);
                 itemCtx[spec.as || "item"] = item;
 
-                var { err: byErr, value: byValue} = encode(bySpec, itemCtx);
+                var { err: byErr, value: byValue } = encode(bySpec, itemCtx);
                 if (byErr) return error(bySpec, itemCtx, byErr);
                 if (!byValue || typeof (byValue) != 'string') return error(byValue, bySpec, {
                     error: "type_mistmatch",
@@ -978,7 +978,7 @@ export default (appUrl, appEffects, deps, facts) => {
     }
 
     function encodeTake(spec, ctx) {
-        var {err, value} = encode(spec.take, ctx);
+        var { err, value } = encode(spec.take, ctx);
         if (err) return error(spec.take, ctx, err);
         if (!typeOf(value) === "list") return error(spec.take, ctx, {
             error: "type_mistmatch",
@@ -988,7 +988,7 @@ export default (appUrl, appEffects, deps, facts) => {
 
         var keys = value;
 
-        var {err: fromErr, value: fromValue} = encode(spec.from, ctx);
+        var { err: fromErr, value: fromValue } = encode(spec.from, ctx);
         if (fromErr) return error(spec.from, ctx, fromErr);
         if (!typeOf(fromValue) === "object") return error(spec.from, ctx, {
             error: "type_mistmatch",
@@ -999,27 +999,27 @@ export default (appUrl, appEffects, deps, facts) => {
         var source = fromValue;
 
         var out = {}
-        for (var i=0; i<keys.length; i++) {
+        for (var i = 0; i < keys.length; i++) {
             var key = keys[i];
             out[key] = source[key];
         }
 
-        return {value: out};
+        return { value: out };
     }
 
     function uuidv4() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
             var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
             return v.toString(16);
         });
     }
 
     function encodeUuid(_spec, _ctx) {
-        return {value: uuidv4()};
+        return { value: uuidv4() };
     }
 
     function encodeCamel(spec, ctx) {
-        var {err, value} = encode(spec.camel, ctx);
+        var { err, value } = encode(spec.camel, ctx);
         if (err) return error(spec, err, ctx);
         return { value: value.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase()) }
     }
@@ -1073,7 +1073,7 @@ export default (appUrl, appEffects, deps, facts) => {
                 if (spec.flat_map) return encodeFlatmap(spec, ctx);
                 if (spec.filter) return encodeFilter(spec, ctx);
                 if (spec.reject) return encodeReject(spec, ctx);
-                if (spec.unique) return encodeUnique(spec, ctx);
+                if (spec.distinct) return encodeDistinct(spec, ctx);
                 if (spec.data) return encodeData(spec, ctx);
                 if (spec.has) return encodeHas(spec, ctx);
                 if (spec.member) return encodeMember(spec, ctx);
@@ -1117,22 +1117,22 @@ export default (appUrl, appEffects, deps, facts) => {
         }
         return { decoded: out };
     }
-    
+
     function decodeEntryWith(spec, data, ctx) {
-        var {err, value} = encode(spec.entry_with, ctx);
+        var { err, value } = encode(spec.entry_with, ctx);
         if (err) return error(spec.entry_with, ctx, err);
-        switch(typeOf(data)) {
+        switch (typeOf(data)) {
             case "object":
                 for (var k in data) {
                     if (hasProp(data, k)) {
                         var v = data[k];
                         if (v == value) {
-                            return {decoded: data};
+                            return { decoded: data };
                         }
                     }
                 }
 
-            default: {}
+            default: { }
         }
         return error(spec, data, "no_match");
     }
@@ -1225,19 +1225,19 @@ export default (appUrl, appEffects, deps, facts) => {
         var dataType = typeOf(data);
         switch (dataType) {
             case "list":
-                for (var i=0; i<data.length; i++) {
+                for (var i = 0; i < data.length; i++) {
                     var item = data[i];
-                    var {err, decoded} = decode(spec.with, item, ctx);
-                    if (!err && decoded) return {decoded: data}
+                    var { err, decoded } = decode(spec.with, item, ctx);
+                    if (!err && decoded) return { decoded: data }
                 }
 
                 return error(spec, data, "no_match");
 
             case "object":
-                return decodeObject({object: spec.with}, data, ctx);
+                return decodeObject({ object: spec.with }, data, ctx);
 
             default:
-                return error(spec, data, {error: "type_mistmatch", actual: dataType, expected: ["list", "object"]});
+                return error(spec, data, { error: "type_mistmatch", actual: dataType, expected: ["list", "object"] });
         }
     }
 
@@ -1246,20 +1246,20 @@ export default (appUrl, appEffects, deps, facts) => {
         var dataType = typeOf(data);
         switch (dataType) {
             case "object":
-                var {err, value} = encode(spec.without, ctx)
+                var { err, value } = encode(spec.without, ctx)
                 if (err) return error(spec, ctx, err)
-                if (typeOf(value) != "list") return error(spec.without, ctx, {error: "type_mismatch", actual: value, expected: "list"});
+                if (typeOf(value) != "list") return error(spec.without, ctx, { error: "type_mismatch", actual: value, expected: "list" });
 
-                for (var i=0; i<value.length; i++) {
+                for (var i = 0; i < value.length; i++) {
                     var key = value[i];
                     if (hasProp(data, key)) {
-                        return error(spec, data, {error: "unexpected_key", key: key, data: data});
+                        return error(spec, data, { error: "unexpected_key", key: key, data: data });
                     }
                 }
-                return {decoded: data}
+                return { decoded: data }
 
             default:
-                return error(spec, data, {error: "type_mistmatch", actual: dataType, expected: ["object"]});
+                return error(spec, data, { error: "type_mistmatch", actual: dataType, expected: ["object"] });
         }
     }
 
@@ -1279,18 +1279,18 @@ export default (appUrl, appEffects, deps, facts) => {
             expected: "list"
         });
 
-        var {err, value: items} = encode(spec.all, ctx);
+        var { err, value: items } = encode(spec.all, ctx);
         if (err) return error(spec.all, ctx, err);
 
         var itemsType = typeOf(items);
-        if (itemsType!= 'list') return error(spec, data, {
+        if (itemsType != 'list') return error(spec, data, {
             error: "type_mistmatch",
             actual: itemsType,
             expected: "list"
         });
 
         var inter = intersection(items, data);
-        return inter.length == items.length ? {decoded: data} : error(spec, data, "no_match");
+        return inter.length == items.length ? { decoded: data } : error(spec, data, "no_match");
     }
 
     function decodeSome(spec, data, ctx) {
@@ -1303,30 +1303,30 @@ export default (appUrl, appEffects, deps, facts) => {
             expected: "list"
         });
 
-        var {err, value: items} = encode(spec.some, ctx);
+        var { err, value: items } = encode(spec.some, ctx);
         if (err) return error(spec.some, ctx, err);
 
         var itemsType = typeOf(items);
-        if (itemsType!= 'list') return error(spec, data, {
+        if (itemsType != 'list') return error(spec, data, {
             error: "type_mistmatch",
             actual: itemsType,
             expected: "list"
         });
 
         var inter = intersection(items, data);
-        return inter.length ? {decoded: data} : error(spec, data, "no_match");
+        return inter.length ? { decoded: data } : error(spec, data, "no_match");
     }
 
     function decodeEmpty(spec, data) {
-        if (!data || isEmpty(data)) return {decoded: data};
+        if (!data || isEmpty(data)) return { decoded: data };
         return error(spec, data, "no_match")
     }
 
     function decodeNonEmpty(spec, data) {
-        var {err} = decodeEmpty({empty: spec.non_empty}, data);
-        if (isNoMatch(err)) return {decoded: data};
+        var { err } = decodeEmpty({ empty: spec.non_empty }, data);
+        if (isNoMatch(err)) return { decoded: data };
         return error(spec, data, "no_match");
-         
+
     }
 
     function decodeOne(spec, data, ctx) {
@@ -1359,7 +1359,7 @@ export default (appUrl, appEffects, deps, facts) => {
                 return (Object.keys(data).length == value) ? { decoded: data } :
                     error(spec, data, "no_match");
             case 'list':
-                return data.length == value ?  { decoded: data } :
+                return data.length == value ? { decoded: data } :
                     error(spec, data, "no_match");
 
             case 'string':
@@ -1385,7 +1385,7 @@ export default (appUrl, appEffects, deps, facts) => {
         var { err, value } = encode(spec.like, ctx);
         if (err) return error(spec, data, err);
         var regex = new RegExp(value, 'i');
-        if (typeof(data) != 'string') data = ""+data;
+        if (typeof (data) != 'string') data = "" + data;
         return data.match(regex) ? { decoded: data } : error(spec, data, "no_match");
     }
 
@@ -1463,7 +1463,7 @@ export default (appUrl, appEffects, deps, facts) => {
             case "object":
                 cmds = cmdsFromMap(spec, data);
                 break;
-                
+
             case "list":
                 cmds = cmdsFromList(spec, data);
                 break;
@@ -1472,12 +1472,12 @@ export default (appUrl, appEffects, deps, facts) => {
                 console.error("cmds spec not supported", spec);
         }
 
-        return {value: cmds};
+        return { value: cmds };
     }
 
     function cmdsFromList(spec, data) {
         var cmds = [];
-        for (var i=0; i<spec.length; i++) {
+        for (var i = 0; i < spec.length; i++) {
             var cmdSpec = spec[i];
             switch (typeOf(cmdSpec)) {
                 case "object":
@@ -1486,10 +1486,10 @@ export default (appUrl, appEffects, deps, facts) => {
                     var entries = Object.getOwnPropertyNames(cmdSpec);
                     var effect = entries[0];
                     var encSpec = cmdSpec[effect];
-                    
-                    var {err, value} = encode(encSpec, data, {});
+
+                    var { err, value } = encode(encSpec, data, {});
                     if (err) {
-                        console.error("error encoding cmd", {effect: effect, encoder: encSpec, err});
+                        console.error("error encoding cmd", { effect: effect, encoder: encSpec, err });
                         continue;
                     }
                     cmds.push({
@@ -1499,14 +1499,14 @@ export default (appUrl, appEffects, deps, facts) => {
 
                     break;
 
-                case "text": 
-                    cmds.push({effect: cmdSpec});
+                case "text":
+                    cmds.push({ effect: cmdSpec });
                     break;
-                    
-                default: 
-                    console.error("cmd spec not supported within a list", {spec: cmdSpec, type: typeOf(cmdSpec)});
+
+                default:
+                    console.error("cmd spec not supported within a list", { spec: cmdSpec, type: typeOf(cmdSpec) });
             }
-            
+
         }
 
         return cmds;
@@ -1523,7 +1523,7 @@ export default (appUrl, appEffects, deps, facts) => {
             } else {
                 var { err, value } = encode(enc, data, {});
                 if (err) {
-                    console.error("error encoding cmd", {effect: eff, encoder: enc, err});
+                    console.error("error encoding cmd", { effect: eff, encoder: enc, err });
                 }
                 cmds.push({
                     effect: eff,
@@ -1537,8 +1537,8 @@ export default (appUrl, appEffects, deps, facts) => {
 
     function isEmpty(obj) {
         if (!obj || (obj.length && obj.length == 0)) return true;
-        for (var x in obj) { 
-            if (hasProp(obj, x)) return false; 
+        for (var x in obj) {
+            if (hasProp(obj, x)) return false;
         }
         return true;
     }
@@ -1562,7 +1562,7 @@ export default (appUrl, appEffects, deps, facts) => {
             if (encoder) {
                 enc = encoders[encoder];
                 if (!enc) {
-                    console.error("No such encoder", {cmd, encoders});
+                    console.error("No such encoder", { cmd, encoders });
                     return;
                 }
             }
@@ -1614,10 +1614,10 @@ export default (appUrl, appEffects, deps, facts) => {
         delete ev.effect;
         const { encoders, decoders, update } = state.app;
         var effectDecoders = decoders[effect];
-        log("[core] decoding", {effect, data: ev, decoders: effectDecoders});
+        log("[core] decoding", { effect, data: ev, decoders: effectDecoders });
         var { err, decoded } = tryDecoders(ev, effectDecoders);
         if (err) {
-            console.error("Decode error", {effect: effect, data: ev, decoders: effectDecoders, reason: err});
+            console.error("Decode error", { effect: effect, data: ev, decoders: effectDecoders, reason: err });
             return;
         }
         const { msg, data } = decoded;
@@ -1639,12 +1639,12 @@ export default (appUrl, appEffects, deps, facts) => {
         }
         ctx = value;
         log("[core] update spec", { spec, ctx });
-        
+
         var newModel = state.model;
         if (spec.model) {
-            var {err, value} = encode(spec.model, ctx);
+            var { err, value } = encode(spec.model, ctx);
             if (err) {
-                console.error("Encode new model error", { spec: spec.model, ctx: ctx, error: err}); 
+                console.error("Encode new model error", { spec: spec.model, ctx: ctx, error: err });
                 return err
             }
             newModel = Object.assign(newModel, value);
@@ -1652,9 +1652,9 @@ export default (appUrl, appEffects, deps, facts) => {
 
         var cmds = null;
         if (spec.cmds) {
-            var {err, value} = encode(spec.cmds, newModel);
+            var { err, value } = encode(spec.cmds, newModel);
             if (err) {
-                console.error("Encode commands error", { spec: spec.model, ctx: ctx, error: err}); 
+                console.error("Encode commands error", { spec: spec.model, ctx: ctx, error: err });
                 return err
             }
             cmds = value;
@@ -1682,7 +1682,7 @@ export default (appUrl, appEffects, deps, facts) => {
         //const t2 = new Date();
         //if (spec.cmds) applyCmds(encoders, state.effects, cmds, state.model);
         //const t3 = new Date();
-        
+
 
         if (state.app.settings.telemetry) {
             console.log("[core]"
