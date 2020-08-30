@@ -54,6 +54,9 @@ spec:
           after: 60
         - expire: session
           after: 3600
+    events_view:
+      indexes:
+        - unique: ref
     events_resolved:
       indexes:
         - unique: ref
