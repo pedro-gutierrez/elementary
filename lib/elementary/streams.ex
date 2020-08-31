@@ -8,15 +8,6 @@ defmodule Elementary.Streams do
     Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
-  def info() do
-    "stream"
-    |> Index.specs()
-    |> Enum.map(&Elementary.Streams.Stream.info(&1))
-    |> Enum.reduce(%{}, fn %{"name" => name} = info, acc ->
-      Map.put(acc, name, Map.drop(info, ["name"]))
-    end)
-  end
-
   def init(_) do
     Index.specs("stream")
     |> Enum.map(&service_spec(&1))
@@ -116,7 +107,7 @@ defmodule Elementary.Streams do
 
   defmodule Replay do
     use GenServer
-    alias Elementary.{App, Kit, Slack, Stores.Store, Calendar}
+    alias Elementary.{App, Kit, Slack, Stores.Store, Calendar, Streams.Stream}
 
     @poll_interval 60
     @inflight_timeout 60
@@ -145,7 +136,7 @@ defmodule Elementary.Streams do
     end
 
     @impl true
-    def handle_info(:replay, %{stream: stream, host: host} = state) do
+    def handle_info(:replay, %{stream: stream, store: store, host: host} = state) do
       with {:ok, updated} when updated > 0 <- replay(state) do
         Slack.notify_async(%{
           channel: "cluster",
@@ -154,6 +145,13 @@ defmodule Elementary.Streams do
           doc: nil
         })
       end
+
+      Store.ensure(
+        store,
+        "cluster",
+        %{"stream" => stream},
+        Map.merge(%{"ts" => "$$NOW"}, Stream.info(stream))
+      )
 
       schedule_next()
 
@@ -192,19 +190,11 @@ defmodule Elementary.Streams do
 
   defmodule Stream do
     use GenServer
-    alias Elementary.{Kit, App, Index, Stores.Store, Services.Service, Cluster, Streams.Monitor}
+    alias Elementary.{Kit, App, Index, Stores.Store, Services.Service, Streams.Monitor}
     require Logger
 
     def start_link(spec) do
       GenServer.start_link(__MODULE__, spec, name: name(spec))
-    end
-
-    def info(%{"name" => name}) do
-      total = total(name)
-      backlog = backlog(name)
-      inflight = inflight(name)
-
-      %{"name" => name, "backlog" => backlog, "inflight" => inflight, "total" => total}
     end
 
     def name(%{"name" => name}), do: String.to_atom("#{name}_poller")
@@ -222,31 +212,24 @@ defmodule Elementary.Streams do
       end
     end
 
-    def total(stream) do
+    def info(stream) do
       %{"spec" => %{"settings" => %{"store" => store}}} = Index.spec!("stream", stream)
 
-      Store.count(store, stream, %{})
-      |> stat()
-    end
-
-    def backlog(stream) do
-      %{"spec" => %{"settings" => %{"store" => store}}} = Index.spec!("stream", stream)
-
-      Store.count(store, stream, %{
-        "started" => %{"$exists" => false},
-        "finished" => %{"$exists" => false}
-      })
-      |> stat()
-    end
-
-    def inflight(stream) do
-      %{"spec" => %{"settings" => %{"store" => store}}} = Index.spec!("stream", stream)
-
-      Store.count(store, stream, %{
-        "started" => %{"$exists" => true},
-        "finished" => %{"$exists" => false}
-      })
-      |> stat()
+      %{
+        "total" => Store.count(store, stream, %{}) |> stat(),
+        "inflight" =>
+          Store.count(store, stream, %{
+            "started" => %{"$exists" => true},
+            "finished" => %{"$exists" => false}
+          })
+          |> stat(),
+        "backlog" =>
+          Store.count(store, stream, %{
+            "started" => %{"$exists" => false},
+            "finished" => %{"$exists" => false}
+          })
+          |> stat()
+      }
     end
 
     defp stat({:ok, stat}), do: stat
@@ -273,8 +256,6 @@ defmodule Elementary.Streams do
     def init(%{"name" => name, "spec" => spec0} = spec) do
       %{"store" => store} = App.settings!(spec)
 
-      {:ok, cluster} = Cluster.info()
-
       alert =
         case spec0 do
           %{"alert" => alert} ->
@@ -299,15 +280,12 @@ defmodule Elementary.Streams do
       initial_state = %{
         registered: name(spec),
         stream: name,
-        id: "#{name}-#{cluster.partition}",
         store: store,
         col: name,
         apps: apps,
         alert: alert,
         subscription: nil,
         offset: "",
-        partition: cluster.partition,
-        cluster_size: cluster.size,
         host: Kit.hostname()
       }
 

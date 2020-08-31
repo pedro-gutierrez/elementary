@@ -5,57 +5,18 @@ spec:
     http:
       get:
         any: object
-    store:
+    cluster:
       cluster:
-        cluster:
-          any: list
-    stream:
-      streams:
-        any: object
+        any: object 
   update:
     get:
       cmds:
-        store: cluster
+        cluster: info 
     cluster:
       model:
-        cluster: "@data.cluster"
-      cmds:
-        stream: info
-    streams:
-      model:
-        let:
-          cluster: "@model.cluster"
-          store: "@model.store"
-          streams: "@data"
-        in:
-          data:
-            encoder: health
+        data: "@data"
       cmds:
         return: data
   encoders:
-    info:
+    info: 
       info: {}
-    cluster:
-      store: "@store"
-      from: cluster
-      aggregate:
-        - $addFields:
-            object:
-              now: $$NOW
-      as: cluster
-    hostInfo:
-      host: "@host"
-      size: "@size"
-      lastSeen:
-        durationBetween:
-          - "@ts"
-          - "@now"
-    health:
-      object:
-        cluster:
-          map: "@cluster"
-          with: 
-            encoder: hostInfo
-        streams: "@streams"
-        memory:
-          memory: {}

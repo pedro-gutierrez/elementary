@@ -2,7 +2,7 @@ kind: cluster
 name: default
 spec:
   store: "codemutiny"
-  refresh: 5
+  refresh: 1
   size:
     intFrom:
       env: ELEMENTARY_CLUSTER_SIZE
