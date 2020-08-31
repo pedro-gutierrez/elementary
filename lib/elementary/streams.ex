@@ -109,7 +109,7 @@ defmodule Elementary.Streams do
     use GenServer
     alias Elementary.{App, Kit, Slack, Stores.Store, Calendar, Streams.Stream}
 
-    @poll_interval 60
+    @poll_interval 5
     @inflight_timeout 60
 
     def start_link(spec) do

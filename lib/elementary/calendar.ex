@@ -71,9 +71,16 @@ defmodule Elementary.Calendar do
   def year(%DateTime{year: year}), do: {:ok, year}
   def day(%DateTime{day: day}), do: {:ok, day}
 
-  def duration_between(to, from) do
-    seconds = DateTime.diff(to, from)
-    {days, {hours, minutes, seconds}} = :calendar.seconds_to_daystime(seconds)
+  def seconds_since(to, from) do
+    DateTime.diff(to, from)
+  end
+
+  def duration_since(to, from) do
+    {days, {hours, minutes, seconds}} =
+      to
+      |> seconds_since(from)
+      |> :calendar.seconds_to_daystime()
+
     %{"days" => days, "hours" => hours, "minutes" => minutes, "seconds" => seconds}
   end
 

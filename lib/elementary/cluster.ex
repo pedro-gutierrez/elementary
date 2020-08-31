@@ -28,7 +28,7 @@ defmodule Elementary.Cluster do
     host =
       item
       |> Map.take(["memory"])
-      |> Map.put("lastSeen", Calendar.duration_between(now, ts))
+      |> Map.put("last", Calendar.seconds_since(now, ts))
 
     hosts = Map.put(hosts, name, host)
 
@@ -42,7 +42,7 @@ defmodule Elementary.Cluster do
     stream =
       item
       |> Map.take(["backlog", "inflight", "total"])
-      |> Map.put("lastSeen", Calendar.duration_between(now, ts))
+      |> Map.put("last", Calendar.seconds_since(now, ts))
 
     streams = Map.put(streams, name, stream)
 

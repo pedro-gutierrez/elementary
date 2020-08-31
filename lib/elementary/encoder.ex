@@ -571,14 +571,14 @@ defmodule Elementary.Encoder do
 
   def encode(%{"durationSince" => date} = spec, context, encoders) do
     with {:ok, date} <- encode(date, context, encoders) do
-      {:ok, Elementary.Calendar.duration_between(DateTime.utc_now(), date)}
+      {:ok, Elementary.Calendar.duration_since(DateTime.utc_now(), date)}
     end
     |> result(spec, context)
   end
 
   def encode(%{"durationBetween" => dates} = spec, context, encoders) do
     with {:ok, [from, to]} <- encode_specs(dates, context, encoders) do
-      {:ok, Elementary.Calendar.duration_between(to, from)}
+      {:ok, Elementary.Calendar.duration_since(to, from)}
     end
     |> result(spec, context)
   end
