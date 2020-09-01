@@ -1,0 +1,7 @@
+apiVersion: v2
+name: eventbee 
+description: Codemutiny EventBee
+type: application
+version: 0.1.0
+appVersion: 1.0.0
+icon: https://image.flaticon.com/icons/svg/3439/3439828.svg

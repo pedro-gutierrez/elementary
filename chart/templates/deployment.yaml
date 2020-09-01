@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eventbee
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eventbee
+  template:
+    metadata:
+      labels:
+        app: eventbee
+    spec:
+      containers:
+        - name: eventbee
+          image: pedrogutierrez/eventbee:latest
+          ports:
+            - name: eventbee
+              containerPort: 4000
+              protocol: TCP
