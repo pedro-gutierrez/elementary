@@ -23,5 +23,6 @@ WORKDIR /app
 COPY --from=builder /app/_build/prod /app
 ADD examples/codemutiny /app/etc
 ENV ELEMENTARY_HOME /app/etc
-RUN ls /app/etc
+ENV ELEMENTARY_CLUSTER_SIZE 1
+ENV ELEMENTARY_PORT 4000
 CMD [ "/app/rel/elementary/bin/elementary", "start" ]

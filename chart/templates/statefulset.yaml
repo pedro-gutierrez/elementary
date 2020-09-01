@@ -1,9 +1,10 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: eventbee
 spec:
   replicas: 1
+  serviceName: eventbee
   selector:
     matchLabels:
       app: eventbee
