@@ -31,7 +31,7 @@ jobs:
       uses: jacobtomlinson/gha-find-replace@master
       with:
         find: deployment_version 
-        replace: ${{ GITHUB_SHA::8 }}
+        replace: ${{ GITHUB_SHA }}
         include: k8s.yml
     - name: Set deployment date 
       uses: jacobtomlinson/gha-find-replace@master
