@@ -2,10 +2,11 @@ name: Deploy to Okteto
 on:
   - push
 jobs:
-  devflow:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: okteto/login@master
+    - name: Login to Okteto
+      uses: okteto/login@master
       with:
         token: ${{ secrets.OKTETO_TOKEN }}
     - name: "Activate personal namespace"
@@ -14,5 +15,3 @@ jobs:
         name: pedro-gutierrez
     - name: "Create deployment"
       uses: okteto/apply@master
-      with:
-        manifest: /github/workspace/k8s.yml
