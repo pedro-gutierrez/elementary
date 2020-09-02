@@ -37,5 +37,7 @@ spec:
               containerPort: 4000
               protocol: TCP
           env:
-            - name: VERSION
-              value: git_sha
+            - name: ELEMENTARY_RELEASE_VERSION
+              value: deployment_version
+            - name: ELEMENTARY_RELEASE_DATE
+              value: deployment_version

@@ -5,6 +5,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
     - name: Checkout code
       uses: actions/checkout@master
     - name: Build and push Docker image
@@ -22,11 +25,17 @@ jobs:
       uses: okteto/namespace@master
       with:
         name: pedro-gutierrez
-    - name: Annotate deployment 
+    - name: Set deployment version
       uses: jacobtomlinson/gha-find-replace@master
       with:
-        find: git_sha
-        replace: "${{ github.sha }}"
+        find: deployment_version 
+        replace: "${{ github.sha.short }}"
+        include: k8s.yml
+    - name: Set deployment date 
+      uses: jacobtomlinson/gha-find-replace@master
+      with:
+        find: deployment_date 
+        replace: "${{ steps.date.outputs.date}}"
         include: k8s.yml
     - name: "Create deployment"
       uses: okteto/apply@master
