@@ -7,7 +7,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Get current date
+    - name: Git tags
+      uses: rlespinasse/github-slug-action@v2.x
+    - name: Current date
       id: time
       run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
     - name: Checkout code
@@ -31,13 +33,13 @@ jobs:
       uses: jacobtomlinson/gha-find-replace@master
       with:
         find: deployment_version 
-        replace: ${{ GITHUB_SHA }}
+        replace: ${{ env.GITHUB_SHA_SHORT }}
         include: k8s.yml
     - name: Set deployment date 
       uses: jacobtomlinson/gha-find-replace@master
       with:
         find: deployment_date 
-        replace: ${{ steps.item.outputs.date }}
+        replace: ${{ steps.time.outputs.date }}
         include: k8s.yml
     - name: "Create deployment"
       uses: okteto/apply@master
