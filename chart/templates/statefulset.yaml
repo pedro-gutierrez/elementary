@@ -3,7 +3,7 @@ kind: StatefulSet
 metadata:
   name: eventbee
 spec:
-  replicas: 1
+  replicas: 2 
   serviceName: eventbee
   selector:
     matchLabels:
