@@ -40,4 +40,4 @@ spec:
             - name: ELEMENTARY_RELEASE_VERSION
               value: deployment_version
             - name: ELEMENTARY_RELEASE_DATE
-              value: deployment_version
+              value: deployment_date

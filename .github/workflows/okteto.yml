@@ -31,13 +31,13 @@ jobs:
       uses: jacobtomlinson/gha-find-replace@master
       with:
         find: deployment_version 
-        replace: "${{ github.sha.short }}"
+        replace: "${{ github.sha:8 }}"
         include: k8s.yml
     - name: Set deployment date 
       uses: jacobtomlinson/gha-find-replace@master
       with:
         find: deployment_date 
-        replace: "${{ steps.date.outputs.date}}"
+        replace: "${{ steps.date.outputs.date }}"
         include: k8s.yml
     - name: "Create deployment"
       uses: okteto/apply@master
