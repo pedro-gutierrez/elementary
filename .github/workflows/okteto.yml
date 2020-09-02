@@ -22,6 +22,12 @@ jobs:
       uses: okteto/namespace@master
       with:
         name: pedro-gutierrez
+    - name: Annotate deployment 
+      uses: jacobtomlinson/gha-find-replace@master
+      with:
+        find: $git
+        replace: ${GITHUB_SHA }}
+        include: k8s.yml
     - name: "Create deployment"
       uses: okteto/apply@master
     - name: Sleep for 30 seconds
