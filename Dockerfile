@@ -25,4 +25,6 @@ ADD examples/codemutiny /app/etc
 ENV ELEMENTARY_HOME /app/etc
 ENV ELEMENTARY_CLUSTER_SIZE 1
 ENV ELEMENTARY_PORT 4000
+ENV ELEMENTARY_RELEASE_DATE 0000-00-00
+ENV ELEMENTARY_RELEASE_VERSION abcdefgh 
 CMD [ "/app/rel/elementary/bin/elementary", "start" ]

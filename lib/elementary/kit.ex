@@ -2,6 +2,13 @@ defmodule Elementary.Kit do
   @moduledoc false
   require Logger
 
+  def version() do
+    [
+      date: System.get_env("ELEMENTARY_RELEASE_DATE"),
+      tag: System.get_env("ELEMENTARY_RELEASE_VERSION")
+    ]
+  end
+
   @doc """
   Returns the home folder, where all yamls are
   """

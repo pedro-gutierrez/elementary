@@ -6,6 +6,7 @@ spec:
       get: "/api/health"
   settings:
     - codemutiny
+    - version
   modules:
     - health 
     - http
