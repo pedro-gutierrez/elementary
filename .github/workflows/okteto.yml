@@ -8,17 +8,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Get current date
-      id: date
+      id: time
       run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
     - name: Checkout code
       uses: actions/checkout@master
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v1
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-        repository: pedrogutierrez/eventbee
-        tags: latest
+   # - name: Build and push Docker image
+   #   uses: docker/build-push-action@v1
+   #   with:
+   #     username: ${{ secrets.DOCKER_USERNAME }}
+   #     password: ${{ secrets.DOCKER_PASSWORD }}
+   #     repository: pedrogutierrez/eventbee
+   #     tags: latest
     - name: Login to Okteto
       uses: okteto/login@master
       with:
@@ -31,13 +31,13 @@ jobs:
       uses: jacobtomlinson/gha-find-replace@master
       with:
         find: deployment_version 
-        replace: "${{ github.sha:8 }}"
+        replace: ${{ env.GITHUB_SHA::8 }}
         include: k8s.yml
     - name: Set deployment date 
       uses: jacobtomlinson/gha-find-replace@master
       with:
         find: deployment_date 
-        replace: "${{ steps.date.outputs.date }}"
+        replace: ${{ steps.item.outputs.date }}
         include: k8s.yml
     - name: "Create deployment"
       uses: okteto/apply@master
