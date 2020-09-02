@@ -27,8 +27,6 @@ spec:
     metadata:
       labels:
         app: eventbee
-      annotations:
-        git: $git
     spec:
       containers:
         - name: eventbee
@@ -38,3 +36,6 @@ spec:
             - name: eventbee
               containerPort: 4000
               protocol: TCP
+          env:
+            - name: VERSION
+              value: git_sha
