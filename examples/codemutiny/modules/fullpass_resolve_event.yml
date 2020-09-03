@@ -142,7 +142,10 @@ spec:
       write: "@event"
       to: events_unknown
     eventBlocked:
-      write: "@event"
+      write:
+        ref: "@event.ref"
+        identity: "@event.identity"
+        title: "@event.title"
       to: events_blocked
     noLocation:
       write: "@event"
