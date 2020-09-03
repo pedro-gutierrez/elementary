@@ -14,12 +14,12 @@ spec:
     app: eventbee
 ---
 apiVersion: apps/v1
-kind: StatefulSet
+kind: DaemonSet
 metadata:
   name: eventbee
 spec:
-  replicas: 2 
-  serviceName: eventbee
+  #replicas: 2 
+  #serviceName: eventbee
   selector:
     matchLabels:
       app: eventbee
