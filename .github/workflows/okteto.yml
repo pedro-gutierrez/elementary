@@ -2,7 +2,7 @@ name: Deploy to Okteto
 on:
   push: {}
   schedule: 
-    - cron:  '* */2 * * *'
+    - cron:  '0 2 * * *'
 jobs:
   deploy:
     runs-on: ubuntu-latest
