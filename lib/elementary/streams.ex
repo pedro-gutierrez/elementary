@@ -189,7 +189,7 @@ defmodule Elementary.Streams do
       Slack.notify_async(%{
         channel: "cluster",
         title:
-          "Stream `#{stream}` has capacity *#{capacity}%* in `#{host}` with reason `#{
+          "Stream `#{stream}` has capacity *#{capacity}%* in host `#{host}` with reason `#{
             inspect(reason)
           }`",
         severity: severity,
