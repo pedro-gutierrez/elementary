@@ -4,7 +4,7 @@ defmodule Elementary.Kit do
 
   def version() do
     [
-      version: System.get_env("ELEMENTARY_RELEASE_VERSION")
+      version: System.get_env("ELEMENTARY_VERSION")
     ]
   end
 
