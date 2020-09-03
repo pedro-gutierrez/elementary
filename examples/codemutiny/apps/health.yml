@@ -4,6 +4,7 @@ spec:
   routes:
     codemutiny:
       get: "/api/health"
+      head: "/api/health" 
   settings:
     - codemutiny
     - version

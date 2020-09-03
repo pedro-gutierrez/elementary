@@ -138,15 +138,13 @@ defmodule Elementary.Http do
     %{"status" => 500, "headers" => %{}, "body" => %{}, "error" => err}
   end
 
-  defp resolve_app(_, mod) when is_atom(mod), do: {:ok, mod}
-
   defp resolve_app(%{method: method}, apps) do
     case apps[method] do
       nil ->
         {:error, :not_found}
 
-      mod ->
-        {:ok, mod}
+      app ->
+        {:ok, app}
     end
   end
 
