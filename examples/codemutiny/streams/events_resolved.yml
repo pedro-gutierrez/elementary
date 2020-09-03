@@ -1,6 +1,7 @@
 kind: stream
 name: events_resolved
 spec:
+  capacity: 3
   settings: 
     - codemutiny
   alert:

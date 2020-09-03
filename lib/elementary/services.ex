@@ -13,7 +13,7 @@ defmodule Elementary.Services do
     use GenServer, restart: :temporary
     require Logger
 
-    alias Elementary.{Index, App, Streams.Stream}
+    alias Elementary.{Index, App, Streams}
 
     def run(app, effect, data) do
       case Index.spec("app", app) do
@@ -118,7 +118,7 @@ defmodule Elementary.Services do
             "ok"
         end
 
-      Stream.write_async("telemetry", %{
+      Streams.write_async("telemetry", %{
         "app" => app,
         "status" => status,
         "duration" => trunc(micros / 1000),
@@ -147,7 +147,7 @@ defmodule Elementary.Services do
         "error" => e
       }
 
-      Stream.write_async("errors", error)
+      Streams.write_async("errors", error)
 
       Logger.error("#{inspect(error, pretty: true)}")
 

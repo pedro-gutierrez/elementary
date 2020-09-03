@@ -54,7 +54,7 @@ defmodule Elementary.Effect do
   end
 
   def apply("stream", %{"write" => data, "to" => stream} = spec) do
-    Elementary.Streams.Stream.write(stream, data)
+    Elementary.Streams.write(stream, data)
     |> effect_result(spec)
   end
 

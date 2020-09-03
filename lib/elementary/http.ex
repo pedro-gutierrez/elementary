@@ -1,5 +1,5 @@
 defmodule Elementary.Http do
-  alias Elementary.{Streams.Stream}
+  alias Elementary.{Streams}
 
   @effect "http"
 
@@ -268,7 +268,7 @@ defmodule Elementary.Http do
           "elapsed" => floor(elapsed / 1000)
         }
 
-        Stream.write_async("access", access_log_record)
+        Streams.write_async("access", access_log_record)
         :ok
     end
   end

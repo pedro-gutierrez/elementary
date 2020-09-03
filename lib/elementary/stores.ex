@@ -122,7 +122,7 @@ defmodule Elementary.Stores do
     def reset(%{"spec" => %{"collections" => cols}} = spec) do
       Enum.reduce_while(cols, :ok, fn {col, col_spec}, _ ->
         with :ok <- drop_collection(spec, col),
-             :ok <- create_collection(spec, col, col_spec),
+             :ok <- ensure_collection(spec, col, col_spec),
              :ok <- ensure_indexes(spec, col, col_spec["indexes"] || []),
              :ok <- ensure_data(spec, col, col_spec["data"] || []) do
           {:cont, :ok}
@@ -133,7 +133,7 @@ defmodule Elementary.Stores do
       end)
     end
 
-    def create_collection(spec, col, col_spec) do
+    def ensure_collection(spec, col, col_spec) do
       opts = collection_create_opts(col_spec)
 
       with {:error, %Mongo.Error{code: 48}} <-
@@ -157,7 +157,7 @@ defmodule Elementary.Stores do
           :ok
 
         {:error, e} ->
-          {:halt, mongo_error(e)}
+          {:error, mongo_error(e)}
       end
     end
 

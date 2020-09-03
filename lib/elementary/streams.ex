@@ -1,8 +1,72 @@
 defmodule Elementary.Streams do
   @moduledoc false
+  alias Elementary.{Index, Stores.Store, Streams.Workers}
+  require Logger
+
+  def set_capacity(stream, desired) do
+    Workers.set_capacity(stream, desired)
+  end
+
+  def capacity(stream) do
+    Workers.capacity(stream)
+  end
+
+  def write_async(stream, data) do
+    spawn(fn ->
+      write(stream, data)
+    end)
+
+    :ok
+  end
+
+  def write(stream, data) do
+    %{"spec" => %{"settings" => %{"store" => store}}} = Index.spec!("stream", stream)
+    data = stream_doc(data)
+
+    case Store.insert(store, stream, data) do
+      :ok ->
+        true
+
+      {:error, e} ->
+        Logger.warn("Error while writing to stream #{stream}: #{inspect(e)}")
+        %{"error" => "#{inspect(e)}"}
+    end
+  end
+
+  defp stream_doc(data) when is_map(data) do
+    data
+    |> Map.drop(["id", "_id"])
+  end
+
+  defp stream_doc(data) when is_list(data) do
+    Enum.map(data, &stream_doc(&1))
+  end
+
+  def info(stream) do
+    %{"spec" => %{"settings" => %{"store" => store}}} = Index.spec!("stream", stream)
+
+    %{
+      "total" => Store.count(store, stream, %{}) |> stat(),
+      "inflight" =>
+        Store.count(store, stream, %{
+          "started" => %{"$exists" => true},
+          "finished" => %{"$exists" => false}
+        })
+        |> stat(),
+      "backlog" =>
+        Store.count(store, stream, %{
+          "started" => %{"$exists" => false},
+          "finished" => %{"$exists" => false}
+        })
+        |> stat()
+    }
+  end
+
+  defp stat({:ok, stat}), do: stat
+  defp stat({:error, e}), do: "#{inspect(e)}"
 
   use Supervisor
-  alias Elementary.{Index, Streams.Stream, Streams.StreamSupervisor}
+  alias Elementary.{Index, Streams.StreamSup}
 
   def start_link(opts) do
     Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
@@ -16,14 +80,14 @@ defmodule Elementary.Streams do
 
   defp service_spec(spec) do
     %{
-      id: StreamSupervisor.name(spec),
-      start: {StreamSupervisor, :start_link, [spec]}
+      id: StreamSup.name(spec),
+      start: {StreamSup, :start_link, [spec]}
     }
   end
 
-  defmodule StreamSupervisor do
+  defmodule StreamSup do
     use Supervisor
-    alias Elementary.Streams.{Stream, Replay, Monitor}
+    alias Elementary.Streams.{Replay, Monitor, Workers, Worker, Scheduler}
 
     def name(%{"name" => name}), do: String.to_atom("#{name}_supervisor")
 
@@ -38,12 +102,16 @@ defmodule Elementary.Streams do
           start: {Monitor, :start_link, [spec]}
         },
         %{
-          id: Stream.name(spec),
-          start: {Stream, :start_link, [spec]}
-        },
-        %{
           id: Replay.name(spec),
           start: {Replay, :start_link, [spec]}
+        },
+        %{
+          id: Workers.name(spec),
+          start: {Workers, :start_link, [spec]}
+        },
+        %{
+          id: Scheduler.name(spec),
+          start: {Scheduler, :start_link, [spec]}
         }
       ]
       |> Supervisor.init(strategy: :one_for_one)
@@ -64,7 +132,7 @@ defmodule Elementary.Streams do
     def register(name) do
       name
       |> name()
-      |> GenServer.call({:register, self()})
+      |> GenServer.cast({:register, self()})
     end
 
     @impl true
@@ -73,41 +141,66 @@ defmodule Elementary.Streams do
     end
 
     @impl true
-    def handle_call({:register, pid}, _, %{stream: stream, host: host} = state) do
-      ref = Process.monitor(pid)
+    def handle_cast({:register, pid}, %{stream: stream, host: host} = state) do
+      Process.monitor(pid)
 
-      Slack.notify_async(%{
-        channel: "cluster",
-        title: "Stream `#{stream}` is now connected in host `#{host}`",
-        severity: "good",
-        doc: nil
-      })
+      report_capacity(stream, host, "connected")
 
-      {:reply, :ok, %{state | ref: ref}}
+      {:noreply, state}
     end
 
     @impl true
     def handle_info(
-          {:DOWN, ref, :process, _, reason},
-          %{stream: stream, host: host, ref: ref} = state
+          {:DOWN, _, :process, _, reason},
+          %{stream: stream, host: host} = state
         ) do
+      report_capacity(stream, host, reason)
+
+      {:noreply, state}
+    end
+
+    defp report_capacity(stream, host, reason) do
+      %{"spec" => spec} = Index.spec!("stream", stream)
+
+      desired = spec["capacity"] || 1
+      actual = Workers.capacity(stream)
+
+      capacity =
+        case desired do
+          0 ->
+            0
+
+          _ ->
+            trunc(100 * actual / desired)
+        end
+
+      severity =
+        case capacity do
+          0 ->
+            "danger"
+
+          100 ->
+            "good"
+
+          _ ->
+            "warning"
+        end
+
       Slack.notify_async(%{
         channel: "cluster",
         title:
-          "Stream `#{stream}` losts its connection from host `#{host}` with reason `#{
+          "Stream `#{stream}` has capacity *#{capacity}%* in `#{host}` with reason `#{
             inspect(reason)
           }`",
-        severity: "danger",
+        severity: severity,
         doc: nil
       })
-
-      {:noreply, state}
     end
   end
 
   defmodule Replay do
     use GenServer
-    alias Elementary.{App, Kit, Slack, Stores.Store, Calendar, Streams.Stream}
+    alias Elementary.{App, Kit, Slack, Stores.Store, Calendar, Streams}
 
     @poll_interval 5
     @inflight_timeout 60
@@ -140,7 +233,7 @@ defmodule Elementary.Streams do
       with {:ok, updated} when updated > 0 <- replay(state) do
         Slack.notify_async(%{
           channel: "cluster",
-          title: "Host `#{host}` replayed `#{updated} jobs` inflight in stream `#{stream}`",
+          title: "Host `#{host}` replayed *#{updated} job(s)* inflight in stream `#{stream}`",
           severity: "warning",
           doc: nil
         })
@@ -150,7 +243,7 @@ defmodule Elementary.Streams do
         store,
         "cluster",
         %{"stream" => stream},
-        Map.merge(%{"ts" => "$$NOW"}, Stream.info(stream))
+        Map.merge(%{"ts" => "$$NOW"}, Streams.info(stream))
       )
 
       schedule_next()
@@ -188,68 +281,132 @@ defmodule Elementary.Streams do
     end
   end
 
-  defmodule Stream do
+  defmodule Workers do
+    use DynamicSupervisor
+    alias Elementary.{Kit, Streams.Worker}
+
+    def name(%{"name" => name}), do: name(name)
+    def name(name) when is_binary(name), do: String.to_atom("#{name}_workers")
+    def name(name), do: name
+
+    def size(stream) do
+      stream
+      |> name()
+      |> Supervisor.count_children()
+    end
+
+    def capacity(stream) do
+      stream
+      |> name()
+      |> Kit.alive_dynamic_workers()
+      |> Enum.count()
+    end
+
+    def set_capacity(stream, desired) do
+      stream = name(stream)
+
+      case desired - capacity(stream) do
+        0 ->
+          :ok
+
+        diff when diff > 0 ->
+          scale_up(stream, diff)
+
+        diff when diff < 0 ->
+          scale_down(stream, -1 * diff)
+      end
+
+      capacity(stream)
+    end
+
+    def scale_up(stream, count) do
+      stream = name(stream)
+
+      1..count
+      |> Enum.each(fn _ ->
+        DynamicSupervisor.start_child(stream, Worker)
+      end)
+    end
+
+    def scale_down(stream, count) do
+      stream = name(stream)
+
+      stream
+      |> Kit.alive_dynamic_workers()
+      |> Enum.take(count)
+      |> Enum.each(fn pid ->
+        DynamicSupervisor.terminate_child(stream, pid)
+      end)
+    end
+
+    def start_link(spec) do
+      DynamicSupervisor.start_link(__MODULE__, spec, name: name(spec))
+    end
+
+    def init(spec) do
+      DynamicSupervisor.init(
+        strategy: :one_for_one,
+        extra_arguments: [spec]
+      )
+    end
+  end
+
+  defmodule Scheduler do
     use GenServer
-    alias Elementary.{Kit, App, Index, Stores.Store, Services.Service, Streams.Monitor}
-    require Logger
+    alias Elementary.{App, Kit, Stores.Store, Streams.Workers}
 
     def start_link(spec) do
       GenServer.start_link(__MODULE__, spec, name: name(spec))
     end
 
-    def name(%{"name" => name}), do: String.to_atom("#{name}_poller")
+    def name(%{"name" => name}), do: name(name)
+    def name(name), do: String.to_atom("#{name}_scheduler")
 
-    def write(stream, data) do
-      %{"spec" => %{"settings" => %{"store" => store}}} = Index.spec!("stream", stream)
-      data = stream_doc(data)
+    @impl true
+    def init(%{"name" => name, "spec" => inner} = spec) do
+      capacity = inner["capacity"] || 1
 
-      case Store.insert(store, stream, data) do
-        :ok ->
-          true
-
-        _ ->
-          false
-      end
-    end
-
-    def info(stream) do
-      %{"spec" => %{"settings" => %{"store" => store}}} = Index.spec!("stream", stream)
-
-      %{
-        "total" => Store.count(store, stream, %{}) |> stat(),
-        "inflight" =>
-          Store.count(store, stream, %{
-            "started" => %{"$exists" => true},
-            "finished" => %{"$exists" => false}
-          })
-          |> stat(),
-        "backlog" =>
-          Store.count(store, stream, %{
-            "started" => %{"$exists" => false},
-            "finished" => %{"$exists" => false}
-          })
-          |> stat()
+      initial_state = %{
+        stream: name,
+        capacity: capacity,
+        host: Kit.hostname()
       }
+
+      %{"store" => store} = App.settings!(spec)
+
+      :ok = Store.ensure_collection(store, name, [])
+      :ok = Store.ensure_index(store, name, %{"lookup" => "started"})
+      :ok = Store.ensure_index(store, name, %{"lookup" => "finished"})
+
+      {:ok, initial_state, {:continue, :schedule}}
     end
 
-    defp stat({:ok, stat}), do: stat
-    defp stat({:error, e}), do: "#{inspect(e)}"
+    @impl true
+    def handle_continue(:schedule, state) do
+      schedule(state)
 
-    defp stream_doc(data) when is_map(data) do
-      data
-      |> Map.drop(["id", "_id"])
+      {:noreply, state}
     end
 
-    defp stream_doc(data) when is_list(data) do
-      Enum.map(data, &stream_doc(&1))
+    @impl true
+    def handle_info(:schedule, state) do
+      schedule(state)
+      {:noreply, state}
     end
 
-    def write_async(stream, data) do
-      spawn(fn ->
-        write(stream, data)
-      end)
+    defp schedule(%{stream: stream, capacity: capacity}) do
+      Workers.set_capacity(stream, capacity)
+      Process.send_after(self(), :schedule, 5000)
+    end
+  end
 
-      :ok
+  defmodule Worker do
+    use GenServer, restart: :transient
+    alias Elementary.{Kit, App, Stores.Store, Services.Service, Streams, Streams.Monitor}
+    require Logger
+
+    def start_link(spec, _) do
+      GenServer.start_link(__MODULE__, spec)
     end
 
     @impl true
@@ -274,11 +431,7 @@ defmodule Elementary.Streams do
             []
         end
 
-      :ok = Store.ensure_index(store, name, %{"lookup" => "started"})
-      :ok = Store.ensure_index(store, name, %{"lookup" => "finished"})
-
       initial_state = %{
-        registered: name(spec),
         stream: name,
         store: store,
         col: name,
@@ -362,7 +515,7 @@ defmodule Elementary.Streams do
             error =
               e |> error_as_map() |> Map.merge(%{"app" => app, "timestamp" => DateTime.utc_now()})
 
-            Stream.write_async("errors", error)
+            Streams.write_async("errors", error)
           end
         end)
     end

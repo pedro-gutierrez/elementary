@@ -240,4 +240,11 @@ defmodule Elementary.Kit do
     [Node.self() | Node.list()]
     |> Enum.map(&hostname(&1))
   end
+
+  def alive_dynamic_workers(sup) do
+    for {:undefined, pid, :worker, _mods} when is_pid(pid) <-
+          DynamicSupervisor.which_children(sup) do
+      pid
+    end
+  end
 end

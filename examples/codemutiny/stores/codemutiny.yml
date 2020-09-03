@@ -61,10 +61,3 @@ spec:
     events_view:
       indexes:
         - unique: ref
-    events_resolved:
-      indexes:
-        - unique: ref
-    events_unlocated:
-      indexes:
-        - unique: ref
-    

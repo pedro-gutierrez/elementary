@@ -1,6 +1,7 @@
 kind: stream
 name: events_created
 spec:
+  capacity: 3
   settings: 
     - codemutiny
   apps:
