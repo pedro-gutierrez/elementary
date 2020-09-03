@@ -31,7 +31,11 @@ run:
     pedrogutierrez/eventbee:latest
 
 up:
-	@helm upgrade --install eventbee chart
+	@kubectl apply -f k8s.yml
 
 down:
-	@helm uninstall eventbee
+	@kubectl delete service eventbee
+	@kubectl delete statefulset eventbee
+
+reset:
+	@curl -i -X POST -H "authorization: $(token)" $(endpoint)/api/stores/codemutiny 
