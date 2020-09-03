@@ -38,6 +38,6 @@ spec:
               protocol: TCP
           env:
             - name: ELEMENTARY_RELEASE_VERSION
-              value: deployment_version
+              value: "deployment_version"
             - name: ELEMENTARY_RELEASE_DATE
-              value: deployment_date
+              value: "deployment_date"
