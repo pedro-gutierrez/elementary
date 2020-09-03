@@ -1,4 +1,4 @@
-name: Deploy to Okteto
+name: Deploy
 on:
   push: {}
   schedule: 
@@ -16,7 +16,7 @@ jobs:
    #     password: ${{ secrets.DOCKER_PASSWORD }}
    #     repository: pedrogutierrez/eventbee
    #     tags: latest
-    - uses: pedro-gutierrez/elementary-action@v4
+    - uses: pedro-gutierrez/elementary-action@v5
       name: Deploy
       with:
         kubeconfig: ${{ secrets.KUBE_CONFIG }}
