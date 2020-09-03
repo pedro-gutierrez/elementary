@@ -16,7 +16,7 @@ jobs:
    #     password: ${{ secrets.DOCKER_PASSWORD }}
    #     repository: pedrogutierrez/eventbee
    #     tags: latest
-    - uses: pedro-gutierrez/elementary-action@v3
+    - uses: pedro-gutierrez/elementary-action@v4
       name: Deploy
       with:
         kubeconfig: ${{ secrets.KUBE_CONFIG }}
