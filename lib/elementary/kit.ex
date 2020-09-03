@@ -3,9 +3,7 @@ defmodule Elementary.Kit do
   require Logger
 
   def version() do
-    [
-      version: System.get_env("ELEMENTARY_VERSION")
-    ]
+    System.get_env("ELEMENTARY_VERSION")
   end
 
   @doc """
