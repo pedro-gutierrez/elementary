@@ -47,7 +47,5 @@ spec:
               containerPort: 4000
               protocol: TCP
           env:
-            - name: ELEMENTARY_RELEASE_VERSION
-              value: "deployment_version"
-            - name: ELEMENTARY_RELEASE_DATE
-              value: "deployment_date"
+            - name: ELEMENTARY_VERSION
+              value: "elementary_version"

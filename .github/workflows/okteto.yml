@@ -29,17 +29,11 @@ jobs:
       uses: okteto/namespace@master
       with:
         name: pedro-gutierrez
-    - name: Set deployment version
+    - name: Set Elementary version
       uses: jacobtomlinson/gha-find-replace@master
       with:
-        find: deployment_version 
-        replace: ${{ env.GITHUB_SHA_SHORT }}
-        include: k8s.yml
-    - name: Set deployment date 
-      uses: jacobtomlinson/gha-find-replace@master
-      with:
-        find: deployment_date 
-        replace: ${{ steps.time.outputs.date }}
+        find: elementary_version 
+        replace: ${{ steps.time.outputs.date }}-${{ env.GITHUB_SHA_SHORT }}
         include: k8s.yml
     - name: "Create deployment"
       uses: okteto/apply@master

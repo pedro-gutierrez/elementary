@@ -255,11 +255,14 @@ defmodule Elementary.Http do
   end
 
   defp maybe_access_log(app, method, status, elapsed) do
-    case Index.spec!("app", app) do
-      %{"spec" => %{"access" => false}} ->
+    case Index.spec("app", app) do
+      :not_found ->
         :ok
 
-      _ ->
+      {:ok, %{"spec" => %{"access" => false}}} ->
+        :ok
+
+      {:ok, _} ->
         access_log_record = %{
           "app" => app,
           "method" => method,

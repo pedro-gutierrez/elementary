@@ -31,7 +31,7 @@ defmodule Elementary.Application do
       doc: nil
     })
 
-    IO.inspect(release: Elementary.Kit.version())
+    IO.inspect(Elementary.Kit.version())
 
     {:ok, pid}
   end

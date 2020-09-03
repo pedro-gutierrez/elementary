@@ -2,8 +2,4 @@ kind: settings
 name: version 
 spec:
   version:
-    object:
-      date:
-        env: ELEMENTARY_RELEASE_DATE
-      tag:
-        env: ELEMENTARY_RELEASE_VERSION
+    env: ELEMENTARY_VERSION

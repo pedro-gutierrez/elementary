@@ -4,8 +4,7 @@ defmodule Elementary.Kit do
 
   def version() do
     [
-      date: System.get_env("ELEMENTARY_RELEASE_DATE"),
-      tag: System.get_env("ELEMENTARY_RELEASE_VERSION")
+      version: System.get_env("ELEMENTARY_RELEASE_VERSION")
     ]
   end
 
