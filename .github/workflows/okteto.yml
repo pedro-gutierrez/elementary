@@ -48,5 +48,5 @@ jobs:
       with:
         url: "https://eventbee-pedro-gutierrez.cloud.okteto.net/api/health"
         responseCode: 200
-        timeout: 60000 
+        timeout: 120000 
         interval: 1000
