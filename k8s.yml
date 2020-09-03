@@ -14,12 +14,12 @@ spec:
     app: eventbee
 ---
 apiVersion: apps/v1
-kind: DaemonSet
+kind: StatefulSet
 metadata:
   name: eventbee
 spec:
-  #replicas: 2 
-  #serviceName: eventbee
+  replicas: 3 
+  serviceName: eventbee
   selector:
     matchLabels:
       app: eventbee
@@ -28,6 +28,16 @@ spec:
       labels:
         app: eventbee
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+                - key: "app"
+                  operator: In
+                  values:
+                  - eventbee
+            topologyKey: "kubernetes.io/hostname"
       containers:
         - name: eventbee
           imagePullPolicy: Always
