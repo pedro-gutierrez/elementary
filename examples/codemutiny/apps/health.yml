@@ -7,7 +7,6 @@ spec:
       head: "/api/health" 
   settings:
     - codemutiny
-    - version
   modules:
     - health 
     - http

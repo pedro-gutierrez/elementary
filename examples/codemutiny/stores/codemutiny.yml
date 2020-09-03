@@ -5,6 +5,10 @@ spec:
   url:
     env: ELEMENTARY_MONGO_URL
   collections:
+    cluster:
+      indexes:
+        - expire: ts
+          after: 10
     access: {}
     telemetry: {}
     errors: {}

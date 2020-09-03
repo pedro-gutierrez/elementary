@@ -2,7 +2,7 @@ defmodule Elementary.Cluster do
   @moduledoc false
 
   use Supervisor
-  alias Elementary.{Kit, Index, Stores.Store, Calendar}
+  alias Elementary.{Kit, Index, Stores.Store}
 
   def start_link(opts) do
     Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
@@ -12,23 +12,20 @@ defmodule Elementary.Cluster do
     %{"spec" => %{"store" => store}} = Elementary.Index.spec!("cluster", "default")
 
     with {:ok, items} <-
-           Store.aggregate(store, "cluster", [%{"$addFields" => %{"now" => "$$NOW"}}]) do
+           Store.find_all(store, "cluster", %{}) do
       Enum.reduce(items, %{"hosts" => %{}, "streams" => %{}}, &cluster_info(&1, &2))
     end
   end
 
   def cluster_info(
         %{
-          "host" => name,
-          "ts" => ts,
-          "now" => now
+          "host" => name
         } = item,
         %{"hosts" => hosts} = acc
       ) do
     host =
       item
-      |> Map.take(["memory"])
-      |> Map.put("last", Calendar.seconds_since(now, ts))
+      |> Map.take(["memory", "version"])
 
     hosts = Map.put(hosts, name, host)
 
@@ -36,13 +33,12 @@ defmodule Elementary.Cluster do
   end
 
   def cluster_info(
-        %{"stream" => name, "ts" => ts, "now" => now} = item,
+        %{"stream" => name} = item,
         %{"streams" => streams} = acc
       ) do
     stream =
       item
       |> Map.take(["backlog", "inflight", "total"])
-      |> Map.put("last", Calendar.seconds_since(now, ts))
 
     streams = Map.put(streams, name, stream)
 
@@ -65,8 +61,7 @@ defmodule Elementary.Cluster do
     def init(%{
           "spec" => %{
             "refresh" => refresh,
-            "store" => store,
-            "size" => size
+            "store" => store
           }
         }) do
       state =
@@ -74,7 +69,7 @@ defmodule Elementary.Cluster do
           host: Kit.hostname(),
           store: store,
           refresh: refresh,
-          size: size
+          version: Kit.version()
         }
         |> schedule_next()
 
@@ -91,14 +86,15 @@ defmodule Elementary.Cluster do
       {:noreply, state}
     end
 
-    defp report(%{store: store, host: host} = state) do
+    defp report(%{store: store, host: host, version: version} = state) do
       store = Index.spec!("store", store)
 
       %{total: memory} = Elementary.Kit.memory()
 
       Store.ensure(store, "cluster", %{"host" => host}, %{
         "ts" => "$$NOW",
-        "memory" => memory
+        "memory" => memory,
+        "version" => version
       })
 
       state

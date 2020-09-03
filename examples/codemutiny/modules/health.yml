@@ -14,10 +14,7 @@ spec:
         cluster: info 
     cluster:
       model:
-        data: 
-          merge:
-            - "@data"
-            - version: "@model.version"
+        data: "@data"
       cmds:
         return: data
   encoders:
