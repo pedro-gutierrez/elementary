@@ -11,7 +11,7 @@ jobs:
       uses: rlespinasse/github-slug-action@v2.x
     - name: Current date
       id: time
-      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      run: echo "::set-output name=date::$(date +%F-%T)"
     - name: Checkout code
       uses: actions/checkout@master
     - name: Build and push Docker image
