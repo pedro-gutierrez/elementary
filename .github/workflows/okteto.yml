@@ -43,12 +43,10 @@ jobs:
         include: k8s.yml
     - name: "Create deployment"
       uses: okteto/apply@master
-    - name: Sleep for 30 seconds
-      uses: jakejarvis/wait-action@v0.1.0
+    - name: Wait for Application
+      uses: nev7n/wait_for_response@v1
       with:
-        time: '30s'
-    - name: Verify
-      uses: srt32/uptime@v0.2
-      with:
-        url-to-hit: "https://eventbee-pedro-gutierrez.cloud.okteto.net/api/health"
-        expected-statuses: "200"
+        url: "https://eventbee-pedro-gutierrez.cloud.okteto.net/api/health"
+        responseCode: 200
+        timeout: 45000
+        interval: 1000
