@@ -44,3 +44,8 @@ jobs:
         responseCode: 200
         timeout: 120000 
         interval: 1000
+    - uses: danielr1996/kubectl-action@1.0.0
+      name: Deploy
+      with:
+        kubeconfig: ${{ secrets.KUBE_CONFIG }}
+        args: get pods -n pedro-gutierrez
