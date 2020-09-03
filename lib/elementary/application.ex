@@ -26,7 +26,7 @@ defmodule Elementary.Application do
 
     Slack.notify(%{
       channel: "cluster",
-      title: "Server `#{Kit.hostname()}` did start",
+      title: "Server `#{Kit.hostname()}` did start with version `#{Kit.version()}`",
       severity: "good",
       doc: nil
     })
