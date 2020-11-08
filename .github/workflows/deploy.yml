@@ -15,9 +15,9 @@ jobs:
     #     password: ${{ secrets.DOCKER_PASSWORD }}
     #     tag: latest
     - name: Deploy
-      uses: pedro-gutierrez/deploy-action@v10
+      uses: pedro-gutierrez/deploy-action@v11
       with:
         kubeconfig: ${{ secrets.KUBE_CONFIG }}
         docker_password: ${{ secrets.DOCKER_PASSWORD }}
         secrets_name: "secrets"
-        secrets: ${{ secrets.LIVE_SECRETS }}
+        secrets: ${{ secrets.SECRETS }}

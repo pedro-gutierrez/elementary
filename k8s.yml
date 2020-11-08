@@ -30,3 +30,6 @@ spec:
             - name: eventbee
               containerPort: 80
               protocol: TCP
+          envFrom:
+            - secretRef:
+                name: secrets
