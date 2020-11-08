@@ -9,15 +9,15 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@master
-    - name: Publish Docker
-      uses: pedro-gutierrez/docker-action@v10
-      with:
-        password: ${{ secrets.DOCKER_PASSWORD }}
-        tag: latest
+    # - name: Publish Docker
+    #   uses: pedro-gutierrez/docker-action@v10
+    #   with:
+    #     password: ${{ secrets.DOCKER_PASSWORD }}
+    #     tag: latest
     - name: Deploy
       uses: pedro-gutierrez/deploy-action@v1
       with:
         kubeconfig: ${{ secrets.KUBE_CONFIG }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+        docker_password: ${{ secrets.DOCKER_PASSWORD }}
         secrets_name: "secrets"
         secrets: ${{ secrets.LIVE_SECRETS }}
