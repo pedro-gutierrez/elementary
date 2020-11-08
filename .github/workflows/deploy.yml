@@ -9,14 +9,13 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@master
-    - name: Build
-      uses: docker/build-push-action@v1
+    - name: Publish Docker
+      uses: pedro-gutierrez/docker-action@v10
       with:
-        username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        repository: pedrogutierrez/eventbee
-        tags: latest
-    - name: Deploy
-      uses: pedro-gutierrez/elementary-action@v5
-      with:
-        kubeconfig: ${{ secrets.KUBE_CONFIG }}
+        tag: latest
+    # - name: Deploy
+    #   uses: pedro-gutierrez/apply-action@v7
+    #   with:
+    #     kubeconfig: ${{ secrets.KUBE_CONFIG }}
+    #     password: ${{ secrets.DOCKER_PASSWORD }}
