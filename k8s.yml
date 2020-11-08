@@ -1,24 +1,9 @@
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: eventbee
-  annotations:
-    dev.okteto.com/auto-ingress: "true"
-spec:
-  type: ClusterIP  
-  ports:
-  - name: eventbee
-    port: 4000
-  selector:
-    app: eventbee
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: eventbee
+  name: nginx 
 spec:
-  replicas: 3 
+  replicas: 1 
   serviceName: eventbee
   selector:
     matchLabels:
@@ -39,13 +24,9 @@ spec:
                   - eventbee
             topologyKey: "kubernetes.io/hostname"
       containers:
-        - name: eventbee
-          imagePullPolicy: Always
-          image: pedrogutierrez/eventbee:latest
+        - name: nginx
+          image: nginx:1.14.2
           ports:
             - name: eventbee
-              containerPort: 4000
+              containerPort: 80
               protocol: TCP
-          env:
-            - name: ELEMENTARY_VERSION
-              value: "elementary_version"
