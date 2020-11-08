@@ -14,8 +14,10 @@ jobs:
       with:
         password: ${{ secrets.DOCKER_PASSWORD }}
         tag: latest
-    # - name: Deploy
-    #   uses: pedro-gutierrez/apply-action@v7
-    #   with:
-    #     kubeconfig: ${{ secrets.KUBE_CONFIG }}
-    #     password: ${{ secrets.DOCKER_PASSWORD }}
+    - name: Deploy
+      uses: pedro-gutierrez/deploy-action@v1
+      with:
+        kubeconfig: ${{ secrets.KUBE_CONFIG }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        secrets_name: "secrets"
+        secrets: ${{ secrets.LIVE_SECRETS }}
