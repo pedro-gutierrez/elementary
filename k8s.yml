@@ -33,5 +33,6 @@ spec:
           envFrom:
             - secretRef:
                 name: secrets
+          env:
             - name: DEPLOYMENT_VERSION
               value: "{{VERSION}}"
