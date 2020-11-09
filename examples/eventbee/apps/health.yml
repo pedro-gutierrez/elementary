@@ -1,0 +1,33 @@
+kind: app
+name: health 
+spec:
+  routes:
+    eventbee:
+      get: "/api/health"
+      head: "/api/health" 
+  settings:
+    - eventbee
+  decoders:
+    http:
+      get:
+        any: object
+    cluster:
+      cluster:
+        any: object 
+  update:
+    get:
+      cmds:
+        cluster: info 
+    cluster:
+      model:
+        health: "@data"
+      cmds:
+        return: health
+  encoders:
+    info: 
+      info: {}
+    health:
+      status: 200
+      headers:
+        content-type: application/json
+      body: "@health"

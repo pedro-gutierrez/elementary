@@ -21,9 +21,9 @@ RUN apk add inotify-tools
 RUN mkdir -p /app
 WORKDIR /app
 COPY --from=builder /app/_build/prod /app
-ADD examples/codemutiny /app/etc
+ADD examples/eventbee /app/etc
 ENV ELEMENTARY_HOME /app/etc
 ENV ELEMENTARY_CLUSTER_SIZE 1
 ENV ELEMENTARY_PORT 4000
-ENV ELEMENTARY_VERSION v0.1 
+ENV DEPLOYMENT_VERSION v0.1 
 CMD [ "/app/rel/elementary/bin/elementary", "start" ]

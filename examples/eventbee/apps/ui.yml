@@ -1,0 +1,12 @@
+kind: app
+name: ui
+spec:
+  debug: true
+  settings:
+    - web
+  modules:
+    - ui_router
+    - ui_theme
+    - ui_i18n
+    - ui_common
+    - ui_home

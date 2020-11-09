@@ -1,5 +1,0 @@
-kind: logger
-name: default 
-spec:
-  debug: true
-  store: logs

@@ -1,0 +1,7 @@
+kind: module
+name: ui_i18n
+spec:
+  encoders:
+    i18n:
+      resolve:
+        - "@lang"

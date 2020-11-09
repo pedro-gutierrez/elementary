@@ -1,0 +1,62 @@
+kind: module
+name: ui_home
+spec:
+  decoders:
+    router:
+      showHomePage:
+        route:
+          empty: list
+  update:
+    showHomePage:
+      cmds:
+        ui: homePage 
+  encoders:
+    homePage:
+      tag: div
+      children:
+        - view: headerView
+          params:
+            view: ""
+            nav: []
+        - view: heroView
+          params:
+            title: Last minute pass to your next favourite event
+        - view: bigSearchView
+          params:
+            popular:
+              - name: Kizomba
+              - name: Urban
+              - name: Semba
+              #- Bachata
+              #- Salsa
+    bigSearchView:
+      tag: div
+      attrs:
+        class: w-1/2 container mx-auto
+      children:
+        - tag: input
+          attrs:
+            class: 
+              format: "rounded-lg focus:outline-none text-3xl text-base py-4 px-6 duration-100 ease-in-out w-full placeholder-{{ theme }}-500 placeholder-opacity-25 appearance-none"
+            placeholder: Type something
+            oninput: "search"
+            type: text
+        - tag: div
+          attrs:
+            class: mt-4
+          children:
+            - "Popular searches:"
+            - tag: span
+              attrs:
+                class: mx-2
+              children:
+                loop: "@popular"
+                with: searchTagView
+    searchTagView:
+      tag: button
+      attrs:
+        class: 
+          format: bg-{{ theme }}-500 hover:bg-{{ theme }}-700 text-white py-1 px-2 rounded-full mx-1
+      children:
+        - "@name"
+

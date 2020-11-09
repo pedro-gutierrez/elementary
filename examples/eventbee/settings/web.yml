@@ -1,0 +1,10 @@
+kind: settings
+name: web
+spec:
+  debug: true
+  telemetry: true
+  title: Eventbee
+  baseUrl:
+    env: ELEMENTARY_WEBROOT
+  theme: blue
+  bodyClass: text-blue-500 bg-blue-100

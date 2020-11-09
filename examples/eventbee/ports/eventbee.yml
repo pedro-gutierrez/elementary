@@ -1,0 +1,4 @@
+kind: port
+name: eventbee 
+spec:
+  port: 4000

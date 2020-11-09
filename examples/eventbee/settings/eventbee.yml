@@ -1,0 +1,4 @@
+kind: settings
+name: eventbee
+spec:
+  store: eventbee

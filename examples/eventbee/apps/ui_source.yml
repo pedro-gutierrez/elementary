@@ -1,0 +1,33 @@
+kind: app
+name: ui_source
+spec:
+  routes:
+    eventbee:
+      get: /js/app.js
+  decoders:
+    http:
+      compile:
+        any: object
+    spec:
+      spec:
+        any: object
+  update:
+    compile:
+      cmds:
+        spec: compile
+    spec:
+      model:
+        spec: "@data"
+      cmds:
+        return: render
+  encoders:
+    compile:
+      app: ui
+    render:
+      status: 200
+      headers:
+        content-type: "application/json"
+        cache-control: "no-cache, no-store, must-revalidate"
+        pragma: "no-cache"
+        expires: "0"
+      body: "@spec"

@@ -1,0 +1,51 @@
+kind: app
+name: index
+spec:
+  access: false
+  telemetry: false
+  routes:
+    eventbee:
+      get: /
+  settings:
+    - web
+  decoders:
+    http:
+      index:
+        any: object
+  update:
+    index:
+      cmds:
+        return: index
+  encoders:
+    index:
+      status: 200
+      headers:
+        content-type: "text/html; charset=utf-8"
+        expires: 0
+        cache-control: no-cache, no-store, must-revalidate
+      body:
+        format: |
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>{{title}}</title>
+              <link rel="stylesheet" href="css/tailwind.min.css"/>
+              <link rel="stylesheet" href="css/fa.min.css"/>
+              <script src="js/mustache.min.js"></script>
+              <script src="js/elementary-dom.js"></script>
+              <script src="js/moment.min.js"></script>
+              <script type="module">
+                  var lang = navigator.language.split("-")[0]
+                  import {default as ui} from "/js/elementary-ui.js";
+                  import {default as events} from "/js/elementary-events.js";
+                  import {default as http} from "/js/elementary-http.js";
+                  import {default as router} from "/js/elementary-router.js";
+                  import {default as storage} from "/js/elementary-storage.js";
+                  import {default as app} from "/js/elementary.js";
+                  app("/js/app.js", {ui, events, http, router, storage}, {Mustache, moment}, {lang});
+              </script>
+            </head>
+            <body/>
+          </html>

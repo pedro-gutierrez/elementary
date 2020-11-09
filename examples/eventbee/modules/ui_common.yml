@@ -1,0 +1,373 @@
+kind: module
+name: ui_common
+spec:
+  encoders:
+    layout-view:
+      tag: div
+      attrs:
+        class:
+          format: "{{ bg-color }} {{ fg-color }}"
+          params:
+            encoder: theme-colors
+      children:
+        - view: header-view
+          params:
+            view: "@view"
+            nav: "@nav"
+        - tag: div
+          attrs:
+            class: container mx-auto flex flex-col py-12 justify-center items-center
+          children:
+             - view: "@view"
+        - view: footer-view
+          params:
+            content-view:
+              maybe: "@footer"
+    empty-layout-view:
+      tag: div
+      attrs:
+        class:
+          format: "{{ bg-color }} {{ fg-color }}"
+          params:
+            encoder: theme-colors
+      children:
+        - tag: div
+          attrs:
+            class: container mx-auto flex flex-col py-24 justify-center items-center
+          children:
+             - view: "@view"
+    home-link:
+      active-view: home-view
+      route: []
+      title:
+        encoder: i18n
+        params:
+          en: Home
+          es: Inicio
+          fr: Accueil
+    login-link:
+      route: login 
+      title:
+        encoder: i18n
+        params:
+          en: Login
+          es: Abrir sesión
+          fr: Se connecter
+    public-layout-view:
+      view: layout-view
+      params:
+        nav:
+          - encoder: home-link
+          - content-view: theme-switcher-view
+          - content-view: display-mode-switcher-view
+        footer: mailing-list-form-view
+    member-layout-view:
+      view: layout-view
+      params:
+        nav:
+          concat:
+            - encoder: apps-nav
+            - content-view: theme-switcher-view
+            - content-view: display-mode-switcher-view
+    loading-view:
+      view: hero-view
+      params:
+        title: Loading
+        title-size: text-xl
+        icon: fas fa-hourglass-start
+        icon-size: fa-4x
+    footer-view:
+      tag: footer
+      attrs:
+        class:
+          format: "{{ fg-color }} {{ bg-color }} body-font"
+          params:
+            encoder: theme-colors
+      children:
+        - view: 
+            maybe: "@footer"
+        - tag: div
+          attrs:
+            class:
+              format: "{{ bg-color-active }}"
+              params:
+                encoder: theme-colors
+          children:
+            - tag: div
+              attrs:
+                class: container mx-auto py-4 lex flex-wrap flex-col sm:flex-row
+              children:
+                - tag: p
+                  attrs:
+                    class: text-gray-500 text-sm text-center sm:text-left
+                  children:
+                    - view: icon-view
+                      params:
+                        icon: fa fa-skull-crossbones
+                        margin: mx-1
+                        title: "Skull"
+                    - "© 2020 Codemutiny"
+    headerView:
+      tag: header
+      attrs:
+        class: 
+          format: bg-white
+      children:
+        - tag: div
+          attrs:
+            class: container mx-auto flex flex-wrap py-5 flex-col md:flex-row items-center
+          children:
+            - tag: a
+              attrs:
+                class: flex title-font font-medium items-center mb-4 md:mb-0
+              children:
+                - view: icon-view
+                  params:
+                    size: text-xl
+                    icon: fas fa-2x fa-radiation
+                - tag: span
+                  attrs:
+                    class: ml-3 text-xl uppercase tracking-widest
+                  children:
+                    - "@title"
+            - tag: nav
+              attrs:
+                class: md:ml-auto flex flex-wrap items-center text-base justify-center
+              children:
+                loop: "@nav"
+                with: header-nav-item-view
+    header-nav-item-view:
+      view:
+        maybe: "@content-view"
+        otherwise: header-link-view
+    header-link-view:
+      tag: a
+      attrs:
+        href: "#"
+        class:
+          format: "mr-5 hover:{{ fg-hover }} {{ extra }} {{ bg-color-active }} hover:{{ bg-color-active-hover }}"
+          params:
+            merge:
+              - encoder: theme-colors
+              - choose: "@view"
+                when: "@active-view"
+                then:
+                  fg-hover: none
+                  extra: "border-0 py-1 px-3 focus:outline-none rounded text-base"
+                otherwise:
+                  extra: ""
+                  bg-color-active: none
+                  bg-color-active-hover: none
+        onclick:
+          navigate:
+            encoder: encode-route
+      children:
+        - capitalize: 
+            maybe: "@title"
+            otherwise: "@route"
+    heroView:
+      tag: section
+      attrs:
+        class: body-font text-center pt-24 pb-12
+      children:
+        - tag: div
+          attrs:
+            class: container mx-auto w-1/2
+          children:
+            - tag: h1
+              attrs:
+                class: text-6xl leading-none tracking-wide
+              children:
+                - "@title"
+    icon-view:
+      tag: i
+      attrs:
+        title:
+          maybe: "@title"
+        class:
+          format: "{{ icon }} {{ margin }} {{ color }} {{ size }}"
+    not-found-view:
+      tag: div
+      children:
+        - "The page you are trying to reach could not be found"
+    textFieldView:
+      tag: input
+      attrs:
+        class: 
+          format: "rounded-lg focus:outline-none text-3xl text-base py-4 px-6 duration-100 ease-in-out w-1/2 placeholder-{{ theme }}-500 placeholder-opacity-25 appearance-none"
+        placeholder: "@placeholder"
+        oninput: "@name"
+        type: text
+      children: []
+    formView:
+      tag: div
+      attrs:
+        class: 
+          format: "{{ &width }} {{ bg-color-active-2 }} rounded-lg mb-6 flex flex-col md:ml-auto w-full mt-10 md:mt-0"
+          params:
+            merge:
+              - encoder: theme-colors 
+              - width:
+                  maybe: "@width"
+                  otherwise: w-full 
+      children:
+        - tag: h2
+          attrs:
+            class: 
+              format: "{{ fg-color-active-2 }} text-xl mb-4 font-medium"
+              params:
+                encoder: theme-colors
+          children:
+            - encoder: i18n
+              params: "@title"
+        - tag: p
+          attrs:
+            class: "leading-relaxed mb-5 {{ fg-color }}"
+            params:
+              encoder: theme-colors
+          children:
+            - encoder: i18n
+              params: "@subtitle"
+        - tag: div
+          attrs:
+            class: w-full flex flex-col
+          children:
+            loop: "@fields"
+            with: "@view"
+        - tag: button
+          attrs:
+            class:
+              format: "text-white bg-{{ theme }}-500 border-0 py-2 px-6 focus:outline-none hover:bg-{{ theme }}-600 rounded {{ disabled }}"
+              params:
+                theme: "@theme"
+                disabled:
+                  switch: "@loading"
+                  case:
+                    true: "cursor-not-allowed"
+                  default: ""
+            onclick:
+              switch: "@loading"
+              case:
+                true: noop
+              default: "@action.name" 
+          children:
+            - encoder: i18n
+              params: "@action.title"
+            - view: icon-view
+              when: 
+                maybe: "@loading"
+                otherwise: false
+              params:
+                margin: mx-1
+                icon: fa fa-spinner fa-spin
+        - tag: p
+          when:
+            is_set: "@message"
+          attrs:
+            class:
+              format: "text-xs mt-3 {{ fg-color }}"
+          children:
+            - "@message"
+    simpleView:
+      tag: div
+      attrs:
+        class: mb-6
+      children:
+        - tag: h2
+          attrs:
+            class: 
+              format: "{{ fg-color-active-2 }} text-xl mb-4 font-medium"
+              params:
+                encoder: theme-colors
+          children:
+            - encoder: i18n
+              params: "@title"
+        - view: "@contentView"
+    itemsView:
+      tag: div
+      attrs:
+        class: mb-6
+      children:
+        - tag: h2
+          attrs:
+            class: 
+              format: "{{ fg-color-active-2 }} text-xl mb-4 font-medium"
+              params:
+                encoder: theme-colors
+          children:
+            - encoder: i18n
+              params: "@title"
+        - tag: div
+          attrs:
+            class: flex flex-wrap -m-4
+          children:
+            loop: "@items"
+            with: "@itemView"
+    blogItemView:
+      tag: div
+      attrs:
+        class: p-4 lg:w-1/3 md:w-1/2 sm:w-full
+      children:
+        - tag: div
+          attrs:
+            class: 
+              format: "h-full border-2 {{ section-border-color}} rounded-lg overflow-hidden"
+              params:
+                encoder: theme-colors
+          children:
+            - tag: img
+              attrs:
+                class: lg:h-48 md:h-36 w-full object-cover object-center
+                src: "@image.url"
+                style:
+                  maybe: "@image.style"
+            - tag: div
+              attrs:
+                class: p-6
+              children:
+                - tag: h2
+                  attrs:
+                    class: 
+                      format: "tracking-widest text-xs title-font font-medium {{ fg-color }} mb-1"
+                      params:
+                        encoder: theme-colors
+                  children:
+                    - formatDate: 
+                        date: "@date"
+                        pattern: relative
+                - tag: h1
+                  attrs:
+                    class: 
+                      format: "title-font text-lg font-medium {{ fg-color-active }} mb-3"
+                      params:
+                        encoder: theme-colors
+                  children:
+                    - "@title"
+                - tag: div
+                  attrs:
+                    class: flex items-center flex-wrap
+                  children:
+                    - tag: a
+                      attrs:
+                        href: "#"
+                        onclick: "@action"
+                        class: 
+                          format: "text-{{ theme }}-500 inline-flex items-center md:mb-2 lg:mb-0"
+                      children:
+                        - Open
+                    - tag: span
+                      attrs:
+                        class: 
+                          format: "{{ fg-color}} mr-3 inline-flex items-center lg:ml-auto md:ml-0 ml-auto leading-none text-sm pr-3 py-1 border-r-2 {{ section-border-color }}"
+                          params:
+                            encoder: theme-colors
+                      children:
+                        - "1.2K"
+                    - tag: span
+                      attrs:
+                        class: 
+                          format: "{{ fg-color }} inline-flex items-center leading-none text-sm"
+                          params:
+                            encoder: theme-colors
+                      children:
+                        - "6"

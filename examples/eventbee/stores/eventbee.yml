@@ -1,0 +1,24 @@
+kind: store
+name: eventbee
+spec:
+  pool: 10
+  url:
+    env: ELEMENTARY_MONGO_URL
+  collections:
+    cluster:
+      indexes:
+        - expire: ts
+          after: 10
+    access: {}
+    telemetry: {}
+    errors: {}
+    identities: {}
+    tokens:
+      indexes:
+        - expire: nonce
+          after: 60
+        - expire: session
+          after: 3600
+    events_view:
+      indexes:
+        - unique: ref

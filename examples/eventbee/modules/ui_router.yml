@@ -1,0 +1,38 @@
+kind: module
+name: ui_router
+spec:
+  init:
+    cmds:
+      router: {}
+  decoders:
+    ui:
+      navigate:
+        navigate:
+          route:
+            any: list
+          query:
+            any: object
+    router:
+      error-page:
+        route:
+          - error
+  update:
+    navigate:
+      model:
+        route: "@data.navigate"
+      cmds:
+        router: navigate 
+    error-page:
+      model:
+        view: error-view
+      cmds:
+        ui: public-layout-view
+  encoders:
+    navigate:
+      action: navigate 
+      target: "@route"
+    encode-route:
+      route: "@route"
+      query:
+        maybe_with:
+          - session

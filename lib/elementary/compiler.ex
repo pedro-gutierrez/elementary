@@ -59,6 +59,9 @@ defmodule Elementary.Compiler do
     receive do
       {:total, count} ->
         Logger.info("Compiled #{count} specs")
+    after
+      1_000 ->
+        compile()
     end
   end
 end

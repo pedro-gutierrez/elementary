@@ -1,0 +1,7 @@
+kind: stream
+name: access 
+spec:
+  settings: 
+    - eventbee 
+  collection: access 
+  apps: []
