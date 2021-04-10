@@ -22,48 +22,54 @@ defmodule Elementary.Slack do
     :ok
   end
 
-  def notify(%{channel: channel, severity: sev, title: title, doc: doc}) do
-    %{"spec" => spec} = Index.spec!("settings", "slack")
+  def notify(%{channel: channel, severity: sev, title: title} = spec) do
+    doc = spec[:doc]
 
-    case spec[channel] do
-      nil ->
-        Logger.warn("No webhook configured for slack channel \"#{channel}\"")
-        :error
-
-      url ->
-        text =
-          case doc do
-            nil ->
-              title
-
-            _ ->
-              "#{title} #{code(doc)}"
-          end
-
-        body = %{
-          "attachments" => [
-            %{
-              "color" => sev,
-              "text" => text
-            }
-          ]
-        }
-
-        Elementary.Http.Client.run(
-          method: "post",
-          url: url,
-          body: body,
-          headers: %{
-            "content-type" => "application/json"
-          }
-        )
-        |> case do
-          %{"status" => 200, "body" => "ok"} ->
-            :ok
-
-          _ ->
+    case Index.spec("settings", "slack") do
+      {:ok, %{"spec" => spec}} ->
+        case spec[channel] do
+          nil ->
+            Logger.warn("No webhook configured for slack channel \"#{channel}\"")
             :error
+
+          url ->
+            text =
+              case doc do
+                nil ->
+                  title
+
+                _ ->
+                  "#{title} #{code(doc)}"
+              end
+
+            body = %{
+              "attachments" => [
+                %{
+                  "color" => sev,
+                  "text" => text
+                }
+              ]
+            }
+
+            Elementary.Http.Client.run(
+              method: "post",
+              url: url,
+              body: body,
+              headers: %{
+                "content-type" => "application/json"
+              }
+            )
+            |> case do
+              %{"status" => 200, "body" => "ok"} ->
+                :ok
+
+              _ ->
+                :error
+            end
         end
+
+      :not_found ->
+        Logger.warn("No slack settings. Won't notify on #{channel}")
     end
   end
 

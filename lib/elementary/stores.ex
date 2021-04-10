@@ -10,15 +10,20 @@ defmodule Elementary.Stores do
   end
 
   def init(_) do
-    [Elementary.Stores.Monitor | "store" |> Index.specs() |> Enum.map(&store_spec(&1))]
+    Index.specs("store")
+    |> Enum.map(fn %{"name" => name} = spec ->
+      name = String.to_atom(name)
+      IO.inspect(store: name)
+      store_spec(spec)
+    end)
     |> Supervisor.init(strategy: :one_for_one)
   end
 
   def store_name(%{"name" => name}), do: store_name(name)
-  def store_name(name), do: String.to_atom("#{name}_store")
+  def store_name(name), do: String.to_existing_atom(name)
 
-  def store_spec(%{"name" => store_name, "spec" => spec}) do
-    name = store_name(store_name)
+  def store_spec(%{"name" => name, "spec" => spec}) do
+    name = store_name(name)
     pool_size = spec["pool"] || 1
 
     {:ok, url_spec} = Encoder.encode(spec["url"] || %{"db" => name})
@@ -34,61 +39,13 @@ defmodule Elementary.Stores do
              pool_timeout: 8000,
              name: name,
              url: url,
-             pool_size: pool_size,
-             after_connect: {Elementary.Stores.Monitor, :monitor, [store_name]}
+             pool_size: pool_size
            ]
          ]},
       type: :worker,
       restart: :permanent,
       shutdown: 5000
     }
-  end
-
-  defmodule Monitor do
-    use GenServer
-    alias Elementary.{Stores}
-    require Logger
-
-    def start_link(_) do
-      GenServer.start_link(__MODULE__, nil, name: __MODULE__)
-    end
-
-    def monitor(conn, store) do
-      GenServer.call(__MODULE__, {:monitor, conn, store})
-    end
-
-    @impl true
-    def init(_) do
-      Registry.register(:events_registry, :topology, self())
-      {:ok, %{host: Elementary.Kit.hostname()}}
-    end
-
-    @impl true
-    def handle_call({:monitor, _, _store}, _, %{host: _host} = state) do
-      # Slack.notify_async("cluster", "Host *#{host}* established a connection to store *#{store}*")
-      {:reply, :ok, state}
-    end
-
-    @impl true
-    def handle_info(
-          {:broadcast, :topology, %Mongo.Events.ServerSelectionEmptyEvent{}},
-          %{
-            host: host
-          } = state
-        ) do
-      Elementary.Slack.notify(%{
-        channel: "cluster",
-        title: "No connection from `#{host}` to its store",
-        severity: "danger",
-        doc: nil
-      })
-
-      {:noreply, state}
-    end
-
-    def handle_info(_msg, state) do
-      {:noreply, state}
-    end
   end
 
   defmodule Store do

@@ -1,6 +1,5 @@
 defmodule Elementary.Cluster do
   @moduledoc false
-
   use Supervisor
   alias Elementary.{Kit, Index, Stores.Store}
 

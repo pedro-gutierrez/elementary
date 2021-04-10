@@ -26,6 +26,7 @@ defmodule Elementary.MixProject do
         :mongodb_driver,
         :mustache,
         :nimble_strftime,
+        :prometheus_ex,
         :ranch,
         :uuid,
         :yaml_elixir
@@ -38,6 +39,7 @@ defmodule Elementary.MixProject do
   defp deps do
     [
       {:argon2_elixir, "~> 2.0"},
+      {:binance, "~> 0.7.1"},
       {:content_type, "~> 0.1.0"},
       {:cowboy, "~> 2.6.3"},
       {:file_system, "~> 0.2.7"},
@@ -46,9 +48,13 @@ defmodule Elementary.MixProject do
       {:jason, "~> 1.1.2"},
       {:mongodb_driver, "~> 0.7"},
       {:mustache, "~> 0.3.0"},
+      {:phoenix_pubsub, "~> 2.0.0"},
+      {:poison, "~> 4.0.0"},
+      {:prometheus_ex, "~> 3.0"},
       {:nimble_strftime, "~> 0.1.0"},
       {:uuid, "~> 1.1"},
-      {:yaml_elixir, "~> 2.4.0"}
+      {:yaml_elixir, "~> 2.4.0"},
+      {:websockex, "~> 0.4.3"}
     ]
   end
 end

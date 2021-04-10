@@ -1,0 +1,4 @@
+kind: subscription 
+name: trades_store
+spec:
+  topic: trades

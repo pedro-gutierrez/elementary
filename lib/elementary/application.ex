@@ -15,10 +15,14 @@ defmodule Elementary.Application do
           Elementary.Compiler,
           Elementary.Stores,
           # Elementary.Test,
-          Elementary.Cluster,
+          # Elementary.Cluster,
           Elementary.Services,
-          Elementary.Streams,
-          Elementary.Ports
+          # Elementary.Topics,
+          # Elementary.Subscriptions,
+          # Elementary.Streams,
+          Elementary.Symbols,
+          Elementary.Ports,
+          Elementary.Metrics
         ],
         strategy: :one_for_one,
         name: Elementary.Supervisor
@@ -27,8 +31,7 @@ defmodule Elementary.Application do
     Slack.notify(%{
       channel: "cluster",
       title: "Server `#{Kit.hostname()}` did start with version `#{Kit.version()}`",
-      severity: "good",
-      doc: nil
+      severity: "good"
     })
 
     IO.inspect(started: Elementary.Kit.version())

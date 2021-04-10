@@ -1,0 +1,4 @@
+kind: metrics 
+name: default
+spec:
+  port: 4000

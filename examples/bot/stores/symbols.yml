@@ -1,0 +1,6 @@
+kind: store                        
+name: symbols 
+spec:
+  pool: 5         
+  url:                      
+    env: ELEMENTARY_MONGO_URL 
