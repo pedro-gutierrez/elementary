@@ -15,6 +15,8 @@ defmodule Elementary.Channel do
   end
 
   def send(channel, event, data) do
+    Instrumenter.event_in(channel, event, "total")
+
     case Store.insert("symbols", "#{channel}-#{event}", data) do
       :ok ->
         Instrumenter.event_in(channel, event, "success")

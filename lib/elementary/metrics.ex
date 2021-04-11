@@ -79,7 +79,7 @@ defmodule Elementary.Metrics do
       req =
         :cowboy_req.reply(
           200,
-          %{},
+          %{"content-type" => "text/plain"},
           body,
           req
         )

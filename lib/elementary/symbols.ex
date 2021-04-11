@@ -9,6 +9,12 @@ defmodule Elementary.Symbols do
     Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
+  def resume_trades() do
+    Elementary.Symbols.TradesSup
+    |> Process.whereis()
+    |> Process.exit(:kill)
+  end
+
   def init(_) do
     [ChannelsSup, TradesSup, ExchangeInfo]
     |> Supervisor.init(strategy: :one_for_one)
@@ -42,7 +48,7 @@ defmodule Elementary.Symbols do
     use Supervisor
 
     def start_link(opts) do
-      Supervisor.start_link(__MODULE__, opts)
+      Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
     end
 
     def init(_) do
@@ -60,6 +66,8 @@ defmodule Elementary.Symbols do
     and emits them to the rest of the application
     """
     use WebSockex
+
+    require Logger
 
     def start_link(%{"name" => name, "spec" => inner} = spec) do
       inner = Map.put(inner, "symbol", String.upcase(name))
@@ -90,9 +98,27 @@ defmodule Elementary.Symbols do
       with {:ok, %{"e" => "trade", "s" => ^symbol} = trade} <- Jason.decode(msg) do
         trade = Map.put(trade, "s", name)
         Elementary.Channel.send(name, "trade", trade)
+      else
+        other ->
+          Logger.warn("Unexpected frame from #{symbol}: #{inspect(other)}")
       end
 
       {:ok, spec}
+    end
+
+    def handle_connect(_conn, %{"name" => name} = state) do
+      Logger.info("Websocket #{name} connected")
+      {:ok, state}
+    end
+
+    def handle_disconnect(_conn, %{"name" => name} = state) do
+      Logger.info("Websocket #{name} disconnected")
+      {:reconnect, state}
+    end
+
+    def terminate(reason, _state) do
+      Logger.warn("Websocket terminated: #{inspect(reason)}")
+      exit(:normal)
     end
   end
 
