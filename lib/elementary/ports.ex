@@ -34,6 +34,8 @@ defmodule Elementary.Ports do
   end
 
   defmodule Port do
+    alias Elementary.Ports.MetricsExporter
+
     def start_link(%{"name" => name, "spec" => %{"port" => port}}) do
       routes =
         "app"
@@ -74,6 +76,7 @@ defmodule Elementary.Ports do
         :cowboy_router.compile([
           {:_,
            dispatch_rules ++
+             [{"/metrics", MetricsExporter, []}] ++
              [
                {"/[...]", :cowboy_static,
                 {:dir, Elementary.Kit.assets(),
@@ -100,7 +103,30 @@ defmodule Elementary.Ports do
           end)
       )
 
+      # clear default prometheus collectors
+      :prometheus_registry.clear()
+
       {:ok, pid}
+    end
+  end
+
+  defmodule MetricsExporter do
+    @moduledoc """
+    Http exporter that exposes Prometheus metrics
+    """
+
+    def init(req, state) do
+      body = Prometheus.Format.Text.format()
+
+      req =
+        :cowboy_req.reply(
+          200,
+          %{"content-type" => "text/plain"},
+          body,
+          req
+        )
+
+      {:ok, req, state}
     end
   end
 end

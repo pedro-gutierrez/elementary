@@ -20,9 +20,9 @@ defmodule Elementary.Application do
           # Elementary.Topics,
           # Elementary.Subscriptions,
           # Elementary.Streams,
-          Elementary.Symbols,
           Elementary.Ports,
-          Elementary.Metrics
+          Elementary.Metrics,
+          Elementary.Symbols
         ],
         strategy: :one_for_one,
         name: Elementary.Supervisor
