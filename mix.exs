@@ -17,6 +17,7 @@ defmodule Elementary.MixProject do
       extra_applications: [:logger],
       applications: [
         :argon2_elixir,
+        :binance,
         :content_type,
         :cowboy,
         :file_system,
@@ -26,10 +27,13 @@ defmodule Elementary.MixProject do
         :mongodb_driver,
         :mustache,
         :nimble_strftime,
+        :phoenix_pubsub,
+        :poison,
         :prometheus_ex,
         :ranch,
         :uuid,
-        :yaml_elixir
+        :yaml_elixir,
+        :websockex
       ],
       mod: {Elementary.Application, []}
     ]
