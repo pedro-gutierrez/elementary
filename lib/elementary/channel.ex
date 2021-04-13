@@ -9,6 +9,7 @@ defmodule Elementary.Channel do
   require Logger
   alias Elementary.Stores.Store
   alias Elementary.Channel.Instrumenter
+  alias Elementary.Kit
 
   def start_link(name) do
     Supervisor.start_link(__MODULE__, name)
@@ -17,9 +18,9 @@ defmodule Elementary.Channel do
   def send(channel, event, data) do
     Instrumenter.event_in(channel, event, "total")
 
-    case Store.insert("symbols", "#{channel}-#{event}", data) do
-      :ok ->
-        Instrumenter.event_in(channel, event, "success")
+    case persist(channel, event, data) do
+      {:ok, millis} ->
+        Instrumenter.event_in(channel, event, "success", millis)
         :ok
 
       other ->
@@ -50,6 +51,15 @@ defmodule Elementary.Channel do
     )
   end
 
+  defp persist(channel, event, data) do
+    start = Kit.millis()
+    res = Store.insert("symbols", "#{channel}-#{event}", data)
+    {res, Kit.millis_since(start)}
+  rescue
+    e ->
+      {:error, e}
+  end
+
   defmodule Instrumenter do
     @moduledoc """
     A channel instrumenter based on 
@@ -64,10 +74,22 @@ defmodule Elementary.Channel do
         help: "Events in total",
         labels: [:channel, :event, :status]
       )
+
+      Histogram.new(
+        name: :event_storage_overhead,
+        buckets: [10, 50, 100, 300, 500, 750, 1000],
+        help: "Event storage overhead"
+      )
     end
 
     def event_in(channel, event, status) do
       Counter.inc(name: :events_in_total, labels: [channel, event, status])
+    end
+
+    def event_in(channel, event, status, time) do
+      event_in(channel, event, status)
+
+      Histogram.observe([name: :event_storage_overhead], time)
     end
   end
 end
