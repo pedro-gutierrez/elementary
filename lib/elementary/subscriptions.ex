@@ -16,7 +16,7 @@ defmodule Elementary.Subscriptions do
     |> Supervisor.init(strategy: :one_for_one)
   end
 
-  defp subscription_spec(%{"name" => name} = spec) do
+  defp subscription_spec(spec) do
     {Subscription, spec}
   end
 

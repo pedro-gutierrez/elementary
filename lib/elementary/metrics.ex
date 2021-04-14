@@ -6,7 +6,8 @@ defmodule Elementary.Metrics do
   use Supervisor
 
   @instruments [
-    Elementary.Channel.Instrumenter
+    Elementary.Channel.Instrumenter,
+    Elementary.Symbols.Instrumenter
   ]
 
   def start_link(opts) do

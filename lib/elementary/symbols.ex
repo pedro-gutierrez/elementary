@@ -67,6 +67,8 @@ defmodule Elementary.Symbols do
     """
     use WebSockex
 
+    alias Elementary.Symbols.Instrumenter
+
     require Logger
 
     def start_link(%{"name" => name, "spec" => inner} = spec) do
@@ -107,17 +109,20 @@ defmodule Elementary.Symbols do
     end
 
     def handle_connect(_conn, %{"name" => name} = state) do
+      Instrumenter.connected(name)
       Logger.info("Websocket #{name} connected")
       {:ok, state}
     end
 
     def handle_disconnect(_conn, %{"name" => name} = state) do
+      Instrumenter.disconnected(name)
       Logger.info("Websocket #{name} disconnected")
       {:reconnect, state}
     end
 
-    def terminate(reason, _state) do
-      Logger.warn("Websocket terminated: #{inspect(reason)}")
+    def terminate(reason, %{"name" => name}) do
+      Instrumenter.disconnected(name)
+      Logger.warn("Websocket #{name} terminated: #{inspect(reason)}")
       exit(:normal)
     end
   end
@@ -168,6 +173,33 @@ defmodule Elementary.Symbols do
       |> Enum.each(fn %{"symbol" => symbol} = info ->
         Elementary.Channel.send(symbol, "info", info)
       end)
+    end
+  end
+
+  defmodule Instrumenter do
+    @moduledoc """
+    A symbol instrumenter based on Prometheus
+
+    Defines all the metrics that we expose in relation
+    to symbol trade data consumption from Binance
+    """
+
+    use Prometheus.Metric
+
+    def setup do
+      Gauge.declare(
+        name: :websocket_connection_status,
+        help: "Websocket connection_status",
+        labels: [:symbol]
+      )
+    end
+
+    def disconnected(symbol) do
+      Gauge.dec(name: :websocket_connection_status, labels: [symbol])
+    end
+
+    def connected(symbol) do
+      Gauge.inc(name: :websocket_connection_status, labels: [symbol])
     end
   end
 end
