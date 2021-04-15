@@ -15,18 +15,11 @@ defmodule Elementary.Channel do
     Supervisor.start_link(__MODULE__, name)
   end
 
-  def send(channel, event, data) do
+  def send(channel, %{"event" => event} = data) do
+    channel = String.to_existing_atom(channel)
     Instrumenter.event_in(channel, event, "total")
-
-    case persist(channel, event, data) do
-      {:ok, millis} ->
-        Instrumenter.event_in(channel, event, "success", millis)
-        :ok
-
-      other ->
-        Instrumenter.event_in(channel, event, "error")
-        Logger.error("Error writing to #{channel}-#{event}: #{inspect(other)}")
-    end
+    Phoenix.PubSub.broadcast(channel, "data", data)
+    :ok
   end
 
   def subscribe(channel) do
@@ -45,19 +38,46 @@ defmodule Elementary.Channel do
 
     Supervisor.init(
       [
-        {Phoenix.PubSub, name: name}
+        {Phoenix.PubSub, name: name},
+        {Elementary.Channel.Writer, name}
       ],
       strategy: :one_for_one
     )
   end
 
-  defp persist(channel, event, data) do
-    start = Kit.millis()
-    res = Store.insert("symbols", "#{channel}-#{event}", data)
-    {res, Kit.millis_since(start)}
-  rescue
-    e ->
-      {:error, e}
+  defmodule Writer do
+    @moduledoc """
+    A module that subscribes to the topic for the channel,
+    and persists every message received
+    """
+
+    use GenServer
+
+    def start_link(name) do
+      GenServer.start_link(__MODULE__, name)
+    end
+
+    def init(name) do
+      Phoenix.PubSub.subscribe(name, "data")
+      {:ok, name}
+    end
+
+    def handle_info(%{"event" => event} = data, channel) do
+      start = Kit.millis()
+
+      case Store.insert("symbols", "#{channel}-#{event}", data) do
+        :ok ->
+          millis = Kit.millis_since(start)
+          Instrumenter.event_in(channel, event, "success", millis)
+          :ok
+
+        {:error, e} ->
+          Instrumenter.event_in(channel, event, "error")
+          Logger.warn("Error writing to #{channel}-#{event}: #{inspect(e)}")
+      end
+
+      {:noreply, channel}
+    end
   end
 
   defmodule Instrumenter do

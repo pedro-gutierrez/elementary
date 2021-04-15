@@ -227,6 +227,12 @@ defmodule Elementary.Stores do
         {:error, e} ->
           {:error, mongo_error(e)}
       end
+    rescue
+      e ->
+        {:error, mongo_error(e)}
+    catch
+      :exit, e ->
+        {:error, mongo_error(e)}
     end
 
     def insert(spec, col, docs) when is_list(docs) do
@@ -244,6 +250,12 @@ defmodule Elementary.Stores do
         {:error, e} ->
           {:error, mongo_error(e)}
       end
+    rescue
+      e ->
+        {:error, mongo_error(e)}
+    catch
+      :exit, e ->
+        {:error, mongo_error(e)}
     end
 
     def subscribe(spec, col, partition, %{"offset" => offset}, fun, opts \\ []) do
@@ -554,6 +566,19 @@ defmodule Elementary.Stores do
 
     defp mongo_error(%{"code" => 11000}) do
       :conflict
+    end
+
+    defp mongo_error({:timeout, _}), do: :timeout
+
+    defp mongo_error(
+           {{:bad_return_value, :error},
+            {GenServer, :call, [_, {:checkout_session, :write, :implicit, _}, _]}}
+         ) do
+      :connection_error
+    end
+
+    defp mongo_error({:normal, {DBConnection.Holder, :checkout, _}}) do
+      :connection_error
     end
 
     defp mongo_error(error) do

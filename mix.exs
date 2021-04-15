@@ -6,7 +6,7 @@ defmodule Elementary.MixProject do
       app: :elementary,
       version: "0.1.0",
       elixir: "~> 1.10.1",
-      start_permanent: Mix.env() == :prod,
+      start_permanent: true,
       deps: deps()
     ]
   end

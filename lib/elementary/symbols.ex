@@ -16,7 +16,11 @@ defmodule Elementary.Symbols do
   end
 
   def init(_) do
-    [ChannelsSup, TradesSup, ExchangeInfo]
+    [
+      ChannelsSup,
+      TradesSup,
+      ExchangeInfo
+    ]
     |> Supervisor.init(strategy: :one_for_one)
   end
 
@@ -98,8 +102,13 @@ defmodule Elementary.Symbols do
           } = spec
         ) do
       with {:ok, %{"e" => "trade", "s" => ^symbol} = trade} <- Jason.decode(msg) do
-        trade = Map.put(trade, "s", name)
-        Elementary.Channel.send(name, "trade", trade)
+        trade =
+          Map.merge(trade, %{
+            "s" => name,
+            "event" => "trade"
+          })
+
+        Elementary.Channel.send(name, trade)
       else
         other ->
           Logger.warn("Unexpected frame from #{symbol}: #{inspect(other)}")
@@ -171,7 +180,8 @@ defmodule Elementary.Symbols do
         |> Map.put("filters", filters)
       end)
       |> Enum.each(fn %{"symbol" => symbol} = info ->
-        Elementary.Channel.send(symbol, "info", info)
+        info = Map.put(info, "event", "info")
+        Elementary.Channel.send(symbol, info)
       end)
     end
   end
