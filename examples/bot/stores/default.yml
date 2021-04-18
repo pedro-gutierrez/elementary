@@ -1,5 +1,5 @@
 kind: store                        
-name: symbols 
+name: default 
 spec:
   pool: 5         
   url:                      

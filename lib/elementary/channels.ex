@@ -30,19 +30,26 @@ defmodule Elementary.Channels do
     alias Elementary.Channels.Instrumenter
     alias Elementary.Channels.Writer
 
+    def name(name) when is_atom(name), do: name
+    def name(name), do: String.to_existing_atom(name)
+
     def start_link(name) do
-      Supervisor.start_link(__MODULE__, name)
+      Supervisor.start_link(__MODULE__, name, name: name)
     end
 
-    def send(channel, %{"event" => event} = data) do
-      channel = String.to_existing_atom(channel)
+    def publish(channel, %{"event" => event} = data) do
+      channel = name(channel)
       Instrumenter.event_in(channel, event, "total")
-      Phoenix.PubSub.broadcast(channel, "data", data)
+      for pid <- :pg2.get_members(channel), do: send(pid, data)
       :ok
     end
 
     def subscribe(channel) do
       IO.inspect(subscribe: channel)
+
+      channel
+      |> name()
+      |> :pg2.join(self())
     end
 
     def child_spec(%{"name" => name}) do
@@ -55,17 +62,12 @@ defmodule Elementary.Channels do
     end
 
     def init(name) do
+      :ok = :pg2.create(name)
+
       IO.inspect(channel: name)
 
       Supervisor.init(
         [
-          Elementary.Stores.store_spec(%{
-            "name" => "#{name}",
-            "spec" => %{
-              "url" => %{"env" => "ELEMENTARY_MONGO_URL"}
-            }
-          }),
-          {Phoenix.PubSub, name: name},
           {Writer, name}
         ],
         strategy: :one_for_one
@@ -90,14 +92,14 @@ defmodule Elementary.Channels do
     end
 
     def init(name) do
-      Phoenix.PubSub.subscribe(name, "data")
+      :pg2.join(name, self())
       {:ok, name}
     end
 
     def handle_info(%{"event" => event} = data, channel) do
       start = Kit.millis()
 
-      case Store.insert("#{channel}", "#{channel}-#{event}", data) do
+      case Store.insert(:default, "#{channel}-#{event}", data) do
         :ok ->
           millis = Kit.millis_since(start)
           Instrumenter.event_in(channel, event, "success", millis)

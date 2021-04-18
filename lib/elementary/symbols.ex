@@ -3,7 +3,9 @@ defmodule Elementary.Symbols do
 
   use Supervisor
   alias Elementary.Index
-  alias Elementary.Symbols.{ChannelsSup, TradesSup, Trades, ExchangeInfo}
+  alias Elementary.Symbols.Symbol
+  alias Elementary.Symbols.Trades
+  alias Elementary.Symbols.ExchangeInfo
   alias Elementary.Channels.Channel
 
   def start_link(opts) do
@@ -17,48 +19,38 @@ defmodule Elementary.Symbols do
   end
 
   def init(_) do
-    [
-      ChannelsSup,
-      TradesSup,
-      ExchangeInfo
-    ]
-    |> Supervisor.init(strategy: :one_for_one)
-  end
-
-  defmodule ChannelsSup do
-    @moduledoc """
-    A supervisor for all channels associated 
-    to symbols. 
-    """
-    use Supervisor
-
-    def start_link(opts) do
-      Supervisor.start_link(__MODULE__, opts)
-    end
-
-    def init(_) do
-      Index.specs("symbol")
-      |> Enum.map(&Channel.child_spec(&1))
-      |> Supervisor.init(strategy: :one_for_one)
-    end
-  end
-
-  defmodule TradesSup do
-    @moduledoc """
-    A supervisor for all symbol trades worker
-    """
-    use Supervisor
-
-    def start_link(opts) do
-      Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
-    end
-
-    def init(_) do
+    symbols =
       Index.specs("symbol")
       |> Enum.map(fn spec ->
-        {Trades, spec}
+        {Symbol, spec}
       end)
+
+    Supervisor.init([ExchangeInfo | symbols], strategy: :one_for_one)
+  end
+
+  defmodule Symbol do
+    @moduledoc """
+    A supervisor for a symbol
+    """
+    use Supervisor
+
+    def start_link(spec) do
+      Supervisor.start_link(__MODULE__, spec)
+    end
+
+    def init(spec) do
+      [
+        {Channel, spec},
+        {Trades, spec}
+      ]
       |> Supervisor.init(strategy: :one_for_one)
+    end
+
+    def child_spec(%{"name" => name} = spec) do
+      %{
+        id: name,
+        start: {__MODULE__, :start_link, [spec]}
+      }
     end
   end
 
@@ -106,7 +98,7 @@ defmodule Elementary.Symbols do
             "event" => "trade"
           })
 
-        Channel.send(name, trade)
+        Channel.publish(name, trade)
       else
         other ->
           Logger.warn("Unexpected frame from #{symbol}: #{inspect(other)}")
@@ -142,7 +134,7 @@ defmodule Elementary.Symbols do
     use GenServer
 
     def start_link(opts) do
-      GenServer.start_link(__MODULE__, opts)
+      GenServer.start_link(__MODULE__, opts, name: __MODULE__)
     end
 
     def init(_), do: {:ok, [], {:continue, :fetch}}
@@ -179,7 +171,7 @@ defmodule Elementary.Symbols do
       end)
       |> Enum.each(fn %{"symbol" => symbol} = info ->
         info = Map.put(info, "event", "info")
-        Channel.send(symbol, info)
+        Channel.publish(symbol, info)
       end)
     end
   end

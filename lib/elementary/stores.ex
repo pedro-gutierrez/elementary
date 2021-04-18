@@ -21,12 +21,11 @@ defmodule Elementary.Stores do
 
   def store_name(%{"name" => name}), do: store_name(name)
   def store_name(name) when is_atom(name), do: name
-  def store_name(name), do: String.to_atom("#{name}_store")
+  def store_name(name), do: String.to_existing_atom(name)
 
   def store_spec(%{"name" => name, "spec" => spec}) do
     name = store_name(name)
 
-    Logger.warn("starting store #{name}")
     pool_size = spec["pool"] || 1
 
     {:ok, url_spec} = Encoder.encode(spec["url"] || %{"db" => name})
