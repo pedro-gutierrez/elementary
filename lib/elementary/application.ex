@@ -16,10 +16,11 @@ defmodule Elementary.Application do
           Elementary.Stores,
           # Elementary.Test,
           # Elementary.Cluster,
-          Elementary.Services,
+          # Elementary.Services,
           # Elementary.Topics,
           # Elementary.Subscriptions,
           # Elementary.Streams,
+          Elementary.Channels,
           Elementary.Ports,
           Elementary.Metrics,
           Elementary.Symbols

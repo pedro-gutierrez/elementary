@@ -4,6 +4,7 @@ defmodule Elementary.Symbols do
   use Supervisor
   alias Elementary.Index
   alias Elementary.Symbols.{ChannelsSup, TradesSup, Trades, ExchangeInfo}
+  alias Elementary.Channels.Channel
 
   def start_link(opts) do
     Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
@@ -37,10 +38,7 @@ defmodule Elementary.Symbols do
 
     def init(_) do
       Index.specs("symbol")
-      |> Enum.map(fn %{"name" => name} ->
-        name = String.to_atom(name)
-        {Elementary.Channel, name}
-      end)
+      |> Enum.map(&Channel.child_spec(&1))
       |> Supervisor.init(strategy: :one_for_one)
     end
   end
@@ -108,7 +106,7 @@ defmodule Elementary.Symbols do
             "event" => "trade"
           })
 
-        Elementary.Channel.send(name, trade)
+        Channel.send(name, trade)
       else
         other ->
           Logger.warn("Unexpected frame from #{symbol}: #{inspect(other)}")
@@ -181,7 +179,7 @@ defmodule Elementary.Symbols do
       end)
       |> Enum.each(fn %{"symbol" => symbol} = info ->
         info = Map.put(info, "event", "info")
-        Elementary.Channel.send(symbol, info)
+        Channel.send(symbol, info)
       end)
     end
   end
