@@ -5,6 +5,7 @@ defmodule Elementary.Symbols do
   alias Elementary.Index
   alias Elementary.Symbols.Symbol
   alias Elementary.Symbols.Trades
+  alias Elementary.Symbols.Ticker
   alias Elementary.Symbols.ExchangeInfo
   alias Elementary.Channels.Channel
 
@@ -41,6 +42,7 @@ defmodule Elementary.Symbols do
     def init(spec) do
       [
         {Channel, spec},
+        {Ticker, spec},
         {Trades, spec}
       ]
       |> Supervisor.init(strategy: :one_for_one)
@@ -52,6 +54,35 @@ defmodule Elementary.Symbols do
         start: {__MODULE__, :start_link, [spec]}
       }
     end
+  end
+
+  defmodule Ticker do
+    @moduledoc """
+    Subscribes to trade events and exposes the 
+    price for a symbol as a metric
+    """
+    use GenServer
+    alias Elementary.Channels.Channel
+    alias Elementary.Symbols.Instrumenter
+
+    def start_link(spec) do
+      GenServer.start_link(__MODULE__, spec)
+    end
+
+    def init(%{"name" => name}) do
+      Channel.subscribe(name)
+      {:ok, name}
+    end
+
+    def handle_info(%{"p" => price, "s" => symbol}, state) do
+      {price, _} = Decimal.parse(price)
+      price = Decimal.to_float(price)
+
+      Instrumenter.price(symbol, price)
+      {:noreply, state}
+    end
+
+    def handle_info(_, state), do: {:noreply, state}
   end
 
   defmodule Trades do
@@ -192,6 +223,16 @@ defmodule Elementary.Symbols do
         help: "Websocket connection_status",
         labels: [:symbol]
       )
+
+      Gauge.declare(
+        name: :symbol_price,
+        help: "Symbol price",
+        labels: [:symbol]
+      )
+    end
+
+    def price(symbol, price) do
+      Gauge.set([name: :symbol_price, labels: [symbol]], price)
     end
 
     def disconnected(symbol) do
