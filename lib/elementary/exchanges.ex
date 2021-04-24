@@ -34,8 +34,13 @@ defmodule Elementary.Exchanges do
         Channel.subscribe(name)
       end)
 
-      {:ok, [%{"order_id" => last_id}]} =
-        Store.find_all(:default, :orders, %{}, limit: 1, sort: [order_id: :desc])
+      last_id =
+        case Store.find_all(:default, :orders, %{}, limit: 1, sort: [order_id: :desc]) do
+          {:ok, []} ->
+            0
+
+            {:ok, [%{"order_id" => last_id}]} = last_id
+        end
 
       {:ok, %{last_order_id: last_id}}
     end
