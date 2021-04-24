@@ -3,9 +3,7 @@ defmodule Elementary.Symbols do
 
   use Supervisor
   alias Elementary.Index
-  alias Elementary.Symbols.Symbol
-  alias Elementary.Symbols.Trades
-  alias Elementary.Symbols.Ticker
+  alias Elementary.Symbols.{Symbol, Events, Trader, Ticker}
   alias Elementary.Symbols.ExchangeInfo
   alias Elementary.Channels.Channel
 
@@ -20,13 +18,17 @@ defmodule Elementary.Symbols do
   end
 
   def init(_) do
-    symbols =
+    children =
       Index.specs("symbol")
       |> Enum.map(fn spec ->
         {Symbol, spec}
       end)
 
-    Supervisor.init([ExchangeInfo | symbols], strategy: :one_for_one)
+    children =
+      children ++
+        [ExchangeInfo]
+
+    Supervisor.init(children, strategy: :one_for_one)
   end
 
   defmodule Symbol do
@@ -42,8 +44,9 @@ defmodule Elementary.Symbols do
     def init(spec) do
       [
         {Channel, spec},
+        {Trader, spec},
         {Ticker, spec},
-        {Trades, spec}
+        {Events, spec}
       ]
       |> Supervisor.init(strategy: :one_for_one)
     end
@@ -54,6 +57,37 @@ defmodule Elementary.Symbols do
         start: {__MODULE__, :start_link, [spec]}
       }
     end
+  end
+
+  defmodule Trader do
+    @moduledoc """
+    A very simple trader
+    """
+
+    @client Elementary.Exchanges.Fake
+
+    use GenServer
+    alias Elementary.Channels.Channel
+    alias Elementary.Symbols.Instrumenter
+    require Logger
+
+    def start_link(spec) do
+      GenServer.start_link(__MODULE__, spec)
+    end
+
+    def init(%{"name" => name}) do
+      Channel.subscribe(name)
+      {:ok, %{buy: nil, sell: nil, symbol: name}}
+    end
+
+    def handle_info(%{"event" => "trade", "s" => s, "p" => p}, %{buy: nil} = state) do
+      {:ok, order} = @client.buy(%{symbol: s, q: 10, p: p})
+      state = %{state | buy: order}
+      Logger.info("trader has buy order #{inspect(state)}")
+      {:noreply, state}
+    end
+
+    def handle_info(_, state), do: {:noreply, state}
   end
 
   defmodule Ticker do
@@ -85,7 +119,7 @@ defmodule Elementary.Symbols do
     def handle_info(_, state), do: {:noreply, state}
   end
 
-  defmodule Trades do
+  defmodule Events do
     @moduledoc """
     A worker that subscribes to symbol trades
     and emits them to the rest of the application

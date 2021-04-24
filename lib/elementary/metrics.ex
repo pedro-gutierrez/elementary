@@ -6,6 +6,7 @@ defmodule Elementary.Metrics do
   use Supervisor
 
   @instruments [
+    Elementary.Stores.Instrumenter,
     Elementary.Channels.Instrumenter,
     Elementary.Symbols.Instrumenter
   ]

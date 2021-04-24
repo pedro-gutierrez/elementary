@@ -3,6 +3,7 @@ defmodule Elementary.Stores do
 
   use Supervisor
   alias Elementary.{Kit, Index, Encoder}
+  alias Elementary.Stores.StoreSupervisor
   require Logger
 
   def start_link(opts) do
@@ -11,10 +12,8 @@ defmodule Elementary.Stores do
 
   def init(_) do
     Index.specs("store")
-    |> Enum.map(fn %{"name" => name} = spec ->
-      name = String.to_atom(name)
-      IO.inspect(store: name)
-      store_spec(spec)
+    |> Enum.map(fn spec ->
+      {StoreSupervisor, spec}
     end)
     |> Supervisor.init(strategy: :one_for_one)
   end
@@ -23,31 +22,122 @@ defmodule Elementary.Stores do
   def store_name(name) when is_atom(name), do: name
   def store_name(name), do: String.to_existing_atom(name)
 
-  def store_spec(%{"name" => name, "spec" => spec}) do
-    name = store_name(name)
+  defmodule StoreSupervisor do
+    @moduledoc """
+    A supervisor module for a single store
 
-    pool_size = spec["pool"] || 1
+    """
+    use Supervisor
+    alias Elementary.Stores
+    alias Elementary.Stores.Monitor
 
-    {:ok, url_spec} = Encoder.encode(spec["url"] || %{"db" => name})
-    url = Kit.mongo_url(url_spec)
+    def start_link(spec) do
+      Supervisor.start_link(__MODULE__, spec)
+    end
 
-    %{
-      id: name,
-      start:
-        {Mongo, :start_link,
-         [
+    def init(spec) do
+      name = Stores.store_name(spec)
+
+      IO.inspect(store: name)
+      [{Monitor, spec}, store_spec(spec)] |> Supervisor.init(strategy: :one_for_one)
+    end
+
+    def store_spec(%{"name" => name, "spec" => spec}) do
+      name = Stores.store_name(name)
+
+      pool_size = spec["pool"] || 1
+
+      {:ok, url_spec} = Encoder.encode(spec["url"] || %{"db" => name})
+      url = Kit.mongo_url(url_spec)
+
+      %{
+        id: name,
+        start:
+          {Mongo, :start_link,
            [
-             timeout: 5000,
-             pool_timeout: 8000,
-             name: name,
-             url: url,
-             pool_size: pool_size
-           ]
-         ]},
-      type: :worker,
-      restart: :permanent,
-      shutdown: 5000
-    }
+             [
+               timeout: 5000,
+               pool_timeout: 8000,
+               name: name,
+               url: url,
+               pool_size: pool_size
+             ]
+           ]},
+        type: :worker,
+        restart: :permanent,
+        shutdown: 5000
+      }
+    end
+  end
+
+  defmodule Monitor do
+    @moduledoc """
+    A monitor process that inspects a store
+    usage every minutes and updates metrics
+    """
+    use GenServer
+    alias Elementary.Stores
+    alias Elementary.Stores.Instrumenter
+    alias Elementary.Stores.Store
+
+    def start_link(opts) do
+      GenServer.start_link(__MODULE__, opts)
+    end
+
+    @one_meg 1024 * 1000
+    @poll_minutes 1
+
+    def init(spec) do
+      Process.send_after(self(), :monitor, @poll_minutes * 1000)
+      {:ok, spec}
+    end
+
+    def handle_info(:monitor, spec) do
+      store_name = Stores.store_name(spec)
+
+      store_name
+      |> Store.usage()
+      |> Enum.each(fn {col, [size: size, count: count]} ->
+        size = Float.floor(size / @one_meg, 1)
+        Instrumenter.size(store_name, col, size)
+        Instrumenter.count(store_name, col, count)
+      end)
+
+      Process.send_after(self(), :monitor, @poll_minutes * 1000)
+      {:noreply, spec}
+    end
+  end
+
+  defmodule Instrumenter do
+    @moduledoc """
+    A store instrumenter based on Prometheus
+
+    Exposes usage metrics
+    """
+
+    use Prometheus.Metric
+
+    def setup do
+      Gauge.declare(
+        name: :store_collection_size,
+        help: "Store collection_size",
+        labels: [:store, :collection]
+      )
+
+      Gauge.declare(
+        name: :store_collection_count,
+        help: "Store collection_count",
+        labels: [:store, :collection]
+      )
+    end
+
+    def size(store, collection, size) do
+      Gauge.set([name: :store_collection_size, labels: [store, collection]], size)
+    end
+
+    def count(store, collection, count) do
+      Gauge.set([name: :store_collection_count, labels: [store, collection]], count)
+    end
   end
 
   defmodule Store do
@@ -55,6 +145,17 @@ defmodule Elementary.Stores do
     alias Elementary.{Stores, Kit}
 
     @dialyzer {:no_return, {:ping, 0}}
+
+    def usage(spec) do
+      spec
+      |> Stores.store_name()
+      |> Mongo.show_collections()
+      |> Enum.reduce(%{}, fn col, acc ->
+        {:ok, %{"count" => count, "size" => size}} = Mongo.command(:default, collStats: col)
+
+        Map.put(acc, col, size: size, count: count)
+      end)
+    end
 
     def empty(%{"spec" => %{"collections" => cols}} = spec) do
       Enum.reduce_while(cols, :ok, fn {col, _}, _ ->

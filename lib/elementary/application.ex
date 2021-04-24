@@ -23,6 +23,7 @@ defmodule Elementary.Application do
           Elementary.Channels,
           Elementary.Ports,
           Elementary.Metrics,
+          Elementary.Exchanges,
           Elementary.Symbols
         ],
         strategy: :one_for_one,
