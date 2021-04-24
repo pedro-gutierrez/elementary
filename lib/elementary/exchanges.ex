@@ -39,7 +39,8 @@ defmodule Elementary.Exchanges do
           {:ok, []} ->
             0
 
-            {:ok, [%{"order_id" => last_id}]} = last_id
+          {:ok, [%{"order_id" => last_id}]} ->
+            last_id
         end
 
       {:ok, %{last_order_id: last_id}}
