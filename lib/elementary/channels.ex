@@ -31,7 +31,7 @@ defmodule Elementary.Channels do
     alias Elementary.Channels.Writer
 
     def name(name) when is_atom(name), do: name
-    def name(name), do: String.to_existing_atom(name)
+    def name(name), do: String.to_atom(name)
 
     def start_link(name) do
       Supervisor.start_link(__MODULE__, name, name: name)
@@ -45,11 +45,10 @@ defmodule Elementary.Channels do
     end
 
     def subscribe(channel) do
-      IO.inspect(subscribe: channel)
-
-      channel
-      |> name()
-      |> :pg2.join(self())
+      :ok =
+        channel
+        |> name()
+        |> :pg2.join(self())
     end
 
     def child_spec(%{"name" => name}) do
@@ -116,7 +115,7 @@ defmodule Elementary.Channels do
 
   defmodule Instrumenter do
     @moduledoc """
-    A channel instrumenter based on 
+    A channel instrumenter based on
     Prometheus
     """
 

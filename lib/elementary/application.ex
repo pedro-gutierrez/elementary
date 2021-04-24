@@ -23,8 +23,9 @@ defmodule Elementary.Application do
           Elementary.Channels,
           Elementary.Ports,
           Elementary.Metrics,
+          Elementary.Symbols,
           Elementary.Exchanges,
-          Elementary.Symbols
+          Elementary.Traders
         ],
         strategy: :one_for_one,
         name: Elementary.Supervisor

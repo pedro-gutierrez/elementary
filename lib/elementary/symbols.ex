@@ -44,7 +44,6 @@ defmodule Elementary.Symbols do
     def init(spec) do
       [
         {Channel, spec},
-        {Trader, spec},
         {Ticker, spec},
         {Events, spec}
       ]
@@ -59,40 +58,9 @@ defmodule Elementary.Symbols do
     end
   end
 
-  defmodule Trader do
-    @moduledoc """
-    A very simple trader
-    """
-
-    @client Elementary.Exchanges.Fake
-
-    use GenServer
-    alias Elementary.Channels.Channel
-    alias Elementary.Symbols.Instrumenter
-    require Logger
-
-    def start_link(spec) do
-      GenServer.start_link(__MODULE__, spec)
-    end
-
-    def init(%{"name" => name}) do
-      Channel.subscribe(name)
-      {:ok, %{buy: nil, sell: nil, symbol: name}}
-    end
-
-    def handle_info(%{"event" => "trade", "s" => s, "p" => p}, %{buy: nil} = state) do
-      {:ok, order} = @client.buy(%{symbol: s, q: 10, p: p})
-      state = %{state | buy: order}
-      Logger.info("trader has buy order #{inspect(state)}")
-      {:noreply, state}
-    end
-
-    def handle_info(_, state), do: {:noreply, state}
-  end
-
   defmodule Ticker do
     @moduledoc """
-    Subscribes to trade events and exposes the 
+    Subscribes to trade events and exposes the
     price for a symbol as a metric
     """
     use GenServer

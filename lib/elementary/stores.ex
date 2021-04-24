@@ -507,8 +507,14 @@ defmodule Elementary.Stores do
             opts,
             :sort,
             Enum.map(sort, fn
+              {k, :asc} ->
+                {k, 1}
+
               {k, "asc"} ->
                 {k, 1}
+
+              {k, :desc} ->
+                {k, -1}
 
               {k, "desc"} ->
                 {k, -1}
@@ -525,17 +531,9 @@ defmodule Elementary.Stores do
     def find_one(spec, col, query, opts \\ []) do
       store = Stores.store_name(spec)
       query = Kit.with_mongo_id(query)
+      opts = with_sort(opts)
 
-      {res, _} =
-        case opts[:delete] do
-          true ->
-            {Mongo.find_one_and_delete(store, col, query), :find_one_and_delete}
-
-          _ ->
-            {Mongo.find_one(store, col, query), :find_one}
-        end
-
-      case res do
+      case Mongo.find_one(store, col, query, opts) do
         nil ->
           {:error, :not_found}
 
