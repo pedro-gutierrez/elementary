@@ -26,6 +26,7 @@ defmodule Elementary.Traders do
 
     use GenServer
     alias Elementary.Channels.Channel
+    alias Elementary.Kit
     require Logger
 
     def start_link(%{"name" => name} = spec) do
@@ -46,31 +47,35 @@ defmodule Elementary.Traders do
     end
 
     def handle_info(%{"event" => "trade", "s" => s, "p" => p}, %{buy: nil} = state) do
-      {:ok, p} = Decimal.cast(p)
-      p = Decimal.to_float(p)
-      {:ok, q} = Decimal.cast(10)
-      q = Decimal.to_float(q)
+      p = Kit.float_from(p)
+      q = Kit.float_from("10.0")
 
-      {:ok, order} = @client.buy(%{symbol: s, q: q, p: p})
+      {:ok, order} = @client.buy(s, q, p)
       state = %{state | buy: order}
-      # Logger.info("trader has buy order #{inspect(state)}")
       {:noreply, state}
     end
 
     def handle_info(
           %{"event" => "trade", "buyer_order_id" => order_id},
-          %{buy: %{order_id: order_id, status: "FILLED"}} = state
+          %{buy: %{"order_id" => order_id, "status" => "FILLED"}} = state
         ) do
       {:noreply, state}
     end
 
     def handle_info(
           %{"event" => "trade", "buyer_order_id" => order_id},
-          %{buy: %{symbol: symbol, time: timestamp, order_id: order_id}} = state
+          %{
+            buy: %{
+              "symbol" => symbol,
+              "time" => timestamp,
+              "order_id" => order_id,
+              "status" => "NEW"
+            }
+          } = state
         ) do
-      {:ok, _order} = @client.order(symbol, timestamp, order_id)
+      {:ok, order} = @client.find_order(symbol, timestamp, order_id)
 
-      # Logger.info("found buy order #{inspect(order)}")
+      Logger.info("found buy order #{inspect(order)}")
       {:noreply, state}
     end
 

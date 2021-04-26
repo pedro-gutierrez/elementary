@@ -247,4 +247,12 @@ defmodule Elementary.Kit do
       pid
     end
   end
+
+  @doc """
+  Easy conversion from string to float
+  """
+  def float_from(str) when is_binary(str) do
+    {:ok, d} = Decimal.cast(str)
+    Decimal.to_float(d)
+  end
 end
