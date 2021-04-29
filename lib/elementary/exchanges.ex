@@ -37,14 +37,14 @@ defmodule Elementary.Exchanges do
     end
 
     def find_order(_symbol, _timestamp, order_id) do
-      Store.find_one(:default, :orders, %{
+      Store.find_one(:default, :fake_orders, %{
         order_id: order_id
       })
     end
 
     def init(_) do
       {:ok, orders} =
-        Store.find_all(:default, :orders, %{
+        Store.find_all(:default, :fake_orders, %{
           "status" => "NEW"
         })
 
@@ -61,7 +61,7 @@ defmodule Elementary.Exchanges do
     def handle_call({:buy, s, q, p}, _, state) do
       {order, state} = new_order("BUY", s, q, p, state)
 
-      :ok = Store.insert(:default, :orders, order)
+      :ok = Store.insert(:default, :fake_orders, order)
       Logger.info("[new] [BUY] [#{order["order_id"]}]: #{q} #{s} @ #{p}")
       {:reply, {:ok, order}, state}
     end
@@ -69,7 +69,7 @@ defmodule Elementary.Exchanges do
     def handle_call({:sell, s, q, p}, _, state) do
       {order, state} = new_order("SELL", s, q, p, state)
 
-      :ok = Store.insert(:default, :orders, order)
+      :ok = Store.insert(:default, :fake_orders, order)
       Logger.info("[new] [SELL] [#{order["order_id"]}]: #{q} #{s} @ #{p}")
 
       {:reply, {:ok, order}, state}
@@ -98,7 +98,7 @@ defmodule Elementary.Exchanges do
     def handle_info(_, state), do: {:noreply, state}
 
     defp last_order_id do
-      case Store.find_all(:default, :orders, %{}, limit: 1, sort: [order_id: :desc]) do
+      case Store.find_all(:default, :fake_orders, %{}, limit: 1, sort: [order_id: :desc]) do
         {:ok, []} ->
           0
 
@@ -173,7 +173,7 @@ defmodule Elementary.Exchanges do
     def should_fill_order(trade_price, "SELL", order_price), do: trade_price > order_price
 
     def update_filled_order(order_id) do
-      case Store.update(:default, :orders, %{order_id: order_id, status: "NEW"}, %{
+      case Store.update(:default, :fake_orders, %{order_id: order_id, status: "NEW"}, %{
              status: "FILLED"
            }) do
         {:ok, 1} ->

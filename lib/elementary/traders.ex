@@ -60,19 +60,21 @@ defmodule Elementary.Traders do
 
     def init(%{"name" => name}) do
       Channel.subscribe(name)
-      {:ok, %{buy: nil, sell: nil, symbol: name, count: 0}}
+      {:ok, %{buy: nil, sell: nil, symbol: name}}
     end
 
-    def handle_info(%{"event" => "trade"}, %{count: @max_trades} = state) do
-      {:noreply, state}
-    end
+    def handle_info(%{"event" => "trade", "p" => p, "s" => s}, state) do
+      case Trades.count(s) < @max_trades do
+        true ->
+          p = Kit.float_from(p)
+          q = Kit.float_from("10.0")
 
-    def handle_info(%{"event" => "trade", "p" => p, "s" => s}, %{count: count} = state) do
-      p = Kit.float_from(p)
-      q = Kit.float_from("10.0")
+          {:ok, _} = Trades.buy(s, q, p)
+          {:noreply, state}
 
-      {:ok, _} = Trades.buy(s, q, p)
-      {:noreply, %{state | count: count + 1}}
+        false ->
+          {:noreply, state}
+      end
     end
 
     def handle_info(_, state), do: {:noreply, state}
@@ -101,6 +103,12 @@ defmodule Elementary.Traders do
       name = String.to_existing_atom("#{s}_trades")
       DynamicSupervisor.start_child(name, {BuySell, [q, p]})
     end
+
+    def count(s) do
+      name = String.to_existing_atom("#{s}_trades")
+      %{workers: count} = DynamicSupervisor.count_children(name)
+      count
+    end
   end
 
   defmodule BuySell do
@@ -114,6 +122,7 @@ defmodule Elementary.Traders do
     alias Elementary.Traders.Instrumenter
     require Logger
 
+    @expected_revenue 1.001
     @client Elementary.Exchanges.Fake
 
     def start_link(spec, [q, p]) do
@@ -154,7 +163,7 @@ defmodule Elementary.Traders do
         case @client.find_order(symbol, timestamp, order_id) do
           {:ok,
            %{"status" => "FILLED", "symbol" => s, "orig_qty" => q, "price" => buy_price} = buy} ->
-            sell_price = buy_price * 1.1
+            sell_price = buy_price * @expected_revenue
             {:ok, sell} = @client.sell(s, q, sell_price)
             Instrumenter.order_filled(s, :buy)
             Instrumenter.order_created(s, :sell)
@@ -169,6 +178,33 @@ defmodule Elementary.Traders do
         end
 
       {:noreply, state}
+    end
+
+    def handle_info(
+          %{"event" => "trade", "seller_order_id" => order_id},
+          %{
+            sell: %{
+              "symbol" => symbol,
+              "time" => timestamp,
+              "order_id" => order_id,
+              "status" => "NEW"
+            }
+          } = state
+        ) do
+      case @client.find_order(symbol, timestamp, order_id) do
+        {:ok,
+         %{"status" => "FILLED", "symbol" => s, "orig_qty" => _q, "price" => _sell_price} = sell} ->
+          Instrumenter.order_filled(s, :sell)
+          state = %{state | sell: sell}
+          {:stop, :normal, state}
+
+        {:ok, order} ->
+          Logger.warn(
+            "our sell order was published but it does not seem to be filled: #{inspect(order)}"
+          )
+
+          {:noreply, %{state | buy: order}}
+      end
     end
 
     def handle_info(_, state), do: {:noreply, state}
