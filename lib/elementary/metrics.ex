@@ -8,7 +8,8 @@ defmodule Elementary.Metrics do
   @instruments [
     Elementary.Stores.Instrumenter,
     Elementary.Channels.Instrumenter,
-    Elementary.Symbols.Instrumenter
+    Elementary.Symbols.Instrumenter,
+    Elementary.Traders.Instrumenter
   ]
 
   def start_link(opts) do

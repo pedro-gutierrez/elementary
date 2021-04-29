@@ -111,6 +111,7 @@ defmodule Elementary.Traders do
 
     use GenServer, restart: :transient
     alias Elementary.Channels.Channel
+    alias Elementary.Traders.Instrumenter
     require Logger
 
     @client Elementary.Exchanges.Fake
@@ -127,6 +128,7 @@ defmodule Elementary.Traders do
     def handle_continue({:buy, q, p}, %{symbol: s} = state) do
       {:ok, order} = @client.buy(s, q, p)
       state = %{state | buy: order}
+      Instrumenter.order_created(s, :buy)
       {:noreply, state}
     end
 
@@ -154,6 +156,8 @@ defmodule Elementary.Traders do
            %{"status" => "FILLED", "symbol" => s, "orig_qty" => q, "price" => buy_price} = buy} ->
             sell_price = buy_price * 1.1
             {:ok, sell} = @client.sell(s, q, sell_price)
+            Instrumenter.order_filled(s, :buy)
+            Instrumenter.order_created(s, :sell)
             %{state | buy: buy, sell: sell}
 
           {:ok, order} ->
@@ -168,5 +172,38 @@ defmodule Elementary.Traders do
     end
 
     def handle_info(_, state), do: {:noreply, state}
+  end
+
+  defmodule Instrumenter do
+    @moduledoc """
+    A symbol instrumenter based on Prometheus
+
+    Defines all the metrics that we expose in relation
+    to trade orders
+    """
+
+    use Prometheus.Metric
+
+    def setup do
+      Counter.declare(
+        name: :orders_created,
+        help: "Number of orders created",
+        labels: [:symbol, :side]
+      )
+
+      Counter.declare(
+        name: :orders_filled,
+        help: "Number of orders filled",
+        labels: [:symbol, :side]
+      )
+    end
+
+    def order_created(symbol, side) do
+      Counter.inc(name: :orders_created, labels: [symbol, side])
+    end
+
+    def order_filled(symbol, side) do
+      Counter.inc(name: :orders_filled, labels: [symbol, side])
+    end
   end
 end
