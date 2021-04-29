@@ -21,17 +21,13 @@ defmodule Elementary.Traders do
     @moduledoc """
     A trader on a specific symbol
     """
-
-    @client Elementary.Exchanges.Fake
-
-    use GenServer
-    alias Elementary.Channels.Channel
-    alias Elementary.Kit
-    require Logger
+    use Supervisor
+    alias Elementary.Traders.Leader
+    alias Elementary.Traders.Trades
 
     def start_link(%{"name" => name} = spec) do
       name = String.to_atom("#{name}_trader")
-      GenServer.start_link(__MODULE__, spec, name: name)
+      Supervisor.start_link(__MODULE__, spec, name: name)
     end
 
     def child_spec(%{"name" => name} = spec) do
@@ -41,15 +37,94 @@ defmodule Elementary.Traders do
       }
     end
 
-    def init(%{"name" => name}) do
-      Channel.subscribe(name)
-      {:ok, %{buy: nil, sell: nil, symbol: name}}
+    def init(spec) do
+      [{Leader, spec}, {Trades, spec}]
+      |> Supervisor.init(strategy: :one_for_one)
+    end
+  end
+
+  defmodule Leader do
+    @moduledoc """
+    A trader on a specific symbol
+    """
+    @max_trades 1
+
+    use GenServer
+    alias Elementary.Channels.Channel
+    alias Elementary.Kit
+    alias Elementary.Traders.Trades
+
+    def start_link(spec) do
+      GenServer.start_link(__MODULE__, spec)
     end
 
-    def handle_info(%{"event" => "trade", "s" => s, "p" => p}, %{buy: nil} = state) do
+    def init(%{"name" => name}) do
+      Channel.subscribe(name)
+      {:ok, %{buy: nil, sell: nil, symbol: name, count: 0}}
+    end
+
+    def handle_info(%{"event" => "trade"}, %{count: @max_trades} = state) do
+      {:noreply, state}
+    end
+
+    def handle_info(%{"event" => "trade", "p" => p, "s" => s}, %{count: count} = state) do
       p = Kit.float_from(p)
       q = Kit.float_from("10.0")
 
+      {:ok, _} = Trades.buy(s, q, p)
+      {:noreply, %{state | count: count + 1}}
+    end
+
+    def handle_info(_, state), do: {:noreply, state}
+  end
+
+  defmodule Trades do
+    @moduledoc """
+    A dynamic supervisor for trades
+    """
+    use DynamicSupervisor
+    alias Elementary.Traders.BuySell
+
+    def start_link(%{"name" => name} = spec) do
+      name = String.to_atom("#{name}_trades")
+      DynamicSupervisor.start_link(__MODULE__, spec, name: name)
+    end
+
+    def init(spec) do
+      DynamicSupervisor.init(
+        strategy: :one_for_one,
+        extra_arguments: [spec]
+      )
+    end
+
+    def buy(s, q, p) do
+      name = String.to_existing_atom("#{s}_trades")
+      DynamicSupervisor.start_child(name, {BuySell, [q, p]})
+    end
+  end
+
+  defmodule BuySell do
+    @moduledoc """
+    A trade that starts with a buy order
+    followed by a sell order
+    """
+
+    use GenServer, restart: :transient
+    alias Elementary.Channels.Channel
+    require Logger
+
+    @client Elementary.Exchanges.Fake
+
+    def start_link(spec, [q, p]) do
+      GenServer.start_link(__MODULE__, [q, p, spec])
+    end
+
+    def init([q, p, %{"name" => name}]) do
+      Channel.subscribe(name)
+      {:ok, %{buy: nil, sell: nil, symbol: name}, {:continue, {:buy, q, p}}}
+    end
+
+    def handle_continue({:buy, q, p}, %{symbol: s} = state) do
       {:ok, order} = @client.buy(s, q, p)
       state = %{state | buy: order}
       {:noreply, state}
@@ -73,9 +148,22 @@ defmodule Elementary.Traders do
             }
           } = state
         ) do
-      {:ok, order} = @client.find_order(symbol, timestamp, order_id)
+      state =
+        case @client.find_order(symbol, timestamp, order_id) do
+          {:ok,
+           %{"status" => "FILLED", "symbol" => s, "orig_qty" => q, "price" => buy_price} = buy} ->
+            sell_price = buy_price * 1.1
+            {:ok, sell} = @client.sell(s, q, sell_price)
+            %{state | buy: buy, sell: sell}
 
-      Logger.info("found buy order #{inspect(order)}")
+          {:ok, order} ->
+            Logger.warn(
+              "our buy order was published but it does not seem to be filled: #{inspect(order)}"
+            )
+
+            %{state | buy: order}
+        end
+
       {:noreply, state}
     end
 

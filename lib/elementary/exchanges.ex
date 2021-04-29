@@ -16,22 +16,24 @@ defmodule Elementary.Exchanges do
   end
 
   defmodule Fake do
-    use Supervisor
-    alias Elementary.Exchanges.Fake.Leader
-    alias Elementary.Exchanges.Fake.Orders
+    use GenServer
     alias Elementary.Stores.Store
+    alias Elementary.Channels.Channel
+    alias Elementary.Kit
+    alias Elementary.Index
 
-    def start_link(opts) do
-      Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
-    end
+    require Logger
 
-    def init(_) do
-      [Orders, Leader]
-      |> Supervisor.init(strategy: :rest_for_one)
+    def start_link(opts \\ []) do
+      GenServer.start_link(__MODULE__, opts, name: __MODULE__)
     end
 
     def buy(s, q, p) do
-      GenServer.call(Leader, {:buy, s, q, p})
+      GenServer.call(__MODULE__, {:buy, s, q, p})
+    end
+
+    def sell(s, q, p) do
+      GenServer.call(__MODULE__, {:sell, s, q, p})
     end
 
     def find_order(_symbol, _timestamp, order_id) do
@@ -40,169 +42,147 @@ defmodule Elementary.Exchanges do
       })
     end
 
-    defmodule Orders do
-      @moduledoc """
-      A fake Binance exchange simulator
-      """
+    def init(_) do
+      {:ok, orders} =
+        Store.find_all(:default, :orders, %{
+          "status" => "NEW"
+        })
 
-      use DynamicSupervisor
-      alias Elementary.Exchanges.Fake.Order
+      Logger.info("Loaded #{length(orders)} pending orders")
 
-      def start_link(opts) do
-        DynamicSupervisor.start_link(__MODULE__, opts, name: __MODULE__)
-      end
+      Index.specs("symbol")
+      |> Enum.each(fn %{"name" => s} ->
+        :ok = Channel.subscribe(s)
+      end)
 
-      def init(_) do
-        DynamicSupervisor.init(
-          strategy: :one_for_one,
-          extra_arguments: []
-        )
-      end
-
-      def start_new(order) do
-        DynamicSupervisor.start_child(__MODULE__, {Order, order})
-      end
+      {:ok, %{orders: orders, last_order_id: last_order_id()}}
     end
 
-    defmodule Leader do
-      @moduledoc """
-      Loads existing non filled orders during startup
-      """
+    def handle_call({:buy, s, q, p}, _, state) do
+      {order, state} = new_order("BUY", s, q, p, state)
 
-      use GenServer
-      alias Elementary.Exchanges.Fake.Orders
-      alias Elementary.Stores.Store
+      :ok = Store.insert(:default, :orders, order)
+      Logger.info("[new] [BUY] [#{order["order_id"]}]: #{q} #{s} @ #{p}")
+      {:reply, {:ok, order}, state}
+    end
 
-      def start_link(opts) do
-        GenServer.start_link(__MODULE__, opts, name: __MODULE__)
-      end
+    def handle_call({:sell, s, q, p}, _, state) do
+      {order, state} = new_order("SELL", s, q, p, state)
 
-      def init(_) do
-        last_id =
-          case Store.find_all(:default, :orders, %{}, limit: 1, sort: [order_id: :desc]) do
-            {:ok, []} ->
-              0
+      :ok = Store.insert(:default, :orders, order)
+      Logger.info("[new] [SELL] [#{order["order_id"]}]: #{q} #{s} @ #{p}")
 
-            {:ok, [%{"order_id" => last_id}]} ->
-              last_id
+      {:reply, {:ok, order}, state}
+    end
+
+    def handle_info(
+          %{"event" => "trade", "p" => p, "s" => s},
+          %{orders: orders} = state
+        ) do
+      p = Kit.float_from(p)
+
+      orders =
+        Enum.reduce(orders, [], fn order, acc ->
+          case maybe_fill_order(s, p, order) do
+            true ->
+              acc
+
+            false ->
+              [order | acc]
           end
-
-        {:ok, %{last_order_id: last_id}, {:continue, :resume}}
-      end
-
-      def handle_continue(:resume, state) do
-        {:ok, orders} =
-          Store.find_all(:default, :orders, %{
-            "status" => "NEW"
-          })
-
-        Enum.each(orders, fn order ->
-          {:ok, _} = Orders.start_new(order)
         end)
 
-        {:noreply, state}
-      end
+      {:noreply, %{state | orders: orders}}
+    end
 
-      def handle_call({:buy, s, q, p}, _, state) do
-        {order, state} = new_order("BUY", s, q, p, state)
+    def handle_info(_, state), do: {:noreply, state}
 
-        :ok = Store.insert(:default, :orders, order)
-        {:ok, _} = Orders.start_new(order)
+    defp last_order_id do
+      case Store.find_all(:default, :orders, %{}, limit: 1, sort: [order_id: :desc]) do
+        {:ok, []} ->
+          0
 
-        {:reply, {:ok, order}, state}
-      end
-
-      defp new_order(side, symbol, q, p, %{last_order_id: order_id} = state) do
-        order_id = order_id + 1
-        current_timestamp = :os.system_time(:millisecond)
-        client_order_id = :crypto.hash(:md5, "#{order_id}") |> Base.encode16()
-
-        order = %{
-          "symbol" => symbol,
-          "order_id" => order_id,
-          "client_order_id" => client_order_id,
-          "price" => p,
-          "orig_qty" => q,
-          "executed_qty" => "0.00000000",
-          "cummulative_quote_qty" => "0.00000000",
-          "status" => "NEW",
-          "time_in_force" => "GTC",
-          "type" => "LIMIT",
-          "side" => side,
-          "stop_price" => "0.00000000",
-          "iceberg_qty" => "0.00000000",
-          "time" => current_timestamp,
-          "update_time" => current_timestamp,
-          "is_working" => true
-        }
-
-        {order, %{state | last_order_id: order_id}}
+        {:ok, [%{"order_id" => last_id}]} ->
+          last_id
       end
     end
 
-    defmodule Order do
-      @moduledoc """
-      A fake order
-      """
+    defp new_order(side, symbol, q, p, %{last_order_id: order_id, orders: orders} = state) do
+      order_id = order_id + 1
+      current_timestamp = :os.system_time(:millisecond)
+      client_order_id = :crypto.hash(:md5, "#{order_id}") |> Base.encode16()
 
-      use GenServer
-      alias Elementary.Channels.Channel
-      alias Elementary.Stores.Store
-      alias Elementary.Kit
-      require Logger
+      order = %{
+        "symbol" => symbol,
+        "order_id" => order_id,
+        "client_order_id" => client_order_id,
+        "price" => p,
+        "orig_qty" => q,
+        "executed_qty" => "0.00000000",
+        "cummulative_quote_qty" => "0.00000000",
+        "status" => "NEW",
+        "time_in_force" => "GTC",
+        "type" => "LIMIT",
+        "side" => side,
+        "stop_price" => "0.00000000",
+        "iceberg_qty" => "0.00000000",
+        "time" => current_timestamp,
+        "update_time" => current_timestamp,
+        "is_working" => true
+      }
 
-      def start_link(order) do
-        GenServer.start_link(__MODULE__, order)
+      orders = [order | orders]
+
+      {order, %{state | orders: orders, last_order_id: order_id}}
+    end
+
+    def maybe_fill_order(
+          s,
+          trade_price,
+          %{
+            "order_id" => order_id,
+            "symbol" => s,
+            "orig_qty" => q,
+            "side" => side,
+            "price" => order_price
+          }
+        ) do
+      with true <- should_fill_order(trade_price, side, order_price),
+           true <- update_filled_order(order_id) do
+        trade_event = %{
+          "event" => "trade",
+          "s" => s,
+          "p" => Float.to_string(order_price),
+          "buyer_order_id" => order_id,
+          "seller_order_id" => order_id
+        }
+
+        :ok = Channel.publish(s, trade_event)
+        Logger.info("[filled] [#{side}] [#{order_id}]: #{q} #{s} @ #{order_price}")
+
+        true
+      else
+        _ ->
+          false
       end
+    end
 
-      def init(%{"symbol" => s} = order) do
-        Channel.subscribe(s)
-        Logger.info("started order #{order["order_id"]}")
-        {:ok, %{order: order}}
+    def maybe_fill_order(_, _, _), do: false
+
+    def should_fill_order(trade_price, "BUY", order_price), do: trade_price < order_price
+    def should_fill_order(trade_price, "SELL", order_price), do: trade_price > order_price
+
+    def update_filled_order(order_id) do
+      case Store.update(:default, :orders, %{order_id: order_id, status: "NEW"}, %{
+             status: "FILLED"
+           }) do
+        {:ok, 1} ->
+          true
+
+        {:ok, 0} ->
+          Logger.warn("Could not fill order #{order_id}")
+          false
       end
-
-      def handle_info(
-            %{"event" => "trade", "p" => event_price},
-            %{
-              order:
-                %{"symbol" => s, "side" => side, "price" => p, "order_id" => order_id} = order
-            } = state
-          ) do
-        event_price = Kit.float_from(event_price)
-
-        case should_fill_order(event_price, side, p) do
-          true ->
-            case Store.update(:default, :orders, %{order_id: order_id, status: "NEW"}, %{
-                   status: "FILLED"
-                 }) do
-              {:ok, 1} ->
-                Channel.publish(s, %{
-                  "event" => "trade",
-                  "s" => s,
-                  "p" => Float.to_string(p),
-                  "buyer_order_id" => order_id,
-                  "seller_order_id" => order_id
-                })
-
-                Logger.info("order filled #{inspect(order)}")
-                {:stop, :normal}
-
-              {:ok, 0} ->
-                # TODO figure out this strange condition
-                {:stop, :normal}
-            end
-
-          false ->
-            {:noreply, state}
-        end
-
-        {:noreply, state}
-      end
-
-      def handle_info(_, state), do: {:noreply, state}
-
-      def should_fill_order(trade_price, "BUY", order_price), do: trade_price < order_price
-      def should_fill_order(trade_price, "SELL", order_price), do: trade_price > order_price
     end
   end
 end
