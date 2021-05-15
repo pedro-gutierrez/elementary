@@ -33,8 +33,8 @@ defmodule Elementary.Channels do
     def name(name) when is_atom(name), do: name
     def name(name), do: String.to_atom(name)
 
-    def start_link(name) do
-      Supervisor.start_link(__MODULE__, name, name: name)
+    def start_link(%{name: name} = spec) do
+      Supervisor.start_link(__MODULE__, spec, name: name)
     end
 
     def publish(channel, %{"event" => event} = data) do
@@ -51,23 +51,36 @@ defmodule Elementary.Channels do
         |> :pg2.join(self())
     end
 
-    def child_spec(%{"name" => name}) do
+    def child_spec(%{"name" => name} = spec) do
       name = String.to_atom(name)
+
+      inner_spec = %{name: name}
+
+      inner_spec =
+        case spec["spec"] do
+          %{"events" => events} ->
+            Map.put(inner_spec, :events, events)
+
+          _ ->
+            inner_spec
+        end
 
       %{
         id: name,
-        start: {__MODULE__, :start_link, [name]}
+        start:
+          {__MODULE__, :start_link,
+           [
+             inner_spec
+           ]}
       }
     end
 
-    def init(name) do
+    def init(%{name: name} = spec) do
       :ok = :pg2.create(name)
-
-      IO.inspect(channel: name)
 
       Supervisor.init(
         [
-          {Writer, name}
+          {Writer, spec}
         ],
         strategy: :one_for_one
       )
@@ -81,17 +94,31 @@ defmodule Elementary.Channels do
     """
     use GenServer
 
+    @default_size 25 * 1024 * 1000
+
     alias Elementary.Stores.Store
     alias Elementary.Kit
     alias Elementary.Channels.Instrumenter
     require Logger
 
-    def start_link(name) do
-      GenServer.start_link(__MODULE__, name)
+    def start_link(spec) do
+      GenServer.start_link(__MODULE__, spec)
     end
 
-    def init(name) do
+    def init(%{name: name} = spec) do
       :pg2.join(name, self())
+
+      case spec[:events] do
+        nil ->
+          :ok
+
+        events ->
+          Enum.each(events, fn event ->
+            col = "#{name}-#{event}"
+            :ok = Store.ensure_collection(:default, col, %{"size" => @default_size})
+          end)
+      end
+
       {:ok, name}
     end
 

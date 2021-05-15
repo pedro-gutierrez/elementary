@@ -62,7 +62,6 @@ defmodule Elementary.Exchanges do
       {order, state} = new_order("BUY", s, q, p, state)
 
       :ok = Store.insert(:default, :fake_orders, order)
-      Logger.info("[new] [BUY] [#{order["order_id"]}]: #{q} #{s} @ #{p}")
       {:reply, {:ok, order}, state}
     end
 
@@ -70,7 +69,6 @@ defmodule Elementary.Exchanges do
       {order, state} = new_order("SELL", s, q, p, state)
 
       :ok = Store.insert(:default, :fake_orders, order)
-      Logger.info("[new] [SELL] [#{order["order_id"]}]: #{q} #{s} @ #{p}")
 
       {:reply, {:ok, order}, state}
     end
@@ -142,7 +140,7 @@ defmodule Elementary.Exchanges do
           %{
             "order_id" => order_id,
             "symbol" => s,
-            "orig_qty" => q,
+            "orig_qty" => _q,
             "side" => side,
             "price" => order_price
           }
@@ -158,7 +156,6 @@ defmodule Elementary.Exchanges do
         }
 
         :ok = Channel.publish(s, trade_event)
-        Logger.info("[filled] [#{side}] [#{order_id}]: #{q} #{s} @ #{order_price}")
 
         true
       else

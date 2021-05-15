@@ -3,7 +3,7 @@ defmodule Elementary.Symbols do
 
   use Supervisor
   alias Elementary.Index
-  alias Elementary.Symbols.{Symbol, Events, Trader, Ticker}
+  alias Elementary.Symbols.{Symbol, Events, Ticker}
   alias Elementary.Symbols.ExchangeInfo
   alias Elementary.Channels.Channel
 
@@ -43,7 +43,7 @@ defmodule Elementary.Symbols do
 
     def init(spec) do
       [
-        {Channel, spec},
+        {Channel, channel_spec(spec)},
         {Ticker, spec},
         {Events, spec}
       ]
@@ -55,6 +55,11 @@ defmodule Elementary.Symbols do
         id: name,
         start: {__MODULE__, :start_link, [spec]}
       }
+    end
+
+    defp channel_spec(%{"spec" => inner} = spec) do
+      inner = Map.put(inner, "events", ["trade"])
+      Map.put(spec, "spec", inner)
     end
   end
 

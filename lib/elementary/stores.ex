@@ -206,6 +206,10 @@ defmodule Elementary.Stores do
       [capped: true, max: max, size: size]
     end
 
+    defp collection_create_opts(%{"size" => size}) do
+      [capped: true, size: size]
+    end
+
     defp collection_create_opts(_), do: []
 
     def drop_collection(spec, col) do
